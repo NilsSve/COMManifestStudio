@@ -1,3 +1,6 @@
 [submodule "Libraries/DigitalCert"]
 	path = Libraries/DigitalCert
 	url = https://github.com/NilsSve/Library-DigitalCert.git
+[submodule "Libraries/Filesystem"]
+	path = Libraries/Filesystem
+	url = https://github.com/NilsSve/Library-cFilesystem.git
