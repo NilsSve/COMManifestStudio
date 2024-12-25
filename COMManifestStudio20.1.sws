@@ -8,11 +8,10 @@ Project1=VdfCmdUtil.src
 Project2=DoTouchExeFile.src
 [Conditionals]
 Is$WebApp=False
-Is$Win64=False
+Is$Win64=True
 [Libraries]
-Lib3=Libraries\cFileSystem\cFileSystem20.1.sws
-Lib1=Libraries\DFAbout\DFAbout20.1.sws
-Lib6=Libraries\DigitalCert\DigitalCert20.1.sws
-Lib7=Libraries\DUF\DUF20.1.sws
-Lib8=Libraries\RDCToolsLib\RDCToolsLib20.1.sws
-Lib9=Libraries\vwin32fh\StudioLibrary\vWin32fh-Library-DF201.sws
+Lib1=Libraries\DFAbout\DFAbout24.0.sws
+Lib2=Libraries\DigitalCert\DigitalCert24.0.sws
+Lib3=Libraries\Filesystem\Filesystem24.0.sws
+Lib4=Libraries\RDCToolsLib\RDCToolsLib24.0.sws
+Lib5=Libraries\vwin32fh\StudioLibrary\vWin32fh-Library-DF24.0.sws
