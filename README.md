@@ -1,6 +1,5 @@
-## Restoring Original Data Files
+## Initializing the cloned repository:
 
-After cloning the repository, run the following script to restore the original (empty) data files:
+After cloning the repository, start the Studio with Administrator rights and compile the "VmdCmdUtil.src" program. Then restart the Studio without Administrator rights and compile the main app: "COMManifestStudio.src".
 
-```sh
-./restore_data.sh
+
