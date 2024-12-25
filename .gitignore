@@ -17,7 +17,7 @@
 **/AppSrc/**/*.prp
 loginEncryptionkey.inc
 
-# Data TEMP CHANGES!
+# Data
 **/Data/**/*.log
 **/Data/**/*.dat
 **/Data/**/*.vld
