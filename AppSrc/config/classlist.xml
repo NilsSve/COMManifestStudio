@@ -1,14 +1,7 @@
 <?xml version="1.0"?>
 <classList xmlns="http://www.dataaccess.com/VisualDataFlex/2006/classlist/">
 	<VDFLibraryTimeStamp>2024-03-29T09:06:04</VDFLibraryTimeStamp>
-	<DFLibraryVersion>1</DFLibraryVersion>
-	<libraries>
-		<library>
-			<libraryPath>..\DbUpdateFramework\DUF24.0.sws</libraryPath>
-			<libraryTimeStamp>2024-12-23T17:18:44</libraryTimeStamp>
-			<libraryID>Lib1</libraryID>
-		</library>
-	</libraries>
+	<DFLibraryVersion>1</DFLibraryVersion><libraries></libraries>
 	<classes>
 		<class>
 			<className>cWebButton</className>
@@ -1218,76 +1211,6 @@
 			<package>cDbLocalWebControlHost.pkg</package>
 			<groupName>Data Containers</groupName>
 			<libraryID>0</libraryID>
-		</class>
-		<class>
-			<className>cSkinComboBoxCJMenuItem</className>
-			<image>ControlCJSkinFramework.ico</image>
-			<package>cSkinComboBoxCJMenuItem.pkg</package>
-			<groupName>Menus and Toolbars</groupName>
-			<libraryID>Lib1</libraryID>
-		</class>
-		<class>
-			<className>cDbUpdateHandler</className>
-			<image>ControlObject.ico</image>
-			<package>cDbUpdateHandler.pkg</package>
-			<groupName>Database Update Framework</groupName>
-			<libraryID>Lib1</libraryID>
-		</class>
-		<class>
-			<className>cDbUpdateVersion</className>
-			<image>ControlObject.ico</image>
-			<package>cDbUpdateVersion.pkg</package>
-			<groupName>Database Update Framework</groupName>
-			<libraryID>Lib1</libraryID>
-		</class>
-		<class>
-			<className>cButton</className>
-			<image>ControlButton.ico</image>
-			<package>cButton.pkg</package>
-			<groupName>Base Controls</groupName>
-			<libraryID>Lib1</libraryID>
-		</class>
-		<class>
-			<className>cHeaderGroup</className>
-			<image>ControlContainer3D.ico</image>
-			<package>cHeaderGroup.pkg</package>
-			<groupName>Base Containers</groupName>
-			<libraryID>Lib1</libraryID>
-		</class>
-		<class>
-			<className>cSuggestionForm</className>
-			<image>ControlForm.ico</image>
-			<package>cSuggestionForm.pkg</package>
-			<groupName>Base Controls</groupName>
-			<libraryID>Lib1</libraryID>
-		</class>
-		<class>
-			<className>cRDCHeaderGroup</className>
-			<image>ControlGroup.ico</image>
-			<package>cRDCHeaderGroup.pkg</package>
-			<groupName>Base Containers</groupName>
-			<libraryID>Lib1</libraryID>
-		</class>
-		<class>
-			<className>cMyApplication</className>
-			<image>ControlApplication.ico</image>
-			<package>cMyApplication.pkg</package>
-			<groupName>Database Update Framework</groupName>
-			<libraryID>Lib1</libraryID>
-		</class>
-		<class>
-			<className>cMapComponent</className>
-			<image>ControlCOM.ico</image>
-			<package>cMapComponent.pkg</package>
-			<groupName>Map Component</groupName>
-			<libraryID>Lib1</libraryID>
-		</class>
-		<class>
-			<className>cComSWXMap</className>
-			<image>ControlCOM.ico</image>
-			<package>cComSWXMap.pkg</package>
-			<groupName>ActiveX</groupName>
-			<libraryID>Lib1</libraryID>
 		</class>
 	</classes>
 </classList>
