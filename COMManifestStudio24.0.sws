@@ -8,7 +8,7 @@ Project1=VdfCmdUtil.src
 Project2=DoTouchExeFile.src
 [Conditionals]
 Is$WebApp=False
-Is$Win64=False
+Is$Win64=True
 [Libraries]
 Lib3=Libraries\cFileSystem\cFileSystem20.1.sws
 Lib1=Libraries\DFAbout\DFAbout20.1.sws
