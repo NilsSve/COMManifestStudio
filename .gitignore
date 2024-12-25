@@ -17,15 +17,15 @@
 **/AppSrc/**/*.prp
 loginEncryptionkey.inc
 
-# Data
-**/Data/**/*.log
-**/Data/**/*.dat
-**/Data/**/*.vld
-**/Data/**/*.k*
-**/Data/**/*.bad
-**/Data/**/*.hdr
-**/Data/**/*.cch
-**/Data/**/*.cfg
+# Data TEMP CHANGES!
+#**/Data/**/*.log
+#**/Data/**/*.dat
+#**/Data/**/*.vld
+#**/Data/**/*.k*
+#**/Data/**/*.bad
+#**/Data/**/*.hdr
+#**/Data/**/*.cch
+#**/Data/**/*.cfg
 
 # DDSrc
 **/DdSrc/**/*.def
