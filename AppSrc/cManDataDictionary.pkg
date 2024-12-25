@@ -1,0 +1,18 @@
+Use DataDict.pkg
+Use cRDCAutoCreateNewID.pkg
+Use Dfabout.pkg
+
+Class cManDataDictionary is a DataDictionary
+    Import_Class_Protocol cRDCAutoCreateNewIDMixin
+
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+    End_Procedure
+
+    Procedure End_Construct_Object
+        Forward Send End_Construct_Object
+
+    End_Procedure
+
+End_Class

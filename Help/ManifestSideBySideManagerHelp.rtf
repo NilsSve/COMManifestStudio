@@ -1,0 +1,50 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 Segoe UI;}}
+{\colortbl ;\red0\green0\blue255;}
+{\*\generator Riched20 10.0.10586}\viewkind4\uc1 
+\pard\ul\f0\fs28\lang1053 Help for the Side-By-Side Manifest Studio\par
+\fs20\par
+\ulnone\b What is a COM component?\par
+\b0\par
+A (OLE) Control Extension \fs18\lang29 (ActiveX .ocx or .dll file)\fs20\lang1053  is an application extension required by excutable files (.exe) to perform specific program functions. An example is the CodeJock suite of OCX components, like the CommandBars component that makes it easy for a deveper to create comprehensive, fully customizable menus and toolbars that looks fantastic. The component was introduced with Visual DataFlex 14. Another example is the CodeJock ReportControl that is the foundation for the new grid and lookup classes, which are much more powerful, rich in features and looks way better compared to the old classes. The classes and the CodeJock ReportObject component were introduced with Visual DataFlex 16.\par
+\par
+\b The old way\b0  for Windows to know which COM (OCX/DLL) components and versions that were available on a computer was to use the Windows command regsvr32 to register them to the Windows registry. However, this is error prone and makes your application vulnarable to uninstallations made by other programs using the same component. Suddenly your application doesn't function anymore and the user has no idea why.\par
+\par
+\b The new way\b0  of handling COM components was introduced with Windows XP and is by Microsoft called "Isolated applications and Side-by-side assemblies". What it means is that you can have your application installed in one folder with all necessary programs and components - all in one place, without any interference from other programs. Your application has every bit of information it needs to operate safe and secure. Thus the technique is much better and makes for more robust installations than the old regsvr32 technique as it isolates your application from other applications that gets installed or uninstalled - thus generating far less support calls and happier users!\par
+\par
+\b What does the Side-By-Side Manifest Studio program do?\b0\par
+The program works by combining tiny manifest fragment files that - one per COM component - and includes them in your application's manifest file. This happens when you click the "\b Build!\b0 " button. If there are conflicting TypeLib declarations from similar COM components you will be notified and you need to select the TypeLib's to be used.\par
+\par
+The manifest file creation process works by reading the top part of the current application's manifest file and write the lines back to a new file, \i it will then overwrite all current COM component information in the manifest file\i0  and add dependency information from the manifest fragment files you have selected. \b Important:\b0  A backup copy of the manifest file will be created - with todays date and current time - just in case something should go wrong.\par
+\par
+The second part of the puzzle - for the technique to work - is that the COM components used by the application needs to reside in the application folder. The Side-By-Side Manifest Studio program helps you achieve it when you press the "\b Copy COM Components\b0 " button. Before you do - you need to arrange so that the COM components exists in the "Common COM Library folder" of this workspace \i unless\i0  they are CodeJock controls that you have purchased and installed on the machine, in case the program will copy them from their installed location to the application folder. Those COM components must of course also be present in the programs folder when deploying your application.\par
+\par
+\b What are Manifest Fragment Files?\par
+\b0 The content of a manifest fragment file is exactly the same as what is inserted into the application manifest file for a particular COM component and version. So it is possible to cut & paste from a working application's manifest file that contains COM component info and save it as a Manifest Fragment File. The idea behind the Side-By-Side Manifest Studio is that once a Manifest Fragment file has been created it can - and should - be shared and used by all other developers. The program keeps a local repository of Manifest Fragment files in the "Manifest Fragment Library" folder. There is also a global repository of Manifest Fragment files at vdf-guidance. New files can be downloaded from the global repository at vdf-guidance with the "\b Download\b0 " toolbar button. There is also a "\b Share\b0 " toolbar button to send new Manifest Fragment files to the author of this program - who will test them for accuracy and upload them to vdf-guidance. Finally there is also a "\b Create\b0 " toolbar button for creating new manifest fragment files. \par
+\par
+There are several ways of making Manifest Fragment files. The easiest way is to use the "\b Create\b0 " toolbar button. Another way is by using the ManifestModifier program - curtesy of  Dan Levene at Anasazi Software. The ManifestModifier program - unlike this tool - does not handle typelib conflicts and has no database to handle multiple applications. The process relies on that the COM component is installed on your machine and that the Studio has been used to generate a software package file for the component. So it can be a bit cumbersome to get all the bits needed for an application manifest file. In this workspace Help folder there is a help file on how to use the ManifestModifier program: "How to create Manifest Fragments.rtf" Once the process has been for a component, the dependency information for that COM component can be copied from the application manifest file, saved as a Manifest Fragment file - with the exact same name as the COM component, but the extension should be changed from ".ocx" or ".dll" to ".txt". Don't forget to share if you create a new Manifest Fragment file, by clicking the "\b Share\b0 " toolbar button!\par
+The original \b ManifestModifier program \b0 can be downloaded here: \par
+{{\field{\*\fldinst{HYPERLINK ftp://ftp.dataaccess.com/pub/products/vdf/misc/ManifestModifier.VDF16.0.Worskpace.zip }}{\fldrslt{ftp://ftp.dataaccess.com/pub/products/vdf/misc/ManifestModifier.VDF16.0.Worskpace.zip\ul0\cf0}}}}\f0\fs20\par
+\par
+\i Tip: You can delete manifest fragment files that are of no interest to you from your local copy of the "Manifest Fragment Library" folder. That makes it easier when selecting Manifest Fragment files for the components that is used by your program. You can always add them later if necessary by using the "Download" toolbar button.\par
+\i0\par
+After you press the "\b Build!\b0 " button you can optionally press the "\b Embed in Program\b0 " button to make your program installation even more robust and safe! The Mt.exe program then - that is explained below - embeds the information from the application manifest file right into the .exe file. Of course you will need to do this after each compilation of your application - or prior building your installation program for deployment. If doing so you don't need to deploy the application manifest file and the installation cannot be tampered with by users. Note that if the manifest file exists in the programs folder and you have embedded manifest data into the executable, \b the executable embedded manifest data takes presedence\b0 . Unless the platform is Windows XP - in case the opposite is true (thank you Microsoft).\par
+\par
+\b Caching of manifest data\b0\par
+Manifests are cached in the Activation Context Cache by Windows.  The activation context cache is a mysterious entity that does not seem to be discussed directly in MSDN documentation. This cache is resident in memory and there is no way to give a command to flush it.  The secret here is that if you change the .exe\rquote s modified date time stamp, the loader will look again for a manifest.  This seems to work reliably every time. For that reason you will get a question each time a manifest file is build and if "Yes" is selected, the .exe file will get touched to change the modified time and thus the manifest data will be re-read by Windows.\par
+\b Note:\b0  If you select to embed the manifest into the .exe file, (by the "Embed" toolbar button) none of this will be a problem because the embedded manifest data will take presedence over any .manifest file data.\par
+\par
+\b Here is a link to the project on VDF-Guidance:\par
+{{\field{\*\fldinst{HYPERLINK http://www.vdf-guidance.com/ContribPage.asp?page=SOFTGENMANIFESTS&ContribRecId=131 }}{\fldrslt{http://www.vdf-guidance.com/ContribPage.asp?page=SOFTGENMANIFESTS&ContribRecId=131\ul0\cf0}}}}\b0\f0\fs20\par
+\par
+\ul\par
+Mt.exe Copyright (c) by Microsoft.\par
+\ulnone\par
+The Mt.exe program is only intended for your development environment. The Mt.exe program is used to embed the manifest file data into an executable (.exe) program.\par
+\par
+If you press the "Embed in Program" button, \i you don't need to deploy the manifest file and users can't tamper with the content of the application manifest file.\par
+\par
+NOTE 1: If you also deploy the manifest file - it will take presedence over the embedded info in the executable program on Windows XP (only).\par
+\par
+NOTE 2: If you sign your code with a digital certificate you must first embed the manifest data - then sign it digitally.\par
+}
+ 

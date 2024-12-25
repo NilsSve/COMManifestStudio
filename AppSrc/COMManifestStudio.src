@@ -1,0 +1,1176 @@
+﻿//****************************************************************************
+// $Module type: Program
+// $Module name: COMManifestStudio.src
+//
+// $Author     : Nils Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
+// Web-site    : https://www.rdctools.com
+// Created     : 2013-03-23 @ 14:04 (Military date format - Year-Month-Day)
+//
+// Purpose:      Please read the ManifestSideBySideManagerHelp.rtf in the Help folder.
+//
+// Compatibility:Visual DataFlex 16.0 and up. The tool was developed with VDF 17,
+//               but is backwards-compatable with VDF 16 and up.
+//               However, there is no reason you can't use the program to generate manifest files
+//               and embed the manifest data into older VDF programs than 16.0. In fact the program
+//               can be used to create and embed manifest data into any executable that uses
+//               COM (OCX/DLL) components!
+//               For the main view DbMergerView.vw and ManHds.sl the newer CodeJock grids are used.
+//               All other code is compatable with VDF 14.0 and up. So if there is a strong
+//               reason to run this program under an earlier VDF version than 16.0 the
+//               DbMergerView.vw and ManHds.sl could be changed to use the older DbGrid class.
+//               For the same reason some older syntax is used though out the code. Such as:
+//               Get Create U_Array...
+//                 instead of Get Create (Refclass(Array))..
+//               Move (SortArray(AllTypeLibIdsArray, Self, get_CompareTypeLibIDs))..
+//                 instead of Move (SortArray(AllTypeLibIdsArray, Self, Reffunc(CompareTypeLibIDs)))..
+//
+// Microsoft link:http://msdn.microsoft.com/en-us/library/dd408052(v=VS.85).aspx
+//
+// The code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// This is free software; you can redistribute it and/or modify it under the terms of the
+// GNU Lesser General Public License.
+// License: LGPLv3 - GNU LESSER GENERAL PUBLIC LICENSE Version 3 - http://www.gnu.org/licenses/lgpl.txt
+//
+//******************************************************************************
+Use DFAllEnt.pkg
+Use cCJCommandBarSystem.pkg
+Use cMyApplication.pkg
+
+Use cDigitalSoftwareCertificate.pkg
+Use cDbUpdateHandler.pkg
+
+Object oDigitalSoftwareCertificate is a cDigitalSoftwareCertificate
+    Move Self to ghoDigitalSoftwareCertificate
+
+    // Set pbWarnIfNotDigitallySigned = True if you like to have a warning when the
+    // program is started, but the program has not been digitally signed.
+    // Only applies when run outside the Studio.
+    Set pbWarnIfNotDigitallySigned to False
+
+    // This message does the actual checking for a valid digital certificate.
+    // If the program has been tampered with e.g. it has been infected by a virus,
+    // the user will get a warning and the program will be aborted.
+//    Send ValidateProgramOnStartup
+
+End_Object
+
+// This is for the proversion only. It uses certain external classes the
+// standard versions does not, for the wizard functionality.
+Define C_ProVersion
+Declare_Datafile ManHdr
+Declare_Datafile ManDet
+
+Use vWin32fh.pkg
+
+Object oHtmlHelp is a cHtmlHelp
+    Set pbAlwaysOnTop to False
+End_Object
+
+Object oApplication is a cMyApplication
+    Set peHelpType to htHtmlHelp   
+    Set psHelpFile to "COMManifestStudio.chm"
+    Set pbPreserveEnvironment to True
+    Set psCompany to "RDC Tools International"
+    Set psProduct to "COM Manifest Studio"
+    Set psVersion to (String(piVersionMajor(phoVersionInfo(Self))) + "." + String(piVersionMinor(phoVersionInfo(Self))))
+
+    // Property is used if we should "auto-find" a record in the dbMergerView.vw
+    // It should be done if the program was started from the DataFlex Studio's Tools menu
+    Property String psApplicationManifestName ""
+
+    // Property is used if a record was "auto-find" *and* an "/s" or "-s" flag was passed on the
+    // command line as the second parameter. (After the psApplicationManifestName.)
+    // A digital signing of the executable will then be performed when the program is started.
+    Property Boolean pbAutoSign False
+
+    // Various object handles:
+    Property Handle phoMainPromptObject
+    Property Handle phoManifestPathObject
+    Property Handle phoManifest_grid
+
+    // The package contains the DoCheckCollatingSequence procedure used in the DoOpenWorkspace procedure.
+    Use DoCheckCollatingSequence.pkg
+
+    // Check that the 'correct' DF_Collate.cfg is used when the program is
+    // started. The data in the database was entered with an english (standard)
+    // collating sequence. If another df_collate.cfg is encountered at runtime,
+    // all data tables will automatically be reindexed, before starting the program.
+    // Note: We cannot use the event OnCreate for this, because the psDataPath
+    // et. al. is set after that event. Instead we augment the
+    // predefined cApplication's DoOpenworkSpace message.
+    Procedure DoOpenWorkspace String sWorkspace
+        String sParam
+        Handle hoCmdLine
+
+        Forward Send DoOpenWorkspace sWorkspace
+        // Needs to be send right after the forward send...
+        Send DoCheckCollatingSequence ManHdr.File_Number Field ManHdr.ManifestFileName // Pass file- & field-number for an ASCII field
+        
+        Forward Send OnWorkspaceOpened
+        
+        Get phoCommandLine to hoCmdLine
+        Get Argument of hoCmdLine 1 to sParam
+        If (lowercase(sParam) = "/h" or Lowercase(sParam) = "-h" or Lowercase(sParam) = "f1" or Lowercase(sParam) contains "help") Begin
+            Send DoDisplayTOC of ghoHtmlHelp
+        End
+    End_Procedure
+
+    // Accept passing a string with the name of an executable including full pathing on the command line.
+    // This is used by the Studio "Tools" menu to automatically start this
+    // program and to display the application record that is currently active
+    // in the Studio.
+    Procedure OnCreate
+        Handle hoCmdLine
+        String sArgument
+        Integer iRetval
+
+        Get phoCommandLine to hoCmdLine
+        Get Argument of hoCmdLine 1 to sArgument
+
+        If (sArgument <> "") Begin
+            Get vFilePathExists sArgument to iRetval
+            If (iRetval = True) Begin
+                Move (sArgument + ".manifest") to sArgument
+                Set psApplicationManifestName  to sArgument
+                Get Argument of hoCmdLine 2    to sArgument
+                If (Uppercase(sArgument) = "/S" or Uppercase(sArgument) = "-S") Begin
+                    Set pbAutoSign to True
+                End
+            End
+            Else Begin
+                // Allow passing argument "Reindex" on the command line
+                // to the program. It will show the repair/reindex dialog.
+                If (Uppercase(sArgument) contains "REINDEX") Begin
+                    Send DoRepairFiles
+                End
+            End
+        End
+
+    End_Procedure
+
+    // Callback facility enabler. Pass the information to the status panel.
+    // Used from various places in the program by the status panel's trackbar.
+    Function Callback String CallbackMsg Integer CallbackType Returns Integer
+        If (CallbackType <> DF_MESSAGE_PROGRESS_VALUE) ;
+            Send Update_StatusPanel of ghoStatusPanel CallbackMsg
+        Else ;
+            Send UpdateStatusBar   of ghoStatusPanel
+        Function_Return False
+    End_Function
+
+End_Object 
+
+Object oDbUpdateHandler is a cDbUpdateHandler
+    Set piDbVersionFileNumber  to 9
+    Set piDbVersionFieldNumber to 1
+    Set pbAutoCreateDbVersionTable to True  // Automatically creates the DbVersion table when the program is started.
+    Set pbExitIfDebuggerActive to False
+    
+    Use DUF_MultipleTables1_0.pkg
+End_Object
+
+Object oToolTipController is a cToolTipController
+    Move Self to ghoToolTipController
+    Set piIcon to TTI_INFO
+    Set psTitle to "Info"
+    Set piMaxWidth to 250
+    Set piDurationPopup to 14000    // 14 seconds, needed for long tooltips.
+    Set pbUsePrefix to True
+End_Object
+
+Use oDEOEditContextMenu.pkg
+
+// This package uses the Base64Functions which needs to have
+// the psProgramPath set to function. So it _must_ be used after
+// the ghoApplication object.
+Use cManifestIniFile.pkg
+Use cManifestFunctionLibrary.pkg
+
+Object oMain is a Panel
+    Set Label to (psProduct(ghoApplication) * "- Managing Registration Free COM (OCX/DLL) Components for Isolated Applications")
+    Set Icon to "COMManifestManager.ico"
+    Set Location to 5 0
+    Set Size to 357 564
+    Set piMinSize to 357 500
+
+    Object oCJCommandBarSystem is a cCJCommandBarSystem
+        Set pbTimerUpdate to True
+        Set piLayoutBuild to 7
+        Set pbToolBarAccelTips to True
+        Set pbLargeIcons to True
+
+        Property Handle phoTabWorkspace
+        Property Handle phoTabPaintManager
+        Property Integer piDesiredIconSize 24 // Default icon size
+
+        Set pbAutoResizeIcons   to True
+        Set pbCenterTabbedViews to False
+
+        Procedure OnCreateCommandBars
+            Send DoChangeToolTipFormat
+            Send DoChangeToolbars
+        End_Procedure
+
+        Procedure DoChangeToolbars
+            Variant vPaintManager
+            Handle hoPaintManager hoOptions
+            Integer iSize iState eTheme
+            Boolean bLargeIcons
+            String  sState
+
+            Get OptionsObject to hoOptions
+
+            Move xtpThemeOffice2016Publisher to eTheme
+            Send SetTheTheme eTheme
+            // How the icons should be shown in toolbars;
+            // 1) Icons only.
+            // 2) Icons and caption to the right
+            // 3) Icons and caption below the icon. Default.
+            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_ToolbarIconText CS_ShowIconOnly to sState
+            If (sState = CS_ShowTextRightOfIcon) Begin
+                Move xtpButtonIconAndCaption to iState
+            End
+            Else If (sState = CS_ShowTextBelowIcon) Begin
+                Move xtpButtonIconAndCaptionBelow to iState
+            End
+            Else If (sState = CS_ShowIconOnly) Begin
+                Move xtpButtonIcon to iState
+            End
+
+            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_piToolbarIconSize 32 to iSize
+            Move (iSize >= 32) to bLargeIcons
+            Set pbShowTextBelowIcons to (iState = xtpButtonIconAndCaptionBelow)
+            Send ComSetIconSize      of hoOptions bLargeIcons iSize iSize  // Set icon size for Toolbar buttons.
+            Send ComSetPopupIconSize of hoOptions (piDesiredIconSize(Self)) (piDesiredIconSize(Self))
+            Set pbLargeIcons         to bLargeIcons
+
+            Get Create (RefClass(cCJPaintManager)) to hoPaintManager
+            Get ComPaintManager                    to vPaintManager
+            Set pvComObject of hoPaintManager      to vPaintManager
+            Set ComThemedCheckBox                  of hoPaintManager to True
+            Set ComAutoResizeIcons                 of hoPaintManager to True
+            Send ComRefreshMetrics                 of hoPaintManager
+            Send Destroy                           of hoPaintManager
+        End_Procedure
+
+        Procedure DoChangeToolTipFormat
+            Variant vToolTip
+            Handle  hoObject
+            Integer eTheme iToolTipStyle
+            Boolean bIsBalloonStyleSupported
+
+            Get ComToolTipContext to vTooltip
+            Get Create (RefClass(cCJToolTipContext)) to hoObject
+            Set pvComObject of hoObject to vTooltip
+            Move xtpToolTipStandard to iToolTipStyle
+            If (iToolTipStyle = -1) Begin
+                Get peVisualTheme to eTheme
+                Set ComStyle of hoObject to eTheme
+            End
+            Else Begin
+                // Baloon tooltip style requires IE 5.0 or later, so check if installed.
+                // The ComShowTitleAndDescription also requires IE 5.0.
+                Get ComIsBalloonStyleSupported of hoObject to bIsBalloonStyleSupported
+                If (bIsBalloonStyleSupported = False) Begin
+                    // If not supported we cannot show baloon tooltip; use standard style instead.
+                    If (iToolTipStyle = xtpToolTipBalloon) Begin
+                        Move xtpToolTipStandard to iToolTipStyle
+                    End
+                End
+                Set ComStyle of hoObject to iToolTipStyle
+                If (bIsBalloonStyleSupported = True) Begin
+                    Send ComShowTitleAndDescription of hoObject True xtpToolTipIconInfo
+                End
+            End
+            Set  ComShowOfficeBorder        of hoObject to True
+            Set  ComShowShadow              of hoObject to True
+            // Set the max width for a tooltip. 250 just seems to be a good
+            // compromise. After 250 pixels the text will wrap to the next line.
+            Set  ComMaxTipWidth             of hoObject to 250 // In pixels
+            Send Destroy of hoObject
+            If (phoStatusBar(ghoCommandBars)) Begin
+                Send DoChangeToolTipFormat of (phoStatusBar(Self))
+            End
+
+        End_Procedure
+
+        Set pbTabbedWorkspaces to True
+        Procedure OnCreateTabbedWorkspace Handle hoTabWorkspace Handle hoTabPaintManager
+            Set phoTabWorkspace     to hoTabWorkspace
+            Set phoTabPaintManager  to hoTabPaintManager
+            Send DisplayTabWorkspace
+        End_Procedure
+
+        Procedure DisplayTabWorkspace
+            Variant vTab vPaintManager
+            Handle hoTab hoPaintManager hoOptions
+            Integer iSize
+
+            If (not(IsComObjectCreated(Self))) Begin
+                Procedure_Return
+            End
+
+            Get OptionsObject to hoOptions
+
+            // Create the tab workspace object. It will get created for the Client_Area so
+            // each view will be displayd on a separate tab-page (instead of the standard VDF MDI-interface)
+            Get phoTabWorkspace    to hoTab
+            Get phoTabPaintManager to hoPaintManager
+
+            // Don't show the tab-pages "close" and next/prev buttons.
+            Set ComFlags of hoTab to xtpWorkspaceHideAll
+
+            Move 16 to iSize
+            Send ComSetIconSize of hoPaintManager iSize iSize   // Set icon size for Tab-workspace.
+            // To show or not to show tab-page icons...
+            Set ComShowIcons    of hoPaintManager to False // True
+
+            // Sets the tab-pages to display on the left side, instead of at the top:
+            Set ComPosition     of hoPaintManager to xtpTabPositionLeft
+
+            // This will truncate the middle part of long items
+            //Set ComDrawTextPathEllipsis of hoPaintManager to True
+
+            Move 32 to iSize
+            Set piToolbarIconSize to iSize
+            Set ComToolTipBehaviour of hoPaintManager to xtpTabToolTipAlways // We _must_ have this for tooltips to show on tab-pages (views)
+        End_Procedure
+
+        Procedure Set piToolbarIconSize Integer iSize
+            Handle hoOptions
+
+            If (not(IsComObjectCreated(Self))) Begin
+                Procedure_Return
+            End
+
+            Get OptionsObject to hoOptions
+            Send ComSetIconSize of hoOptions False iSize iSize  // Set icon size for Toolbar buttons.
+            Send ComRecalcLayout
+        End_Procedure
+
+        Procedure SetTheTheme Integer eTheme
+            Integer iColor
+            Set peVisualTheme to eTheme
+            Send ComRecalcLayout 
+            Get ComGetSpecialColor XPCOLOR_TOOLBAR_FACE to iColor
+            Broadcast Recursive Set Color of (Client_Id(phoMainPanel(ghoApplication))) to iColor
+        End_Procedure
+
+        Object oFind_ToolBar is a cCJToolbar
+            Set psTitle to "Finding Toolbar"
+            Set pbCustomizable to False
+
+            Object oFindFirstTool is a cCJFindFirstMenuItem
+            End_Object
+
+            Object oFindPreviousTool is a cCJFindPreviousMenuItem
+            End_Object
+
+            Object oFindMenuTool is a cCJFindMenuItem
+            End_Object
+
+            Object oFindNextTool is a cCJFindNextMenuItem
+            End_Object
+
+            Object oFindLastTool is a cCJFindLastMenuItem
+            End_Object
+
+            Object oOpenProject_ToolItem is a cCJPromptMenuItem //cCJMenuItem
+                Set psImage to "ActionPrompt.Ico"
+                Set psShortcut to "Alt+O"
+            End_Object
+
+        End_Object
+
+        Object oFile_ToolBar is a cCJToolbar
+            Set psTitle to "Data Entry Toolbar"
+            Set pbCustomizable to False
+
+            Object oClearToolItem is a cCJClearMenuItem
+                Set psCaption to "Clear"
+                Set psToolTip to "Clear (F5)"
+                Set psDescription to "Clear data"
+            End_Object
+
+            Object oNewProject_ToolItem is a cCJMenuItem
+                Set psCaption to "&New Project"
+                Set psToolTip to "New Project (Ctrl+N)"
+                Set psDescription to "Wizard that creates a new application manifest project"
+                Set psImage to "ProjectNew.ico"
+                Set psShortcut to "Ctrl+N"
+
+                Procedure OnExecute Variant vCommandBarControl
+                    Handle ho
+                    Get phoMainPromptObject of ghoApplication to ho
+                    Send Activate of ho
+                    Send Request_Clear_All of ho
+                    Send Activate_oCreateNewProject_Dg of (Client_Id(ghoCommandBars))
+                End_Procedure
+            End_Object
+
+            Object oSaveToolItem is a cCJSaveMenuItem
+                Set psCaption to "Save"
+                Set psToolTip to "Save (Ctrl+S or F2)"
+                Set psDescription to "Save changes"
+                Set pbControlBeginGroup to True
+            End_Object
+
+            Object oDeleteToolItem is a cCJDeleteMenuItem
+                Set psCaption to "Delete"
+                Set psToolTip to "Delete (Shift+F2)"
+            End_Object
+
+            Object oApplicationManifestBrowse_MenuItem is a cCJMenuItem
+                Set psCaption to "&Browse"
+                Set psToolTip to "Browse for Manifest (Ctrl+O)"
+                Set psDescription to "Browse for an application manifest file. It should have the same name as the application with an added '.manifest' at the end. It is an XML file with information about how to run the executable for the operating system."
+                Set psImage to "FolderOpen.ico"
+                Set pbControlBeginGroup to True
+                Procedure OnExecute Variant vCommandBarControl
+                    Handle ho hoPath
+                    Get phoMainPromptObject    of ghoApplication to ho
+                    Get phoManifestPathObject  of ghoApplication to hoPath
+                    Send SelectAppManifestFile of ghoManifestFunctionLibrary ho hoPath
+                End_Procedure
+            End_Object
+
+        End_Object
+
+        Object oActions_Toolbar is a cCJToolbar
+            Set psTitle to "Actions Toolbar"
+            Set pbCustomizable to False
+
+            Object oBuild_MenuItem is a cCJMenuItem
+                Set psCaption to "&Build!"
+                Set psToolTip to "Build! (Alt+B)"
+                Set psDescription to "Builds the application manifest file. Checks for duplicate TypeLibs and merges the selected fragment files with the application's manifest file."
+                Set psImage to "Build.ico"
+                Set psShortcut to "Alt+B"
+                Set peControlStyle to xtpButtonIconAndCaption 
+                Set pbChecked to True
+                Set pbActiveUpdate to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    String sFileName
+                    String[] sFilesArray
+                    Forward Send OnExecute vCommandBarControl
+                    Get psManifestFileName of ghoManifestFunctionLibrary    to sFileName
+                    Get SelectedItems of (phoManifest_grid(ghoApplication)) to sFilesArray
+                    Send BuildManifestFile of ghoManifestFunctionLibrary sFileName sFilesArray
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    String sManifestFile   
+                    Boolean bOK                                        
+                    Integer iItems
+                    Get ItemCount of (phoManifest_grid(ghoApplication)) to iItems
+                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile  
+                    Set pbChecked to (sManifestFile <> "" and iItems > 0)
+                    Function_Return (sManifestFile <> "" and iItems > 0)
+                End_Function
+            End_Object
+
+            Object oCopyComponents_MenuItem is a cCJMenuItem
+                Set psCaption to "Co&py COM"
+                Set psToolTip to "Check/Copy COM (Ctrl+P)"
+                Set psDescription to "Check/Copies COM (OCX/DLL) components to the application folder"
+                Set psImage to "CopyFiles.ico"
+                Set psShortcut to "Ctrl+P"
+                Set pbActiveUpdate to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    String[] sSelectedFileNames
+                    Forward Send OnExecute vCommandBarControl
+                    Get SelectedItems of (phoManifest_grid(ghoApplication)) to sSelectedFileNames
+                    Send CopyCOMComponents of ghoManifestFunctionLibrary sSelectedFileNames
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    String sManifestFile
+                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+                    Function_Return (sManifestFile <> "")
+                End_Function
+            End_Object
+
+            Object oEditApplicationManifest_MenuItem is a cCJMenuItem
+                Set psCaption to "&Edit"
+                Set psToolTip to "Edit Manifest (Alt+E)"
+                Set psDescription to "Edit application manifest file. A manifest file has the same name as the executable file, with an added '.manifest' keyword."
+                Set psImage to "EditDocument.ico"
+                Set pbActiveUpdate to True
+                Set psShortcut to "Alt+E"
+                Set pbControlBeginGroup to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    Send EditAppManifestFile of ghoManifestFunctionLibrary
+                End_Procedure
+                Function IsEnabled Returns Boolean
+                    String sManifestFile
+                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+                    Function_Return (sManifestFile <> "")
+                End_Function
+            End_Object
+
+            Object oRunProgram_MenuItem is a cCJMenuItem
+                Set psCaption to "&Run"
+                Set psToolTip to "Run (Ctrl+R)"
+                Set psDescription to "Test runs the executable to check that the application manifest file is correct."
+                Set psImage to "RunProgram.ico"
+                Set psShortcut to "Ctrl+R"
+                Set pbActiveUpdate to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    String sPath sProgramName
+                    Forward Send OnExecute vCommandBarControl
+                    Get psExeFilePath of ghoManifestFunctionLibrary to sPath
+                    Get psExeFileName of ghoManifestFunctionLibrary to sProgramName
+                    // Runprogram background can in some rare occations result in a crash.
+                    // That never happens with shellexecute...
+                    Send vShellExecute "open" sProgramName "" sPath
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    String sProgramName
+                    Get psExeFileName of ghoManifestFunctionLibrary to sProgramName
+                    Function_Return (sProgramName <> "")
+                End_Function
+            End_Object
+
+        End_Object
+
+        Object oOptions_Toolbar is a cCJToolbar
+            Set psTitle to "Options Toolbar"
+            Set pbCustomizable to False
+            Set peStretched to stStretchShared
+
+            Object oEmbedApplicationManifest_MenuItem is a cCJMenuItem
+                Set psCaption to "&Embed"
+                Set psToolTip to "Embed (Ctrl+E)"
+                Set psDescription to "Embeds the manifest file in the application (.exe) file"
+                Set psImage to "EmbedCode.ico"
+                Set psShortcut to "Ctrl+E"
+                Set pbActiveUpdate to True
+                Set pbControlBeginGroup to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    Forward Send OnExecute vCommandBarControl
+                    Send EmbedManifestInProgram of ghoManifestFunctionLibrary
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    String sManifestFile
+                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+                    Function_Return (sManifestFile <> "")
+                End_Function
+
+            End_Object
+
+            Object oCompressApplication_MenuItem is a cCJMenuItem
+                Set psCaption to "&Compress"
+                Set psToolTip to "&Compress (Ctrl+Z)"
+                Set psDescription to "Compress the application (.exe) file. It often reduces the file size by about 80%."
+                Set psImage to "Compress.ico"
+                Set psShortcut to "Ctrl+Z"
+                Set pbActiveUpdate to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    Forward Send OnExecute vCommandBarControl
+                    Send CompressExeFile of ghoManifestFunctionLibrary
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    String sManifestFile
+                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+                    Function_Return (sManifestFile <> "")
+                End_Function
+
+            End_Object
+
+        End_Object
+
+        Object oManifestFragment_Toolbar is a cCJToolbar
+            Set psTitle to "Manifest Fragments Toolbar"
+            Set pbCustomizable to False
+            Set pbDockNextTo to False
+
+            Object oFragmentNew_MenuItem is a cCJMenuItem
+                Set psCaption to "&Create"
+                Set psToolTip to "Create fragment file (Alt+R)"
+                Set psDescription to "Create a new manifest fragment file. If you cannot find a manifest fragment file for your COM (OCX/DLL) component - in either your local repository, or via the 'Download New Fragment Files' button - you can create one here."
+                Set psImage to "FragmentNew.ico"
+                Set psShortcut to "Alt+C"
+                Procedure OnExecute Variant vCommandBarControl
+                    Forward Send OnExecute vCommandBarControl
+                    Send Popup of (oCreateManifestFragmentFile(Client_Id(ghoCommandBars)))
+                End_Procedure
+            End_Object
+
+            Object oFragmentEdit_MenuItem is a cCJMenuItem
+                Set psCaption to "Edit"
+                Set psToolTip to "Edit fragment file"
+                Set psDescription to "Opens the fragment file under the grid cursor in the editor"
+                Set psImage to "FragmentEdit.ico"
+                Set psShortcut to "Double-Click"
+                Set pbActiveUpdate to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    Forward Send OnExecute vCommandBarControl
+                    Send OpenCurrentGridItem of ghoManifestFunctionLibrary
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    Function_Return (ManDet.ID <> 0)
+                End_Function
+
+            End_Object
+
+            Object oFragmentDownload_MenuItem is a cCJMenuItem
+                Set psCaption to "&Download"
+                Set psToolTip to "Download fragment file (Alt+D)"
+                Set psDescription to "Download New Fragment Files. Checks if there are any new 'Manifest Fragment Library' files available in the global repository at VDF-Guidance. If there is - you will be presented with a dialog where you can select files to download."
+                Set psImage to "FragmentDownload.ico"
+                Set psShortcut to "Alt+D"
+                Procedure OnExecute Variant vCommandBarControl
+                    Forward Send OnExecute vCommandBarControl
+                    Send DownloadManifestFragmentFiles of ghoManifestFunctionLibrary
+                End_Procedure
+            End_Object
+
+            Object oFragmentShare_MenuItem is a cCJMenuItem
+                Set psCaption to "&Share"
+                Set psToolTip to "Share fragment file (Alt+S)"
+                Set psDescription to "Share Fragment Files. If you have created a new Manifest Fragment File for a COM (OCX/DLL) component and version - you are encouraged to share it with other users of this tool. You do so by e-mailing it/them to the author of this program, who will check it for consistency and make it available for the global repository at VDF-Guidance."
+                Set psShortcut to "Alt+S"
+                Set psImage to "FragmentShare.ico"
+                Procedure OnExecute Variant vCommandBarControl
+                    Forward Send OnExecute vCommandBarControl
+                    Send DoShareManifestFragmentFiles of (Client_Id(ghoCommandBars))
+                End_Procedure
+            End_Object
+
+        End_Object
+
+        Object oCOMComponents_Toolbar is a cCJToolbar
+            Set psTitle to "COM Components Toolbar"
+            Set pbCustomizable to False
+
+            Object oIsComponentRegistered_MenuItem is a cCJMenuItem
+                Set psCaption to "&Check"
+                Set psToolTip to "Check component (OCX/DLL)"
+                Set psDescription to "Check if the COM (OCX/DLL) Component pointed to in the grid is registered with Windows"
+                Set psImage to "COMCheck.ico"
+                Set psShortcut to "Ctrl+D"
+                Set pbActiveUpdate to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    String sManifestFragmentFile sResult sCOMFileName
+                    Boolean bRegistered
+                    Forward Send OnExecute vCommandBarControl
+                    Move (Trim(ManDet.ManifestFragmentFile)) to sManifestFragmentFile
+                    Get CheckCOMRegistrationFromManifestFragmentFile of ghoManifestFunctionLibrary sManifestFragmentFile to bRegistered
+                    Get ExtractCOMFileName of ghoManifestFunctionLibrary sManifestFragmentFile to sCOMFileName
+                    If (bRegistered = True) Begin
+                        Move ("Yes, the" * sCOMFileName * "component is registered with Windows.") to sResult
+                    End
+                    Else Begin
+                        Move ("No, the" * sCOMFileName * "component is not registered with Windows.") to sResult
+                    End
+                    Send Info_Box sResult
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    Function_Return (ManDet.ID <> 0)
+                End_Function
+            End_Object
+
+            Object oRegisterComponent_MenuItem is a cCJMenuItem
+                Set psCaption to "&Register"
+                Set psToolTip to "Register component (OCX/DLL)"
+                Set psDescription to "Register the COM (OCX/DLL) Component corresponding to the active manifest fragment file in the grid"
+                Set psImage to "RegisterDLL.ico"
+                Set psShortcut to "Alt+L"
+                Set pbActiveUpdate to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    Forward Send OnExecute vCommandBarControl
+                    Send RegisterOrUnregister of ghoManifestFunctionLibrary True
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    Function_Return (ManDet.ID <> 0)
+                End_Function
+            End_Object
+
+            Object oUnRegisterComponent_MenuItem is a cCJMenuItem
+                Set psCaption to "UnRegister"
+                Set psToolTip to "Unregister component (OCX/DLL)"
+                Set psDescription to "Unregister the COM (OCX/DLL) Component corresponding to the manifest fragment file under the cursor in the grid"
+                Set psImage to "UnRegisterDLL.ico"
+                Set pbActiveUpdate to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    Forward Send OnExecute vCommandBarControl
+                    Send RegisterOrUnregister of ghoManifestFunctionLibrary False
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    Function_Return (ManDet.ID <> 0)
+                End_Function
+            End_Object
+
+        End_Object
+
+        Object oOpenFolders_Toolbar is a cCJToolbar
+            Set psTitle to "Open Folders Toolbar"
+            Set pbCustomizable to False
+
+            Object oOpenProgramsFolder_MenuItem is a cCJMenuItem
+                Set psCaption to "Open Fol&der"
+                Set psToolTip to "Programs Folder (Ctrl+D)"
+                Set psDescription to "Opens the application manifest file's folder in Windows explorer"
+                Set psImage to "OpenProgramsFolder.ico"
+                Set psShortcut to "Ctrl+D"
+                Set pbActiveUpdate to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    String sPath
+                    Forward Send OnExecute vCommandBarControl
+                    Get psTargetPath of ghoManifestFunctionLibrary to sPath
+                    Send vShellExecute "open" "Explorer.exe" sPath ""
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    String sPath
+                    Get psManifestFileName of ghoManifestFunctionLibrary to sPath
+                    Function_Return (sPath <> "")
+                End_Function
+            End_Object
+
+            Object oOpenFragmentLibrary_MenuItem is a cCJMenuItem
+                Set psCaption to "Open Fragments"
+                Set psToolTip to "Fragments Library (Ctrl+L)"
+                Set psDescription to "Open the local Manifest Fragment Library in Windows Explorer. Note that there is also a global repository of fragment files available. You can press the 'Download New Fragment Files' button to get new files from the VDF-Guidance web-site."
+                Set psImage to "FragmentLibrary.ico"
+                Set psShortcut to "Ctrl+L"
+                Procedure OnExecute Variant vCommandBarControl
+                    String sPath
+                    Forward Send OnExecute vCommandBarControl
+                    Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sPath
+                    Send vShellExecute "open" "explorer.exe" sPath ""
+                End_Procedure
+            End_Object
+
+            Object oOpenCOMLibrary_MenuItem is a cCJMenuItem
+                Set psCaption to "Open COM"
+                Set psToolTip to "COM Library (Ctrl+B)"
+                Set psDescription to "Open your repository containing COM (OCX/DLL) modules. It is used by the program when COM (OCX/DLL) components should be copied to an application folder. You should keep a copy of each of your COM (OCX/DLL) components here."
+                Set psShortcut to "Ctrl+B"
+                Set psImage to "COMLibrary.ico"
+
+                Procedure OnExecute Variant vCommandBarControl
+                    String sPath
+                    Forward Send OnExecute vCommandBarControl
+                    Get psCommonCOMLibrary of ghoManifestFunctionLibrary to sPath
+                    Send vShellExecute "open" "Explorer.exe" sPath ""
+                End_Procedure
+
+            End_Object
+
+        End_Object
+
+        Object oDigitalSigning_Toolbar is a cCJToolbar
+            Set psTitle to "Digital Signing Toolbar"
+            Set pbCustomizable to False
+
+            Object oVerifyDigitalSigningApp_MenuItem is a cCJMenuItem
+                Set psCaption to "Check if signed"
+                Set psToolTip to "Check if file signed (Ctrl+Y)"
+                Set psDescription to "Checks if the file contains a valid digital certificate"
+                Set psImage to "DigitalVerification.ico"
+                Set psShortcut to "Ctrl+Y"
+                Set pbActiveUpdate to True       
+                
+                Procedure OnExecute Variant vCommandBarControl
+                    String sYes
+                    tCertificateParams CertificateParams
+
+                    Forward Send OnExecute vCommandBarControl
+                    Get psExeFilePath of ghoManifestFunctionLibrary      to CertificateParams.sProgramPath
+                    Get psExeFileName of ghoManifestFunctionLibrary      to CertificateParams.sFileName
+                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState "" to sYes
+                    Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
+
+                    Send ValidateFile of ghoDigitalSoftwareCertificate CertificateParams
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    String sManifestFile
+                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+                    Function_Return (sManifestFile <> "")
+                End_Function
+            End_Object
+
+            Object oDigitallySignApp_MenuItem is a cCJMenuItem
+                Set psCaption to "Digitally Sign"
+                Set psToolTip to "Sign file digitally (Ctrl+G)"
+                Set psDescription to "Sign the file with a digital certificate. The best digital certificate available on the machine will be automatically selected, if not changed from the program setup dialog."
+                Set psImage to "DigitallySign.ico"
+                Set psShortcut to "Ctrl+G"
+                Set pbActiveUpdate to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    String sYes
+                    tCertificateParams CertificateParams
+
+                    Forward Send OnExecute vCommandBarControl
+
+                    // We send the message to the ghoManifestFunctionLibrary object because we need to setup
+                    // the tDigitalCertificateCredentials struct.
+                    Send SignFileDigitally of ghoManifestFunctionLibrary
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    String sManifestFile
+                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+                    Function_Return (sManifestFile <> "")
+                End_Function
+
+            End_Object
+
+//            Object oDigitallyTimeStampInfo_MenuItem is a cCJMenuItem
+//                Set psCaption to "Check Timestamp"
+//                Set psToolTip to "Check time stamp"
+//                Set psDescription to "Validates if a file contains a valid time stamp (and a valid digital certificate)"
+//                Set psImage to "DigitalTimeStampInfo032N32.ico"
+//                Set pbActiveUpdate to True
+//                Set pbControlBeginGroup to True
+//
+//                Procedure OnExecute Variant vCommandBarControl
+//                    String sYes
+//                    tCertificateParams CertificateParams
+//
+//                    Forward Send OnExecute vCommandBarControl
+//                    Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath
+//                    Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
+//                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState   "" to sYes
+//                    Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
+//
+//                    Send ValidateTimeStamp of ghoDigitalSoftwareCertificate CertificateParams
+//                End_Procedure
+//
+//                Function IsEnabled Returns Boolean
+//                    String sManifestFile
+//                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+//                    Function_Return (sManifestFile <> "")
+//                End_Function
+//
+//            End_Object
+
+//            Object oDigitallyTimeStamp_MenuItem is a cCJMenuItem
+//                Set psCaption to "Timestamp"
+//                Set psToolTip to "Add time stamp"
+//                Set psDescription to ("Adds a time stamp to a digitally signed executable. By default the time-stamp authority used is:" * CS_URLTimeStampDefaultSHA1)
+//                Set psImage to "DigitalTimeStamp032N32.ico"
+//                Set pbActiveUpdate to True
+//
+//                Procedure OnExecute Variant vCommandBarControl
+//                    String sYes
+//                    tCertificateParams CertificateParams
+//
+//                    Forward Send OnExecute vCommandBarControl
+//                    Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath
+//                    Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
+//                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState   "" to sYes
+//                    Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
+//
+//                    Send TimeStampFile of ghoDigitalSoftwareCertificate CertificateParams
+//                End_Procedure
+//
+//                Function IsEnabled Returns Boolean
+//                    String sManifestFile
+//                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+//                    Function_Return (sManifestFile <> "")
+//                End_Function
+//            End_Object
+
+            Object oVerboseState_ToolButton is a cCJMenuItem
+                Set peControlType to xtpControlCheckBox
+                Set psCaption to "Verbose"
+                Set psToolTip to "Verbose State"
+                Set psDescription to "Controls the amount of info displayed for a digital certificate action"
+                Set pbActiveUpdate to True
+//                Set pbControlBeginGroup to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    Boolean bChecked
+                    Forward Send OnExecute vCommandBarControl
+                    Get pbChecked to bChecked
+                    Set pbChecked to (not(bChecked))
+                    Send WriteDword of ghoApplication "Preferences" "VerboseState" (not(bChecked))
+                    Set IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState to (If(bChecked = False, CS_BooleanYes, CS_BooleanNo))
+                End_Procedure
+
+                Function IsEnabled Returns Boolean
+                    String sPath sFilename
+                    Boolean bExists
+
+                    Get Value of (phoManifestPathObject(ghoApplication)) to sPath
+                    Get Value of (phoMainPromptObject(ghoApplication))   to sFilename
+                    Get vFolderFormat sPath to sPath
+                    Get vFilePathExists (sPath + sFilename) to bExists
+
+                    Function_Return (bExists = True)
+                End_Function
+
+                Procedure OnCreateControl Handle hoObj
+                    DWord dwVerbose
+                    Forward Send OnCreateControl hoObj
+                    Get ReadDword of ghoApplication "Preferences" "VerboseState" 0 to dwVerbose
+                    Set pbChecked to dwVerbose
+                    Set IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState to (If(dwVerbose = 1, CS_BooleanYes, CS_BooleanNo))
+                End_Procedure
+
+            End_Object
+
+//            Object oDigitalCertificates_MenuItem is a cCJMenuItem
+//                Set psCaption to "Digital Certs"
+//                Set psToolTip to "Digital Certificates"
+//                Set psDescription to "Maintain database for file based Digital Certificates"
+//                Set psImage to "DigitalCertConfig.ico"
+////                Set pbControlBeginGroup to True
+//
+//                Procedure OnExecute Variant vCommandBarControl
+//                    Forward Send OnExecute vCommandBarControl
+//                    Send Popup of (oDigitalCerts_dg(Client_Id(ghoCommandBars)))
+//                End_Procedure
+//
+//            End_Object
+
+        End_Object
+
+//        Object oConfig_Toolbar is a cCJToolbar
+//            Set psTitle to "Config Toolbar"
+//            Set pbCustomizable to False
+//
+//            Object oSkinsDummyMenuItem is a cCJMenuItem
+//                Set psImage to "Skins.ico"
+//                Set psCaption to "Appearance"
+//                Set peControlStyle to xtpButtonIconAndCaption
+//                Set peControlType to xtpControlLabel
+//                Set psToolTip to "Select an appearance for your application from the dropdown list"
+//                Set pbControlBeginGroup to True
+//            End_Object
+//
+//            Object oSkinsMenuItem is a cSkinComboBoxCJMenuItem
+//            End_Object
+//
+//        End_Object
+
+        Object oHelp_Toolbar is a cCJToolbar
+            Set psTitle to "Help ToolBar"
+            Set pbCustomizable to False
+            Set peStretched to stStretchShared
+            Set pbEnableDocking to False
+
+            Object oSetup_MenuItem is a cCJMenuItem
+                Set psCaption to "Con&figure"
+                Set psToolTip to "Configure (Alt+F)"
+                Set psDescription to "Configure the Program. Change settings for the program"
+                Set psImage to "Settings.ico"
+                Set pbControlBeginGroup to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    Forward Send OnExecute vCommandBarControl
+                    Send Popup of (oConfigureWizardDialog(Client_Id(ghoCommandBars)))
+                    Send OnStartup of ghoManifestIniFile
+                End_Procedure  
+                
+//                Procedure OnCreate
+//                    Handle hoOptions
+//                    Forward Send OnCreate
+//                    Get OptionsObject to hoOptions
+//                    Send ComSetPopupIconSize of hoOptions 24 24
+//                    Send ComSetIconSize of hoOptions False 24 24
+//                End_Procedure
+
+            End_Object
+
+//            Object oTestMenuItem is a cCJMenuItem
+//                Set psImage to "Configure.ico" 
+//                Procedure OnExecute Variant vCommandBarControl
+//                    Send Popup of (oConfigureWizardDialog(Client_Id(ghoCommandBars)))
+//                End_Procedure
+//            End_Object
+
+            Object oAbout_MenuItem is a cCJMenuItem
+                Set psCaption to "A&bout"
+                Set psDescription to "About the program"
+                Set psToolTip to "About (Alt+B)"
+                Set psImage to "ActionAbout.ico"
+                Procedure OnExecute Variant vCommandBarControl
+                    Forward Send OnExecute vCommandBarControl
+                    Send Activate_About of (Client_Id(ghoCommandBars))
+                End_Procedure
+            End_Object
+
+            Object oKoFi_MenuItem is a cCJMenuItem
+                Set psCaption to "Ko-fi"
+                Set psToolTip to "Bye me a coffee, to support me"
+                Set psDescription to "Bye me a coffee"
+                Set psImage to "Ko-fi.ico"
+                Set pbControlBeginGroup to True
+                Procedure OnExecute Variant vCommandBarControl
+                    Runprogram Shell Background "https://ko-fi.com/nilss"
+                End_Procedure
+            End_Object
+
+            Object oHelp_MenuItem is a cCJHelpMenuItem
+                Set psCaption to "&Help"
+                Set psToolTip  to "Help (F1)"
+                Set psDescription to "How to use the program"
+                Set psShortcut to "Alt+H or F1"
+                Set psImage to "ActionHelp.ico"
+                Set peControlType to xtpControlSplitButtonPopup
+                
+                Object oHelpMenuItemLocal is a cCJHelpMenuItem
+                    Set psCaption to "Help"
+                    Set psDescription to "Show how to use the program"
+                    Set psImage to "ActionHelp.ico"
+                End_Object
+
+                Object oHelpMenuItemInternetBrowser is a cCJMenuItem
+                    Set psCaption to "Online HTML Help"
+                    Set psImage to "ActionHelpInternet.ico"
+                    
+                    Procedure OnExecute Variant vCommandBarControl
+                        Runprogram Shell Background "http://www.rdctools.com//HTMLHelpComManifestStudio/COMManifestStudio.html"
+                    End_Procedure
+
+                End_Object
+
+                Object oVideoClipStandardCodeJockComponentsMenuItem is a cCJMenuItem
+                    Set psCaption to "How to add standard DataFlex CodeJock components"
+                    Set psDescription to "Shows a video clip from ScreenCast on how to create a .manifest file for the standard CodeJock components that comes with various DataFlex versions"
+                    Set psImage to "VideoClip.ico"
+                    Set pbControlBeginGroup to True
+                    
+                    Procedure OnExecute Variant vCommandBarControl
+                        Forward Send OnExecute vCommandBarControl
+                        Send vShellExecute "open" CS_VideoStdCodeJockComp "" ""
+                    End_Procedure
+                End_Object
+
+                Object oMicrosoftarticleMenuItem is a cCJMenuItem
+                    Set psCaption to "Microsoft article -'Side-By-Side Assemblies Deployment'"
+                    Set psDescription to "Read the Microsoft Article about 'Side-By-Side Assemblies Deployment'"
+                    Set psImage to "InternetDocument.ico"
+                    
+                    Procedure OnExecute Variant vCommandBarControl
+                        Forward Send OnExecute vCommandBarControl
+                        Send vShellExecute "open" CS_MicrosoftArticle "" ""
+                    End_Procedure
+                End_Object
+
+                Object oRedisplaystartdialogMenuItem is a cCJMenuItem
+                    Set psCaption to "Redisplay start dialog"
+                    Set psDescription to "Show the start dialog"
+                    Set psImage to "StartDialog.ico"
+                    Set pbControlBeginGroup to True
+                    Procedure OnExecute Variant vCommandBarControl
+                        Forward Send OnExecute vCommandBarControl
+                        Send Popup of (oFirstTimeUsage_Dialog(Client_Id(ghoCommandBars)))
+                    End_Procedure
+                End_Object
+
+                Object oCheckforUpdatesMenuItem is a cCJMenuItem
+                    Set psCaption to "Check for Updates"
+                    Set psDescription to "Check for Updates..."
+                    Set psImage to "InternetUpdate.ico"
+                    Set pbControlBeginGroup to True
+                    
+                    Procedure OnExecute Variant vCommandBarControl
+                        String sPath sUpdateProgram sParam sFolder
+                        
+                        // The updater.exe program is located in the home folder:
+                        Get psHome of (phoWorkspace(ghoApplication)) to sPath
+                        Get vFolderFormat sPath to sPath
+                        Move "updater.exe" to sUpdateProgram
+                        Move "/checknow"   to sParam
+                        Runprogram Shell Wait ('"' + sPath + sUpdateProgram + '"') sParam
+                    End_Procedure
+
+                    Function RemoveFolderDelimiter String sPath Returns String
+                        String sDirSep
+                        Move (SysConf(SYSCONF_DIR_SEPARATOR)) to sDirSep
+                        Move (Trim(sPath)) to sPath
+                        If (Right(sPath, 1) = sDirSep) Begin
+                            Move (Left(sPath, (Length(sPath) -1))) to sPath
+                        End
+                        Function_Return sPath
+                    End_Function
+
+                End_Object
+
+            End_Object
+
+            Object oExitMenuItem is a cCJExitMenuItem
+                Set psImage to "Exit.ico"
+                Set psToolTip to "Exit the program (Alt+F4)"
+                Set pbControlBeginGroup to True
+            End_Object
+
+        End_Object
+
+        Object oStatusBar is a cCJStatusBar
+            Object oStatusPane1 is a cCJStatusBarPane
+                Set piID to sbpIDIdlePane
+                Set pbStyleStretch to True
+            End_Object
+        End_Object
+
+    End_Object
+
+    Object oClientArea is a ClientArea
+        // General purpose access methods used by the program.
+        Use AccessMessages.pkg
+
+        Use StdAbout.pkg
+        Use FirstTimeUsage.dg
+        Use DuplicateTypeLibsExplained.dg
+        Use HelpDialog.dg
+        Use SendSharedFilesDialog.dg
+        Use ImageViewer.dg
+        Use CreateManifestFragmentFile.dg
+        Use CreateNewProject.dg
+        Use DigitalCerts.vw
+        Use DbMergerViewNew.vw  
+        Use SetupNew.dg
+        
+        Procedure Activate_About
+            Send DoAbout "" "" ("Copyright 2012-2020" * psCompany(ghoApplication)) "Created By: Nils Svedmyr" "COMManifestManager.bmp" "E-mail: mailto:support@rdctools.com" "This is a FREE program. Please make a contribution if you find it useful. Just click the website link below and there click the 'Donate' button." ("Donate:" * (String(CS_DonatePage))) ("This tool was created with DataFlex" * String(C_DFVersion) * "from Data Access Worldwide. Please visit http://www.dataaccess.com for a free personal copy of DataFlex.")
+        End_Procedure
+
+        On_Key Key_Ctrl+Key_O Send DoShowMainPromptList of (Client_Id(ghoCommandBars))
+        On_Key Key_Ctrl+Key_N Send DoStartWizard        of (Client_Id(ghoCommandBars))
+    End_Object
+
+    // We do not allow closing of a view - it just doesn't make
+    // sense.
+    Function Exit_Loss_Confirmation for cUIObject Returns Integer
+        Function_Return 1
+    End_Function
+
+End_Object
+
+Procedure OnStartup
+    String sValue
+    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_FirstTimeUsageText CS_BooleanYes to sValue
+    If (CS_BooleanYes = sValue) Begin
+        Send Popup of (oFirstTimeUsage_Dialog(oClientArea(oMain(Self))))
+    End
+End_Procedure
+Send OnStartup
+
+// If there is a compile error for a missing resource. Make a copy of the Data\Filelist.cfg to Data\FilelistBackupFile.cfg
+Start_UI

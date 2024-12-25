@@ -1,0 +1,187 @@
+Use cManDataDictionary.pkg
+Use cCryptographerEx.pkg
+// This is to ensure the encrypt/decrypt logic works for other DF versions than 18 or later.
+Define MS_ENHANCED_PROV             for "Microsoft Enhanced Cryptographic Provider v1.0"
+Define CS_WinServiceHashString      for "zx!2139(LI0+?ips7433"
+
+Open DigitalCerts
+
+Register_Object oDigitalCerts_sl
+
+Class cDigitalCertsDataDictionary is a cManDataDictionary
+    
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        Set Main_File to DigitalCerts.File_Number
+
+        Set Foreign_Field_Option DD_KEYFIELD DD_NOPUT to True
+        Set Foreign_Field_Option DD_KEYFIELD DD_FINDREQ to True
+        Set Foreign_Field_Option DD_INDEXFIELD DD_NOPUT to True
+        Set Foreign_Field_Option DD_DEFAULT DD_DISPLAYONLY to True
+
+        Set Field_Option Field DigitalCerts.ID DD_AUTOFIND to True
+        Set Key_Field_State Field DigitalCerts.ID to True
+        Set Status_Help Field DigitalCerts.ID to "Automatically generated ID (identity) Use the field to find saved records. Right click for menu options."
+        Set Field_Prompt_Object Field DigitalCerts.ID to oDigitalCerts_sl
+
+        Set Field_Label_Long Field DigitalCerts.FileName to "Software Credential File"
+        Set Field_Label_Short Field DigitalCerts.FileName to "Filename"
+        Set Field_Prompt_Object Field DigitalCerts.FileName to oDigitalCerts_sl
+
+        Set Field_Label_Long Field DigitalCerts.Pw to "Password"
+        Set Field_Label_Short Field DigitalCerts.Pw to "Password"
+
+        Set Status_Help Field DigitalCerts.Description to "Either type a description, or provide a Web address that points to a site that contains more info."
+        Set Field_Label_Long Field DigitalCerts.Description to "Description (optional)"
+        Set Field_Label_Short Field DigitalCerts.Description to "Description (optional)"
+        Set Field_Prompt_Object Field DigitalCerts.Description to oDigitalCerts_sl
+
+        Set Field_Label_Long Field DigitalCerts.WebLocation to "Web Location (optional)"
+        Set Field_Label_Short Field DigitalCerts.WebLocation to "Web Location (optional)"
+        Set Status_Help Field DigitalCerts.WebLocation to "Either type a description, or provide a Web address that points to a site that contains a description."
+        Set Field_Prompt_Object Field DigitalCerts.WebLocation to oDigitalCerts_sl
+
+        Set Field_Label_Long Field DigitalCerts.AddTimeStamp to "Add a Timestamp"
+        Set Field_Label_Short Field DigitalCerts.AddTimeStamp to "Add a Timestamp"
+        Set Status_Help Field DigitalCerts.AddTimeStamp to "It is STRONGLY advised to add a timestamp."
+        Set Field_Class_Name Field DigitalCerts.AddTimeStamp to "Checkbox"
+
+        Set Field_Label_Long Field DigitalCerts.TimeStampServiceSHA1 to "Timestamp service for SHA1"
+        Set Field_Label_Short Field DigitalCerts.TimeStampServiceSHA1 to "Timestamp service for SHA1"
+        Set Status_Help Field DigitalCerts.TimeStampServiceSHA1 to "Enter the Web address that points to a site that contains a timestamp service"
+
+        Set Status_Help Field DigitalCerts.TimeStampServiceSHA256 to "Enter the Web address that points to a site that contains a timestamp service for signing with SHA256."
+        Set Field_Label_Long Field DigitalCerts.TimeStampServiceSHA256 to "Timestamp service for SHA256"
+        Set Field_Label_Short Field DigitalCerts.TimeStampServiceSHA256 to "Timestamp service for SHA256"
+
+        Set Field_Label_Long Field DigitalCerts.DefaultDigitalCert to "Make this the default Digital Certificate"
+        Set Field_Label_Short Field DigitalCerts.DefaultDigitalCert to "Default Certificate"
+        Set Field_Class_Name Field DigitalCerts.DefaultDigitalCert to "Checkbox"
+        Set Status_Help Field DigitalCerts.DefaultDigitalCert to "Use this digital certificate file as the default when signing program files. NOTE: It is your responsibility to select exactly ONE certificate as the default, except for when the 'Auto-select from Windows Certificate Store' is in use."
+
+    End_Procedure
+
+    Procedure Creating
+        Integer iID
+        Forward Send Creating
+        Get AutoCreateNewID File_Field DigitalCerts.ID True to iID
+    End_Procedure
+
+    // If the password has changed, we will automatically encrypt it
+    // before saving it to the database. 
+    // Note that it is up to the program to decrypt the password before
+    // passing it on to the digital signing program/utility.
+    Procedure Update
+        Boolean bPasswordChange 
+        Handle hoCryptographer 
+        String sValue sPw
+        
+        Forward Send Update
+        Get Field_Changed_State Field DigitalCerts.Pw to bPasswordChange 
+        If (bPasswordChange = True) Begin
+            Get Create (RefClass(cCryptographerEx)) to hoCryptographer 
+            Set psProvider of hoCryptographer to MS_ENHANCED_PROV                                      
+            Move (Trim(DigitalCerts.Pw)) to sPw
+            Get Encrypt of hoCryptographer CS_WinServiceHashString sPw to sValue
+            Move sValue to DigitalCerts.Pw  
+            Send Destroy of hoCryptographer
+        End  
+    End_Procedure
+
+    Procedure Backout                                          
+        Boolean bPasswordChange
+        Forward Send Backout
+        Get Field_Changed_State Field DigitalCerts.pw to bPasswordChange
+    End_Procedure
+
+    Procedure Field_Defaults
+        Forward Send Field_Defaults
+        Set Field_Changed_Value Field DigitalCerts.AddTimeStamp to 1
+        Set Field_Changed_Value Field DigitalCerts.TimeStampServiceSHA1 to "http://timestamp.comodoca.com"
+        Set Field_Changed_Value Field DigitalCerts.TimeStampServiceSHA256 to "http://timestamp.comodoca.com/rfc3161"
+        Set Field_Changed_Value Field DigitalCerts.DefaultDigitalCert to 0
+    End_Procedure   
+    
+    // Returns the info about first active digital cert record where "DigitalCerts.DefaultDigitalCert = 1"
+    // in two different BYREF structs. It can be used to send the "SignFile" message to the ghoDigitalSoftwareCertificate object
+    Procedure FirstDefaultDigitalCert tCertificateParams ByRef CertificateParams tCertificateCredentials ByRef CertificateCredentials
+        RowID riCurrentRowID  
+        Boolean bFound   
+        String sPw sValue sFileName sPath
+        Handle hoCryptographer
+        
+        Move False to bFound    
+        // Save current state of the file buffer.
+        Move (GetRowID(DigitalCerts.File_Number)) to riCurrentRowID
+        
+        Clear DigitalCerts
+        Find gt DigitalCerts.ID
+        While (Found)         
+            // Just use the first "active" record found.
+            If (DigitalCerts.DefaultDigitalCert = 1) Begin
+                // Fill info of the CertificateParams struct:  
+                Move False                                  to CertificateParams.bUseCertificateStore
+                Move DigitalCerts.WebLocation               to CertificateParams.sOurWebSite
+                Move DigitalCerts.Description               to CertificateParams.sDescription
+                Move DigitalCerts.AddTimeStamp              to CertificateParams.bUseTimeStamp
+                Move DigitalCerts.TimeStampServiceSHA1      to CertificateParams.sURLTimeStamp
+                Move DigitalCerts.TimeStampServiceSHA256    to CertificateParams.sSHA256URLTimeStamp
+                
+                // Fill info of the CertificateCredentials struct:
+                Get ParseFolderName DigitalCerts.FileName to sPath 
+                Get ParseFileName   DigitalCerts.FileName to sFileName
+                Move sPath                                  to CertificateCredentials.sCredentialsPath
+                Move sFileName                              to CertificateCredentials.sCredentialsFile
+                Move DigitalCerts.Pw to sPw
+                Get Create (RefClass(cCryptographerEx)) to hoCryptographer 
+                Set psProvider of hoCryptographer to MS_ENHANCED_PROV                                      
+                Move (Trim(DigitalCerts.Pw)) to sPw
+                Get Decrypt of hoCryptographer CS_WinServiceHashString sPw to sValue
+                Move sValue                                 to CertificateCredentials.sCredentialsPw  
+                Send Destroy of hoCryptographer
+                Move False to Found // And we're done! 
+                Move True  to bFound
+            End
+            If (Found = True) Begin
+                Find gt DigitalCerts.ID
+            End
+        Loop
+        
+        // Nope, couldn't find a credential files record; use Windows Certificate Store instead.
+        If (bFound = False) Begin
+            Move True to CertificateParams.bUseCertificateStore
+        End
+        
+        // Reset global file buffer in case we changed it...
+        If (not(IsNullRowId(riCurrentRowID))) Begin
+            Move (FindByRowId(DigitalCerts.File_Number, riCurrentRowID)) to bFound    
+        End                                                 
+        
+    End_Procedure   
+    
+    // Finds the first digital certificate that has been set to "Default", via
+    // the global record buffer and tells the DDO to hook on to that record
+    Procedure FindFirstDefaultCertificate
+        Clear DigitalCerts
+        Find gt DigitalCerts.ID
+        While (Found)         
+            // Just use the first "active" record found.
+            If (DigitalCerts.DefaultDigitalCert = 1) Begin
+                Move False to Found
+            End
+            If (Found = True) Begin
+                Find gt DigitalCerts.ID
+            End
+        Loop                                       
+        If (DigitalCerts.DefaultDigitalCert = 1) Begin
+            Send Request_Assign
+        End
+    End_Procedure
+
+End_Class
+
+
+#IFDEF Is$WebApp
+#ELSE
+Use DigitalCerts.sl
+#ENDIF

@@ -1,0 +1,33 @@
+Use cCJRTFMenuItem.Pkg
+Use IsFocusRichEditControl.pkg
+
+{ OverrideProperty = psImage InitialValue = "cCJRTFToolBarButton.ico" }
+Class cCJRTFToolBarButton is a cCJRTFMenuItem
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Set pbActiveUpdate To True
+    End_Procedure
+
+    //****************************************************************************
+    //  When this message is received we check if the current state is already
+    //  the new state. If so, don't forward
+    //****************************************************************************
+    Procedure Set pbEnabled Boolean bChangeTo
+        Boolean bEnabled
+
+        Get pbEnabled To bEnabled
+        If (bEnabled  <> bChangeTo) Begin
+            Forward Set pbEnabled To bChangeTo
+        End
+    End_Procedure
+
+    Function IsEnabled Returns Boolean
+        Boolean bIsRichEdit
+        Handle hoFocus
+
+        Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+
+        Function_Return bIsRichEdit
+    End_Function
+End_Class  

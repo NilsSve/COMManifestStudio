@@ -1,0 +1,73 @@
+Use Windows.pkg
+Use cCJStandardMenuItemClasses.pkg
+Use cCJDeoMenuItemClasses.pkg
+
+
+Object oDEOEditContextMenu is a cCJContextMenu
+
+    Move Self to Default_dbFloating_Menu_ID
+
+    Procedure OnCreate
+        Forward Send OnCreate
+        Send ComSetIconSize 24 24
+    End_Procedure
+
+    Object oUndoMenuItem is a cCJUndoMenuItem
+    End_Object
+
+    Object oCutMenuItem is a cCJCutMenuItem
+        Set pbControlBeginGroup to True
+    End_Object
+
+    Object oCopyMenuItem is a cCJCopyMenuItem
+    End_Object
+
+    Object oPasteMenuItem is a cCJPasteMenuItem
+    End_Object
+
+    Object oDeleteItem is a cCJDeleteEditMenuItem
+    End_Object
+
+    Object oSelectAllMenuItem is a cCJSelectAllMenuItem
+        Set pbControlBeginGroup to True
+        Set psImage to "SelectAll.ico"
+    End_Object
+
+    Object oPromptMenuItem is a cCJPromptMenuItem
+        Set pbControlBeginGroup to True
+    End_Object
+
+    Object oFindNextMenu is a cCJFindNextMenuItem
+        Set pbControlBeginGroup to True
+    End_Object
+
+    Object oFindPreviousMenu is a cCJFindPreviousMenuItem
+    End_Object
+
+    Object oClearMenuItem is a cCJClearMenuItem
+        Set pbControlBeginGroup to True
+    End_Object
+
+    Object oClearAllMenu is a cCJClearAllMenuItem
+    End_Object
+
+    Object oSaveMenu is a cCJSaveMenuItem
+    End_Object
+
+    Object oDeleteMenu is a cCJDeleteMenuItem
+    End_Object
+
+//    Object oRememberitem is a cCJRememberFieldMenuItem
+//        Set pbControlBeginGroup to True
+//    End_Object
+//
+//    Object oRetainItem is a cCJRememberLastFieldMenuItem
+//    End_Object
+//
+//    Object oUnRememberitem is a cCJUnRememberFieldMenuItem
+//    End_Object
+//
+//    Object oCJClearAllDynamicDefaults is a cCJUnRememberFieldAllMenuItem
+//    End_Object
+
+End_Object

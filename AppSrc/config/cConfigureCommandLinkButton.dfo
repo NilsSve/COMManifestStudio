@@ -1,0 +1,11 @@
+Object
+    Set Size to 22 104
+    Set Label to "Button Label"
+    Set psImage to "Default.ico" 
+    Set Color to clLtGray
+
+    Procedure OnClick
+        Send SwitchWizardPage tp_ Self    
+    End_Procedure                                        
+        
+End_Object

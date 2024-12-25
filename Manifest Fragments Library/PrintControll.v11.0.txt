@@ -1,0 +1,7 @@
+// Crystal Reports XI Print control component
+<file name="PrintControl.dll">
+	<typelib tlbid="{17DF3159-7E1D-4DDC-A189-4E66B9802D29}" version="11.0" helpdir=""></typelib>
+	<comClass description="Crystal Reports Print Control 11.0" clsid="{3D03AEAF-38CC-4DB5-9FA1-1C3538B1CA85}" progid="CrystalReports11.CrystalPrintControl.1" threadingModel="Apartment" tlbid="{17DF3159-7E1D-4DDC-A189-4E66B9802D29}"></comClass>
+	<comClass description="Crystal Reports Printer 11.0" clsid="{55FD871B-1D2C-4DB9-BD57-75DE1C1CA90D}" progid="CrystalReports11.CrystalReportPrinter.1" threadingModel="Both" tlbid="{17DF3159-7E1D-4DDC-A189-4E66B9802D29}"></comClass>
+	<comClass description="Crystal Reports Printer Page Range 11.0" clsid="{AB47CC44-409D-44F7-B74A-942250EFD8CB}" progid="CrystalReports11.CrystalReportPrinterPageRange.1" threadingModel="Both" tlbid="{17DF3159-7E1D-4DDC-A189-4E66B9802D29}"></comClass>
+</file>

@@ -1,0 +1,6 @@
+// This control is a freely distributable MP3 component.
+// For More information, please visit: http://www.moonvalley.com
+<file name="MP3P.ocx">
+	<comClass clsid="{707A5994-8950-11D2-9E58-00A024A8859A}" tlbid="{707A5991-8950-11D2-9E58-00A024A8859A}" description="Mp3P Control"></comClass>
+	<typelib tlbid="{707A5991-8950-11D2-9E58-00A024A8859A}" resourceid="1" version="1.0" helpdir=""></typelib>
+</file>

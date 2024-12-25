@@ -1,0 +1,255 @@
+Use Windows.pkg
+Use cTextEdit.pkg
+Use cRDCButton.pkg
+Use cRDCModalPanel.pkg
+Use cRDCForm.pkg
+Use cManifestFunctionLibrary.pkg
+Use vWin32fh.pkg
+
+Object oCreateManifestFragmentFile is a cRDCModalPanel
+    Set Size to 125 387
+    Set Label to "Create New Manifest Fragment File"
+    Set Icon to "FragmentNew032N32.ico"
+    Set Sysmenu_Icon to False
+    Set Maximize_Icon to False
+    Set Minimize_Icon to False
+
+    Object oCOMComponentFileName_fm is a cRDCForm
+        Set Size to 13 240
+        Set Location to 68 81
+        Set Label to "COM Component File"
+        Set Enabled_State to False
+        Set peAnchors to anTopLeftRight
+        Procedure OnChange
+            String sValue
+            Boolean bState
+            Get Value to sValue
+            Move (sValue <> "") to bState
+            Set Enabled_State of oCheck_btn    to bState
+            Set Enabled_State of oRegister_btn to bState
+            Set Enabled_State of oCreate_btn   to bState
+        End_Procedure
+    End_Object
+
+    Object oSelect_btn is a cRDCButton
+        Set Location to 68 326
+        Set Label to "Browse..."
+        Set psImage to "FolderOpen.ico"
+        Set peAnchors to anTopRight
+
+        Procedure OnClick
+            String sValue sPath sCOMFile
+
+            Get Value of oCOMComponentPath_fm to sPath
+            If (sPath = "") Begin
+                Get psCommonCOMLibrary of ghoManifestFunctionLibrary to sPath
+            End
+            Get vFolderFormat of ghoManifestFunctionLibrary sPath to sPath
+
+            Get vSelect_File "*.ocx and *.dll files|*.ocx;*.dll" "Select a COM (OCX/DLL) component" sPath to sValue
+            Get ParseFileName sValue to sCOMFile
+            If (sCOMFile <> "") Begin
+                Get ParseFolderName sValue to sPath
+                Set Value of oCOMComponentFileName_fm  0 to sCOMFile
+                Set Value of oCOMComponentPath_fm      0 to sPath
+            End
+        End_Procedure
+
+    End_Object
+
+    Object oCOMComponentPath_fm is a cRDCForm
+        Set Size to 13 240
+        Set Location to 83 81
+        Set Label to "Path"
+        Set Enabled_State to False
+        Set peAnchors to anTopLeftRight
+    End_Object
+
+    Object oCreate_btn is a cRDCButton
+        Set Label to "&Create!"
+        Set Location to 102 271
+        Set psImage to "CopyComponents.ico"
+        Set Enabled_State to False
+        Set Status_Help to "Create a manifest fragment file for the selected COM (OCX/DLL) component."
+        Set peAnchors to anTopRight
+
+        Procedure OnClick
+            String sPath sCOMComponentFileName sFileName sEditor sEditorParams sText sNote
+            Integer iRetval
+            Boolean bRegistered bOk
+
+            Get Value of oCOMComponentPath_fm     to sPath
+            Get Value of oCOMComponentFileName_fm to sCOMComponentFileName
+            If (sPath = "" or sCOMComponentFileName = "") Begin
+                Send Info_Box "You need to select a component (.ocx or .dll file) first."
+                Procedure_Return
+            End
+
+            Get CheckIfCOMComponentIsRegistered of ghoManifestFunctionLibrary sPath sCOMComponentFileName to bRegistered
+
+            If (bRegistered = False) Begin
+                Move ("The" * sCOMComponentFileName * "component is not registered with Windows. Do you want to register it?") to sText
+                Move "\n\nNote: If you click the 'Yes' button and UAC - User Access Control - is active on the machine, you will be presented with a Windows dialog with the question: 'Do you want to allow the following program to make changes to this computer?'. Select Yes to make the changes." to sNote
+                Get YesNo_Box (sText + sNote) to iRetval
+                If (iRetval = MBR_No) Begin
+                    Procedure_Return
+                End
+                Else Begin
+                    Get RunRegSvrProgram of ghoManifestFunctionLibrary sPath sCOMComponentFileName True to bOK
+                    // We need to wait for the RegSvr32 program to finish before we continue.
+                    Sleep 6
+                End
+            End
+
+            Get CreateManifestFragmentFile of ghoManifestFunctionLibrary sPath sCOMComponentFileName to sFileName
+            Get vFilePathExists sFileName to iRetval
+            Send Cursor_Ready of Cursor_Control
+            // If the new manifest fragment file was created successfully, open it in the editor.
+            If (iRetval = True) Begin
+                Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sPath
+                Get vFolderFormat sPath to sPath
+                Get psFileEditor of ghoManifestIniFile to sEditor
+                Get psFileEditorParams of ghoManifestIniFile to sEditorParams
+                If (sEditorParams <> "") Begin
+                    Runprogram Background sEditor ('"' + sEditorParams + '"' * '"' + sFileName + '"')
+                End
+                Else Begin
+                    Runprogram Background sEditor ('"' + sFileName + '"')
+                End
+                Move "The new manifest fragment file was created successfully and loaded in the editor. Please add a descriptive text and an internet link to were the component can be found.\n" to sText
+                Move (sText + "Each comment line must begin with two forward slashes.\n\n") to sText
+                Move (sText + "Note: If the new file seems incomplete, it might be because the COM (OCX/DLL) component wasn't properly registered with Windows.") to sText
+                Send Info_Box sText
+            End
+            Else Begin
+                Send Info_Box "The manifest fragment file could not be created"
+            End
+        End_Procedure
+
+    End_Object
+
+    Object oCancel_Btn is a cRDCButton
+        Set Label to "Close"
+        Set Status_Help to "Close Panel"
+        Set Location to 102 326
+        Set peAnchors to anTopRight
+
+        Procedure OnClick
+            Send Close_Panel
+        End_Procedure
+
+    End_Object
+
+    Object oCheck_btn is a cRDCButton
+        Set Size to 14 56
+        Set Label to "Registered?"
+        Set Location to 102 21
+        Set psImage to "COMCheck.ico"
+        Set Enabled_State to False
+        Set peAnchors to anNone
+        Set Status_Help to "Check if the selected COM (OCX/DLL) component is registered with Windows"
+
+        Procedure OnClick
+            String sPath sCOMComponentFileName sResult
+            Boolean bRegistered
+
+            Get Value of oCOMComponentPath_fm to sPath
+            Get Value of oCOMComponentFileName_fm to sCOMComponentFileName
+            If (sPath = "" or sCOMComponentFileName = "") Begin
+                Send Info_Box "You need to select a COM component (.ocx or .dll file) first."
+                Procedure_Return
+            End
+            Get vFolderFormat of ghoManifestFunctionLibrary sPath to sPath
+
+            Get CheckIfCOMComponentIsRegistered of ghoManifestFunctionLibrary sPath sCOMComponentFileName to bRegistered
+
+            If (bRegistered = True) Begin
+                Move ("Yes, the" * sCOMComponentFileName * "component is registered with Windows registry.") to sResult
+            End
+            Else Begin
+                Move ("No, the" * sCOMComponentFileName * "component is not registered with Windows registry.") to sResult
+            End
+            Send Info_Box sResult
+        End_Procedure
+
+    End_Object
+
+    Object oRegister_btn is a cRDCButton
+        Set Label to "Register!"
+        Set Location to 102 81
+        Set Enabled_State to False
+        Set psImage to "RegisterDLL.ico"
+        Set Status_Help to "Register the selected COM (OCX/DLL) component in Windows registry."
+        Set peAnchors to anNone
+
+        Procedure OnClick
+            String sPath sCOMComponentFileName sText sNote
+            Boolean bOK bRegistered
+            Integer iRetval
+
+            Get Value of oCOMComponentPath_fm to sPath
+            Get Value of oCOMComponentFileName_fm to sCOMComponentFileName
+            If (sPath = "" or sCOMComponentFileName = "") Begin
+                Send Info_Box "You need to select a COM component (.ocx or .dll file) first."
+                Procedure_Return
+            End
+            Get vFolderFormat of ghoManifestFunctionLibrary sPath to sPath
+
+            Get CheckIfCOMComponentIsRegistered of ghoManifestFunctionLibrary sPath sCOMComponentFileName to bRegistered
+
+            If (bRegistered = True) Begin
+                Send Info_Box ("The" * sCOMComponentFileName * "component is already registered with Windows.")
+                Procedure_Return
+            End
+
+            Move "Do you want to Register this component?\n" to sText
+            Move "\n\nNote: When you click the 'Yes' button and UAC - User Access Control - is active on the machine, you will be presented with a Windows dialog with the question: 'Do you want to allow the following program to make changes to this computer?'. Select Yes to make the changes." to sNote
+            Get YesNo_Box (sText + sPath + sCOMComponentFileName + sNote) to iRetval
+            If (iRetval = MBR_No) Begin
+                Procedure_Return
+            End
+
+            Get RunRegSvrProgram of ghoManifestFunctionLibrary sPath sCOMComponentFileName True to bOK
+        End_Procedure
+
+    End_Object
+
+    Object oInfo_3d is a Container3d
+        Set Size to 43 366
+        Set Location to 7 10
+        Set peAnchors to anTopLeftRight
+        Set Color to clWhite
+        Set Border_Style to Border_Normal
+        Set Skip_State to True
+
+        Object oInfo_tb is a cTextEdit
+            Set Size to 34 350
+            Set Location to 4 7
+            Set peAnchors to anTopLeftRight
+            Set Border_Style to Border_None
+            Set Skip_State to True
+            Set Read_Only_State to True
+            Procedure OnStartup
+                String sValue
+                Move "If you can't find a manifest fragment file for a COM component (OCX/DLL file) in the local Manifest Fragment Library," to sValue
+                Move (sValue * "nor in the global repository at VDF-Guidance (press the Download toolbar button to check) - you can create one here.") to sValue
+                Move (sValue * "The component must be registered with Windows. If it is not and you press the 'Create!' button, you will get a question if you would like to register it.") to sValue
+                Move (sValue * "It is important to understand that this process is by no means foolproof. It is your responsibility to check that the new file works properly.") to sValue
+                Move (sValue * "When you have verified that it works properly, press the 'Share' toolbar button so that the new manifest fragment file can be uploaded to the global repository at VDF-Guidance, to be used by all other users of this tool.") to sValue
+                Set Value to sValue
+            End_Procedure
+            Send OnStartup
+        End_Object
+
+    End_Object
+
+    Procedure End_Construct_Object
+        Forward Send End_Construct_Object
+        Set piMaxSize to (Hi(Size(Self))) (Low(Size(Self) + 300))
+    End_Procedure
+
+    On_Key Key_Alt+Key_C  Send KeyAction of oCreate_btn
+    On_Key Key_Ctrl+Key_C Send KeyAction of oCreate_btn
+    On_Key kCancel        Send KeyAction of oCancel_Btn
+
+End_Object

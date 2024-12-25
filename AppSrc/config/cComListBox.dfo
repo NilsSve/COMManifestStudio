@@ -1,0 +1,8 @@
+Object
+
+    Procedure OnCreate
+        Forward Send OnCreate
+        // ToDo: Set the ActiveX properties here...
+    End_Procedure
+
+End_Object

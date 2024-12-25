@@ -1,0 +1,10 @@
+#REPLACE FILE1 ManHdr
+#REPLACE ManHdr.Recnum |FN1,0
+#REPLACE ManHdr.ID |FN1,1
+#REPLACE ManHdr.ManifestFileName |FS1,2
+#REPLACE ManHdr.Path |FS1,3
+#REPLACE ManHdr.CreatedBy |FS1,4
+#REPLACE ManHdr.CreatedDateTime |FS1,5
+#REPLACE ManHdr.ChangedBy |FS1,6
+#REPLACE ManHdr.ChangedDateTime |FS1,7
+#REPLACE ManHdr.Comment |FS1,8

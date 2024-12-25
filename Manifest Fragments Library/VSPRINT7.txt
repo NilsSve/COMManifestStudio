@@ -1,0 +1,5 @@
+// ComponentOne VSPrinter 7.0 version=1.0
+<file name="VSPRINT7.ocx">
+	<comClass clsid="{a8561647-e93c-11d3-ac3b-ce6078f7b616}" description="ComponentOne VSPrinter 7.0" tlbid="{A8561640-E93C-11d3-AC3B-CE6078F7B616}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,simpleframe,setclientsitefirst" progid="VSPrinter7.VSPrinter.1"></comClass>
+	<typelib tlbid="{A8561640-E93C-11D3-AC3B-CE6078F7B616}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

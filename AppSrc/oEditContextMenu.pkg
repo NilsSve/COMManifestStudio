@@ -1,0 +1,29 @@
+Use cCJStandardMenuItemClasses.pkg
+
+Object oEditContextMenu is a cCJContextMenu
+
+    Move Self to Default_Form_Floating_Menu_ID
+
+    Object oUndoMenuItem is a cCJUndoMenuItem
+    End_Object
+
+    Object oCutMenuItem is a cCJCutMenuItem
+        Set pbControlBeginGroup to True
+    End_Object
+
+    Object oCopyMenuItem is a cCJCopyMenuItem
+    End_Object
+
+    Object oPasteMenuItem is a cCJPasteMenuItem
+    End_Object
+
+    Object oDeleteItem is a cCJDeleteEditMenuItem
+    End_Object
+
+    Object oSelectAllMenuItem is a cCJSelectAllMenuItem
+        Set pbControlBeginGroup to True
+        Set psImage to "SelectAll.ico"
+    End_Object
+
+End_Object
+

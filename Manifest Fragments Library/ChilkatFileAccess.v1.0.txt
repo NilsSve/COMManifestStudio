@@ -1,0 +1,6 @@
+// Chilkat Software 
+<file name="ChilkatFileAccess.dll">
+	<comClass clsid="{fa0ae296-ee9e-46c3-8131-d2e11694b84a}" description="Chilkat FileAccess" tlbid="{2E86D921-BAFF-4E50-94CF-7BD61005B029}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="ChilkatFileAccess.CkFileAccess.1"></comClass>
+	<comClass clsid="{f25302f4-4e92-419b-861e-7ac802b09033}" description="CkDirTree Class" tlbid="{2E86D921-BAFF-4E50-94CF-7BD61005B029}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="Chilkat.DirTree.1"></comClass>
+	<typelib tlbid="{2E86D921-BAFF-4E50-94CF-7BD61005B029}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

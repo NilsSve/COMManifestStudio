@@ -1,0 +1,929 @@
+Use Windows.pkg
+Use DFClient.pkg
+Use dfBitmap.pkg
+Use dfLine.pkg
+
+Use cRDCForm.pkg
+Use cRDCDbForm.pkg
+Use cDbWizardWinXPStyle.pkg
+Use cManifestFunctionLibrary.pkg
+Use cRDCDbCJGrid.pkg
+Use cRDCCheckbox.pkg
+
+Use cManHdrDataDictionary.dd
+Use cManDetManDataDictionary.dd
+
+Register_Object oApplicationManifestFile_fm
+Register_Object oApplicationManifestPath_fm
+Register_Object oApplicationFile_fm
+Register_Object oApplicationPath_fm
+
+//Activate_View Activate_oCreateNewProject_dg for oCreateNewProject_dg
+Procedure Activate_oCreateNewProject_Dg
+    Register_Object oCreateNewProject_Dg
+    Send Clear of (oManHdr_DD(oCreateNewProject_Dg(Self)))
+    Send Popup of oCreateNewProject_Dg
+End_Procedure
+
+Object oCreateNewProject_Dg is a cDbModalPanelWizard
+    Set Size to 223 358
+    Set Label to "New Project Wizard"
+
+    Object oManHdr_DD is a cManHdrDataDictionary
+        Set Allow_Foreign_New_Save_State to True
+    End_Object
+
+    Object oManDet_DD is a cManDetManDataDictionary
+        Set DDO_Server to oManHdr_DD
+        Set Constrain_File to ManHdr.File_Number
+    End_Object
+
+    Set Main_DD to oManHdr_DD
+    Set Server  to oManHdr_DD
+
+    Object oDbWizard is a cDbWizard
+        Set Size to 197 360
+        Set Location to 1 0
+        // The cDbWizard object should be placed directly under a DbModalPanel object.
+        // Make the size of the wizard the same as the dbModalPanel container object.
+        Set psHeaderGraphic to "TopContainerRightImage.bmp"
+
+        Object oWelcome_tp is a cDbWelcomePage
+            Set Label to "Welcome"
+            Set psSideImage to "SideImageWizard.bmp"
+            Set psTitle to "Create New Project"
+            Set psSubTitle to "This wizard helps you to create a new side-by-side program manifest project"
+            Set psBottomText to "Click the Next button to select a program manifest file..."
+            Set piNextPage to 1
+
+            // Note: These objects shows up with frames around them in the Studio.
+            // That is only to show the objects as place-holders and will _not_ be
+            // visible when compiling & running the application.
+            // Important: Some of the object locations and sizes are indicational
+            //            only. The correct size & locations are derived from their
+            //            container objects - if relevant.
+            Object oWizardTopContainer is a cWizardTopContainer
+
+                Object oWizardTopTitle is a cWizardTopTitle
+                End_Object
+
+                Object oWizardTopDescription is a cWizardTopDescription
+                End_Object
+
+                Object oWizardTopRightBitmap is a cWizardTopRightBitmap
+                    // Note: These lines are here to let the Studio's
+                    // parser logic work when selecting to scan for
+                    // icons & bitmaps from the Project property dialog, and to
+                    // render the images in the Studio
+                    Set Bitmap to "TopContainerRightImage.bmp"
+                    Set Bitmap to "TopContainerRightImage.bmp"
+                End_Object
+
+            End_Object
+
+            Object oWizardTopSectionLine is a cWizardTopSectionLine
+                Set Location to 37 0
+            End_Object
+
+            Object oWizardSideImage is a cWizardSideImage
+                Set Size to 143 124
+                    // Note: The line is here to let the Studio's
+                    // parser logic work when selecting to scan for
+                    // icons & bitmaps from the Project property dialog, and to
+                    // render the image in the Studio
+                    Set Bitmap to "SideImageWizard.bmp"
+            End_Object
+
+            Object oWizardBottomText is a cWizardBottomText
+                Set Location to 153 159
+            End_Object
+
+        End_Object
+
+        Object oSelectApplicationManifestFile_tp is a cDbInteriorPage
+            Set Label to "Select Manifest"
+            Set psTitle to "Program Manifest File"
+            Set psSubTitle to "The wizard needs to know if a program manifest file exists for your executable, or if one should be created"
+
+            Object oApplicationManifestFile_fm is a cRDCDbForm
+                Entry_Item ManHdr.ManifestFileName
+                Set Size to 13 171
+                Set Location to 107 88
+                Set Label to "Program Manifest File"
+                Set Enabled_State to False
+                Set peAnchors to anTopLeftRight
+            End_Object
+
+            Object oSelectManifestFile_btn is a cRDCButton
+                Set Size to 13 50
+                Set Location to 107 263
+                Set Label to "Browse..."
+                Set psToolTip to "Click to show an Open dialog for you to select a program manifest file from. The file has the same name as the executable file, with an added '.manifest' keyword. (Ctrl+O)"
+                Set peAnchors to anTopRight
+                Procedure OnClick
+                    String sExeName sPath
+                    Send SelectAppManifestFile of ghoManifestFunctionLibrary oApplicationManifestFile_fm oApplicationManifestPath_fm
+                    Get psExeFileName of ghoManifestFunctionLibrary to sExeName 
+                    Get psExeFilePath of ghoManifestFunctionLibrary to sPath
+                    Set Value of oApplicationFile_fm to sExeName    
+                    Set Value of oApplicationPath_fm to sPath
+                End_Procedure
+            End_Object
+
+            Object oApplicationManifestPath_fm is a cRDCDbForm
+                Entry_Item ManHdr.Path
+                Set Size to 13 171
+                Set Location to 122 88
+                Set Label to "Path"
+                Set Enabled_State to False
+                Set peAnchors to anTopLeftRight
+                Procedure Refresh Integer notifyMode
+                    If (notifyMode = Mode_Clear) Begin
+                        Set Value of oApplicationFile_fm to ""
+                        Set Value of oApplicationPath_fm to ""  
+                    End
+                    Forward Send Refresh notifyMode
+                End_Procedure
+            End_Object
+
+            Object oSelectExecutableFile_btn is a cRDCButton
+                Set Size to 13 50
+                Set Location to 147 263
+                Set Label to "Browse..."
+                Set psToolTip to "Select an executable file (Ctrl+S) or (F4)"
+                Set peAnchors to anTopRight
+                Procedure OnClick
+                    String sPath sManifestFile
+                    Boolean bIncludeDPI
+                    Get Checked_State of oAddManifestDPI_cb to bIncludeDPI
+                    Send SetApplicationStrings of ghoManifestFunctionLibrary ""
+                    Send OpenApplicationFileWizard of ghoManifestFunctionLibrary oApplicationFile_fm oApplicationPath_fm bIncludeDPI
+                    Get psTargetPath       of ghoManifestFunctionLibrary to sPath
+                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+                    If (sPath <> "" and sManifestFile <> "") Begin
+                        Set Changed_Value of oApplicationManifestFile_fm 0 to sManifestFile
+                        Set Changed_Value of oApplicationManifestPath_fm 0 to sPath
+                    End
+                End_Procedure
+            End_Object
+
+            Object oApplicationFile_fm is a cRDCForm
+                Set Size to 13 171
+                Set Location to 147 88
+                Set Label to "Program File"
+                Set Enabled_State to False
+                Set peAnchors to anTopLeftRight
+            End_Object
+
+            Object oApplicationPath_fm is a cRDCForm
+                Set Size to 13 171
+                Set Location to 162 88
+                Set Label to "Path"
+                Set Enabled_State to False
+                Set peAnchors to anTopLeftRight
+            End_Object
+
+            Object oApplicationManifest_rg is a RadioGroup
+                Set Location to 41 89
+                Set Size to 55 224
+                Set Label to "Select the option that best describes your situation"
+                Set Skip_State to True
+
+                Object oRadio1 is a Radio
+                    Set Label to "A program manifest file exists for my executable"
+                    Set Size to 10 172
+                    Set Location to 16 13
+                End_Object
+
+                Object oRadio2 is a Radio
+                    Set Label to "No, no program manifest file exists for the executable"
+                    Set Size to 10 200
+                    Set Location to 29 13
+                End_Object
+
+                Object oAddManifestDPI_cb is a cRDCCheckBox
+                    Set Size to 10 50
+                    Set Location to 42 25
+                    Set Label to "Add 'DPI Aware' to Manifest"
+                    Set psToolTip to ""
+                    Set Checked_State to True
+                End_Object
+
+                Procedure Notify_Select_State Integer iToItem Integer iFromItem
+                    Forward Send Notify_Select_State iToItem iFromItem
+                    Set Enabled_State of oSelectManifestFile_btn     to (iToItem = 0)
+                    Set Enabled_State of oSelectExecutableFile_btn   to (iToItem <> 0)
+                    Set Enabled_State of oAddManifestDPI_cb          to (iToItem <> 0)
+                End_Procedure
+
+            End_Object
+
+            Function ConfirmPageChange Integer iDirection Returns Boolean
+                Boolean bOk
+                String sPath sManifestFile
+                Move True to bOk
+                If (iDirection = Wizard_Forward_Navigate) Begin
+                    Get psTargetPath       of ghoManifestFunctionLibrary to sPath
+                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+                    Move (sPath <> "" and sManifestFile <> "") to bOk
+                    If (bOk = False) Begin
+                        Send Info_Box "You must select or create a program manifest file before you can continue."
+                    End
+                    Else Begin
+                        Clear ManHdr
+                        Move sManifestFile to ManHdr.ManifestFileName
+                        Move sPath         to ManHdr.Path
+                        Find ge ManHdr by Index.2 
+                        If (Found = True) Begin
+                            Move (Trim(sManifestFile) = trim(ManHdr.ManifestFileName) and Trim(sPath) = Trim(ManHdr.Path)) to Found
+                        End
+                        If (Found = True) Begin
+                            Send Info_Box "There already exists a record with for the selected manifest file (and path). Please select another manifest file and try again."
+                            Move False to bOk
+                        End
+                        Else Begin
+                            // We need this record in place for other logic to work properly.
+                            Send Request_Save of oManHdr_DD
+                            Send Info_Box "Header record saved successfully."
+                        End
+                    End
+                End
+                Function_Return bOk
+            End_Function
+
+            Procedure OnEntering Integer iFrom Integer iDirection
+                Boolean bIsActive
+                Get Enabled_State of oSelectManifestFile_btn to bIsActive
+                If (bIsActive = True) Begin
+                    Send Activate of oSelectManifestFile_btn
+                End
+                Else Begin
+                    Send Activate of oSelectExecutableFile_btn
+                End
+            End_Procedure
+
+            Procedure ButtonShortCuts
+                Boolean bIsActive
+                Get Enabled_State of oSelectManifestFile_btn to bIsActive
+                If (bIsActive = True) Begin
+                    Send KeyAction of oSelectManifestFile_btn
+                End
+                Else Begin
+                    Send KeyAction of oSelectExecutableFile_btn
+                End
+            End_Procedure
+
+            Object oWizardTopContainer is a cWizardTopContainer
+
+                Object oWizardTopTitle is a cWizardTopTitle
+                End_Object
+
+                Object oWizardTopDescription is a cWizardTopDescription
+                End_Object
+
+                Object oWizardTopRightBitmap is a cWizardTopRightBitmap
+                End_Object
+
+            End_Object
+
+            On_Key Key_Ctrl+Key_S Send ButtonShortCuts
+            On_Key Key_Alt+Key_S  Send ButtonShortCuts
+            On_Key kPrompt        Send ButtonShortCuts
+        End_Object
+
+        Object oSelectManifestFragments_tp is a cDbInteriorPage
+            Set Label to "Select Fragements"
+            Set psTitle to "Select Manifest Fragment Files"
+            Set psSubTitle to "On this page you select the manifest fragment files that should be merged with the program manifest file."
+
+            Object oSelectManifestFragmentFiles_btn is a cRDCButton
+                Set Size to 14 109
+                Set Location to 45 19
+                Set Label to "Select Manifest Fragment Files"
+                Procedure OnClick
+                    Send Prompt of oFragmentFileCol
+                End_Procedure
+            End_Object
+
+            Object oWizardManifest_grid is a cRDCDbCJGrid
+                Set Server to oManDet_DD
+                Set Ordering to 3
+                Set Size to 96 322
+                Set Location to 63 19
+                Set peAnchors to anAll
+                Set pbAllowInsertRow to False
+                Set pbHeaderPrompts to True
+                Set Verify_Delete_Msg to (RefFunc(No_Confirmation))
+                Set Verify_Data_Loss_Msg to (RefFunc(No_Confirmation))
+                Set Verify_Save_msg to (RefFunc(No_Confirmation))
+                Set psLayoutSection to "oCreateNewWizard_oManifest_grid"
+                Set pbRestoreLayout to True
+                Set pbAllowEdit to False
+                Set pbShowFooter to True
+                Set pbAllowAppendRow to False
+
+                Object oCJGridColumnRowIndicator is a cCJGridColumnRowIndicator
+                    Set piWidth to 27
+                End_Object
+
+                Object oFragmentFileCol is a cRDCDbCJGridColumn
+                    Entry_Item ManDet.ManifestFragmentFile
+                    Set piWidth to 249
+                    Set psCaption to "Manifest Fragment Files"
+                    Set psToolTip to "Click the header or press (F4) to select manifest fragment files."
+                    Set Status_Help to (psToolTip(Self))
+                    Set Prompt_Button_Mode to PB_PromptOn
+                    Set psImage to "ActionPrompt.ico"
+                    Set pbMultiLine to True
+
+                    Procedure Prompt
+                        String[] sFileNames sRetvalsArray
+                        Integer i iRows iID iRetval
+                        tDataSourceRow[] TheData
+
+                        Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
+                        If (iID = 0) ;
+                            Procedure_Return
+
+                        // Get the current grid fragment files
+                        Get SelectedItems to sFileNames
+                        // Popup the selection list!
+                        Get ActivateFragmentFiles_sl (&sFileNames) to sRetvalsArray
+                        // Get the selection from the popup list and add them to the grid:
+                        Move (SizeOfArray(sRetvalsArray)) to iRows
+                        If (iRows = 0) ;
+                            Procedure_Return
+
+                        // Create new records from the returned sRetvalsArray values
+                        Decrement iRows
+                        Lock
+                            For i from 0 to iRows
+                                Clear ManDet
+                                Get GlobalAutoCreateNewID File_Field ManDet.ID False to iRetval
+                                Move iRetval to ManDet.ID
+                                Move iID to ManDet.ManHdrID
+                                Move sRetvalsArray[i] to ManDet.ManifestFragmentFile
+                                SaveRecord ManDet
+                            Loop
+                        Unlock
+
+                        // Refresh grid from the database table's records
+                        Send RefreshDataFromExternal of (Parent(Self)) 0
+                        Send MovetoFirstRow
+                    End_Procedure
+
+                    // Check if the manifest fragment file is missing; in case we set the textcolor to red
+                    Procedure OnSetDisplayMetrics Handle hoMetrics Integer iRow String ByRef sValue
+                        String sPath
+                        Boolean bExists
+                        If (sValue <> "") Begin
+                            Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sPath
+                            Get vFolderFormat sPath to sPath
+                            Get vFilePathExists (sPath + sValue) to bExists
+                            If (bExists = False) Begin
+                                Set ComForeColor of hoMetrics to clRed
+                            End
+                        End
+                    End_Procedure
+
+                    // Check if the manifest fragment file is missing; in case we set the textcolor to red
+                    // Else show tooltip about right-click context sensitive menu.
+                    Function OnGetTooltip Integer iRow String sValue String sText Returns String
+                        Boolean bExists
+                        String sPath
+                        If (sValue <> "") Begin
+                            Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sPath
+                            Get vFolderFormat sPath to sPath
+                            Get vFilePathExists (sPath + sValue) to bExists
+                            If (bExists = False) Begin
+                                Move "Filenames with red text denotes that the file is missing from the Manifest Fragment Library" to sText
+                            End
+                            Else Begin
+                                Move (sValue + ".  Right-click grid rows for menu options") to sText
+                            End
+                        End
+                        Function_Return sText
+                    End_Function
+
+                End_Object
+
+                Object oComment_Column is a cRDCDbCJGridColumn
+                    Set piWidth to 368
+                    Set psCaption to "Description "
+                    Set psToolTip to "Click the header or press in the grid (F4) to select manifest fragment files."
+                    Set pbMultiLine to True
+                    Set Status_Help to (psCaption(Self))
+                    Set Prompt_Button_Mode to PB_PromptOn
+                    Set Prompt_Object to oFragmentFiles_sl
+
+                    Procedure Prompt
+                        Send Prompt of oFragmentFileCol
+                    End_Procedure
+
+                    // Show the comment from the current row's manifest fragment file in this column:
+                    Procedure OnSetCalculatedValue String ByRef sValue
+                        Forward Send OnSetCalculatedValue sValue
+                        Move (Trim(ManDet.ManifestFragmentFile)) to sValue
+                        If (sValue contains ".txt") Begin
+                            Get ExtractManifestFragmentFileComment of ghoManifestFunctionLibrary sValue to sValue
+                        End
+                    End_Procedure
+
+                    Function OnGetTooltip Integer iRow String sValue String sText Returns String
+                        String sRetVal
+                        Forward Get OnGetTooltip iRow sValue sText to sRetVal
+                        Move "Right-click grid rows for menu options" to sRetVal
+                        Function_Return sRetVal
+                    End_Function
+
+                End_Object
+
+                // Grid messages:
+                //
+                // Always show the manifest fragment files prompt list, no matter
+                // what column header is clicked. It just makes sense here.
+                Procedure OnHeaderClick Integer iCol
+                    Send Prompt of oFragmentFileCol
+                End_Procedure
+
+                // Send by grid subclass Refresh message.
+                Procedure DoSetCurrentRow
+                    Handle hoDataSource
+                    Integer iRows
+                    Forward Send DoSetCurrentRow
+
+                    Get phoDataSource to hoDataSource
+                    Get RowCount      of hoDataSource to iRows
+                    Set psFooterText of oFragmentFileCol to (" Number of Files:" * String(iRows))
+                End_Procedure
+
+                Function SelectedItems Returns String[]
+                    Integer i iRows iFileName_Col
+                    Handle hoDataSource
+                    tDataSourceRow[] TheData
+                    String[] sFilesArray
+                    String sFileName
+
+                    Get phoDataSource              to hoDataSource
+                    Get DataSource of hoDataSource to TheData
+                    Move (SizeOfArray(TheData))    to iRows
+                    Get piColumnId of oFragmentFileCol to iFileName_Col
+                    Decrement iRows
+                    For i from 0 to iRows
+                        Move TheData[i].sValue[iFileName_Col] to sFileName
+                        Move sFileName to sFilesArray[i]
+                    Loop
+
+                    Function_Return sFilesArray
+                End_Function
+
+                // Opens the current pointed to file name in an editor
+                Procedure DoOpenCurrentGridItem
+                    String  sFileName sEditor sEditorParams sPath
+                    Get Field_Current_Value of oManDet_DD Field ManDet.ManifestFragmentFile to sFileName
+                    If (sFileName contains ".txt") Begin
+                        Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sPath
+                        Get vFolderFormat sPath to sPath
+                        Get psFileEditor of ghoManifestIniFile to sEditor
+                        Get psFileEditorParams of ghoManifestIniFile to sEditorParams
+                        If (sEditorParams <> "") Begin
+                            Runprogram Background sEditor ('"' + sEditorParams + '"' * '"' + sPath + sFileName + '"')
+                        End
+                        Else Begin
+                            Runprogram Background sEditor ('"' + sPath + sFileName + '"')
+                        End
+                    End
+                End_Procedure
+
+                // Contect sensitive menu for the grid object
+                // Right mouse button click.
+                Object oWizardGridContextMenu is a cCJContextMenu
+
+                    Object oOpenGridItem_MenuItem is a cCJMenuItem
+                        Set psCaption to "Edit File Under Cursor"
+                        Set psDescription to "Opens the file under the cursor in the Editor"
+                        Set psImage to "EditDocument.ico"
+                        Set psShortcut to "Double-Click"
+                        Procedure OnExecute Variant vCommandBarControl
+                            Forward Send OnExecute vCommandBarControl
+                            Send OpenCurrentGridItem
+                        End_Procedure
+                        Function IsEnabled Returns Boolean
+                            String sManifestFile
+                            Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+                            Function_Return (sManifestFile <> "")
+                        End_Function
+                    End_Object
+
+                    Object oPromptMenuItem is a cCJPromptMenuItem
+                    End_Object
+
+                    Object oDeleteMenuItem is a cCJDeleteMenuItem
+                    End_Object
+
+                    Object oCheckIfCOMComponentIsRegisteredMenuItem is a cCJMenuItem
+                        Set psCaption to "&Check if COM Component is registered"
+                        Set psDescription to "Is the COM (OCX/DLL) component registered with Windows?"
+                        Set pbControlBeginGroup to True
+                        Set psImage to "COMCheck032N32.ico"
+                        Procedure OnExecute Variant vCommandBarControl
+                            String sManifestFragmentFile sResult sCOMFileName
+                            Boolean bRegistered
+                            Forward Send OnExecute vCommandBarControl
+                            Get Field_Current_Value of oManDet_DD Field ManDet.ManifestFragmentFile to sManifestFragmentFile
+                            Get CheckCOMRegistrationFromManifestFragmentFile of ghoManifestFunctionLibrary sManifestFragmentFile to bRegistered
+                            Get ExtractCOMFileName of ghoManifestFunctionLibrary sManifestFragmentFile to sCOMFileName
+                            If (bRegistered = True) Begin
+                                Move ("Yes, the" * sCOMFileName * "component is registered with Windows.") to sResult
+                            End
+                            Else Begin
+                                Move ("No, the" * sCOMFileName * "component is not registered with Windows.") to sResult
+                            End
+                            Send Info_Box sResult
+                        End_Procedure
+
+                    End_Object
+
+                    Object oRegisterCOMComponentMenuItem is a cCJMenuItem
+                        Set psCaption to "&Register COM Component"
+                        Set psDescription to "Register the COM (OCX/DLL) Component corresponding to the manifest fragment file under the cursor"
+                        Set psImage to "RegisterDLL032N32.ico"
+                        Procedure OnExecute Variant vCommandBarControl
+                            Forward Send OnExecute vCommandBarControl
+                            Send RegisterOrUnregister of ghoManifestFunctionLibrary True
+                        End_Procedure
+
+                    End_Object
+
+                    Object oUnRegisterCOMComponentMenuItem is a cCJMenuItem
+                        Set psCaption to "&UnRegister COM Component"
+                        Set psDescription to "Unregister the COM (OCX/DLL) Component corresponding to the manifest fragment file under the cursor"
+                        Set psImage to "UnRegisterDLL032N32.ico"
+                        Procedure OnExecute Variant vCommandBarControl
+                            Forward Send OnExecute vCommandBarControl
+                            Send RegisterOrUnregister of ghoManifestFunctionLibrary False
+                        End_Procedure
+                    End_Object
+
+                    Object oViewManifestFile_MenuItem is a cCJMenuItem
+                        Set psCaption to "Edit Program Manifest &File"
+                        Set psDescription to "Open the program manifest File in the editor"
+                        Set psImage to "EditDocument032N32.ico"
+                        Set psShortcut to "Ctrl+F"
+                        Set pbControlBeginGroup to True
+                        Procedure OnExecute Variant vCommandBarControl
+                            Forward Send OnExecute vCommandBarControl
+                            Send EditAppManifestFile of ghoManifestFunctionLibrary
+                        End_Procedure
+                        Function IsEnabled Returns Boolean
+                            String sManifestFile
+                            Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+                            Function_Return (sManifestFile <> "")
+                        End_Function
+                    End_Object
+
+                    Object oOpenProgramsFolder_MenuItem is a cCJMenuItem
+                        Set psCaption to "Open Programs Fol&der"
+                        Set psDescription to "Open the manifest file's Programs folder in Windows explorer"
+                        Set psImage to "OpenProgramsFolder032N32.ico"
+                        Set psShortcut to "Ctrl+D"
+                        Procedure OnExecute Variant vCommandBarControl
+                            String sPath
+                            Forward Send OnExecute vCommandBarControl
+                            Get psTargetPath of ghoManifestFunctionLibrary to sPath
+                            Send vShellExecute "open" "Explorer.exe" sPath ""
+                        End_Procedure
+                        Function IsEnabled Returns Boolean
+                            String sManifestFile
+                            Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+                            Function_Return (sManifestFile <> "")
+                        End_Function
+                    End_Object
+
+                    Object oOpenFragmentLibrary_MenuItem is a cCJMenuItem
+                        Set psCaption to "Open Manifest Fragment &Library"
+                        Set psDescription to "Open the local Manifest Fragment Library in Windows explorer"
+                        Set psImage to "FragmentLibrary032N32.ico"
+                        Set psShortcut to "Ctrl+L"
+                        Procedure OnExecute Variant vCommandBarControl
+                            String sPath
+                            Forward Send OnExecute vCommandBarControl
+                            Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sPath
+                            Send vShellExecute "open" "Explorer.exe" sPath ""
+                        End_Procedure
+                    End_Object
+
+                    Object oOpenCOMLibrary_MenuItem is a cCJMenuItem
+                        Set psCaption to "Open Common COM Li&brary"
+                        Set psDescription to "Open the local Common COM Library in Windows explorer"
+                        Set psImage to "COMLibrary032N32.ico"
+                        Set psShortcut to "Ctrl+B"
+                        Procedure OnExecute Variant vCommandBarControl
+                            String sPath
+                            Forward Send OnExecute vCommandBarControl
+                            Get psCommonCOMLibrary of ghoManifestFunctionLibrary to sPath
+                            Send vShellExecute "open" "Explorer.exe" sPath ""
+                        End_Procedure
+                    End_Object
+
+                    Object oDownloadFragmentFiles_MenuItem is a cCJMenuItem
+                        Set psCaption to "&Download New Fragment Files"
+                        Set psDescription to "Download New Fragment Files from vdf-guidance global repository"
+                        Set psImage to "FragmentLibrary032N32.ico"
+                        Set psShortcut to "Alt+D"
+                        Set pbControlBeginGroup to True
+                        Procedure OnExecute Variant vCommandBarControl
+                            Forward Send OnExecute vCommandBarControl
+                            Send DownloadManifestFragmentFiles of ghoManifestFunctionLibrary
+                        End_Procedure
+                    End_Object
+
+                    Object oCreateFragmentFiles_MenuItem is a cCJMenuItem
+                        Set psCaption to "&Create New Fragment Files"
+                        Set psToolTip to "Create a new manifest fragment file (Alt+C)"
+                        Set psDescription to "If you cannot find a manifest fragment file for your COM (OCX/DLL) component you can create one here."
+                        Set peControlStyle to xtpButtonIconAndCaption
+                        Set psImage to "FragmentNew.ico"
+                        Set psShortcut to "Alt+C"
+                        Procedure OnExecute Variant vCommandBarControl
+                            Forward Send OnExecute vCommandBarControl
+                            Send Popup of (oCreateManifestFragmentFile(Client_Id(ghoCommandBars)))
+                        End_Procedure
+                    End_Object
+
+                    Delegate Set phoContextMenu to Self
+                End_Object
+
+                // Make mouse double-click of left button open the current
+                // grid item.
+                Procedure OnComRowDblClick Variant llRow Variant llItem
+                    Forward Send OnComRowDblClick llRow llItem
+                    Send OpenCurrentGridItem
+                End_Procedure
+
+                Function OnPostEntering Returns Boolean
+                    Boolean bRetVal
+                    Handle hoSrvr
+                    Boolean bErr
+
+                    Forward Get OnPostEntering to bRetVal
+
+                    Delegate Get Server to hoSrvr
+                    Get Request_Validate of hoSrvr to bErr
+                    If (bErr = False) Begin
+                        Delegate Send Request_Save
+                        If (Err = True) Begin
+                            Send Info_Box "The manifest filename and path needs to be unique and there already exist a record with these values. Please adjust and try again."
+                        End
+                    End
+
+                    Function_Return (Err)
+                End_Function
+
+                Procedure OnEntering
+                    Handle hoSrvr
+                    Boolean bChanged
+                    Delegate Get Server to hoSrvr
+                    Get Should_Save of hoSrvr to bChanged
+                    If (bChanged = True) Begin
+                        Set pbNeedPostEntering to True
+                    End
+                End_Procedure
+
+                On_Key Key_Delete Send Request_Delete
+            End_Object
+
+            Function ConfirmPageChange Integer iDirection Returns Boolean
+                Integer iID
+                Boolean bOk
+                Move True to bOk
+                If (iDirection = Wizard_Forward_Navigate) Begin
+                    Get Field_Current_Value  of oManDet_DD Field ManDet.ID to iID
+                    If (iID = 0) Begin
+                        Send Info_Box "You must first select manifest fragment file(s) for the program, before you can continue."
+                        Move False to bOk
+                    End
+                End
+                Function_Return bOk
+            End_Function
+
+            Object oWizardTopContainer is a cWizardTopContainer
+
+                Object oWizardTopTitle is a cWizardTopTitle
+                End_Object
+
+                Object oWizardTopDescription is a cWizardTopDescription
+                End_Object
+
+                Object oWizardTopRightBitmap is a cWizardTopRightBitmap
+                End_Object
+
+            End_Object
+
+        End_Object
+
+        Object oCreateAppManifest_tp is a cDbInteriorPage
+            Set Label to "Build Manifest"
+            Set psTitle to "Build Program Manifest File"
+            Set psSubTitle to "Checks for duplicate TypeLib declarations and merges the selected fragment files with the program manifest file."
+
+            Object oCheckAndMerge_btn is a cRDCButton
+                Set Size to 13 100
+                Set Location to 128 129
+                Set Label to "Build Program Manifest File!"
+                Set psToolTip to "Checks for duplicate TypeLib declarations and merges the selected fragment files with the program manifest file. A backup copy of the program manifest file will be created with today's date and time appended to the file name (Ctrl+M Merge!)."
+                Set peAnchors to anTopRight
+                Procedure OnClick
+                    String sFileName
+                    String[] sFilesArray
+                    Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFileName
+                    Get SelectedItems of oWizardManifest_grid to sFilesArray
+                    Send BuildManifestFile of ghoManifestFunctionLibrary sFileName sFilesArray
+                    Set Enabled_State of oViewManifestFile_btn to True
+                End_Procedure
+            End_Object
+
+            Object oViewManifestFile_btn is a cRDCButton
+                Set Size to 13 100
+                Set Location to 149 129
+                Set Label to "Edit Program Manifest File"
+                Set psToolTip to "Open the program manifest file in the editor"
+                Set peAnchors to anTopRight
+                Set Skip_State to True
+
+                Procedure OnClick
+                    Send EditAppManifestFile of ghoManifestFunctionLibrary
+                End_Procedure
+
+            End_Object
+
+            Object oInfo_tb is a TextBox
+                Set Size to 10 178
+                Set Location to 108 86
+                Set Label to "Click the button to build the side-by-side program manifest file now."
+            End_Object
+
+            Procedure OnEntering Integer iFrom Integer iDirection
+                Boolean bExists
+                String sPath sManifestFile
+                Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sManifestFile
+                Get Field_Current_Value of oManHdr_DD Field ManHdr.Path             to sPath
+                Get vFolderFormat sPath to sPath
+                Get vFilePathExists (sPath + sManifestFile) to bExists
+                Set Enabled_State of oViewManifestFile_btn to bExists
+            End_Procedure
+
+            Object oWizardTopContainer is a cWizardTopContainer
+
+                Object oWizardTopTitle is a cWizardTopTitle
+                End_Object
+
+                Object oWizardTopDescription is a cWizardTopDescription
+                End_Object
+
+                Object oWizardTopRightBitmap is a cWizardTopRightBitmap
+                End_Object
+
+            End_Object
+
+        End_Object
+
+        Object oCopyCOMComponents_tp is a cDbInteriorPage
+            Set Label to "Run program"
+            Set psTitle to "Test run program"
+            Set psSubTitle to "Check that the generated .manifest file is valid by starting the program."
+//            Set Label to "Copy COM"
+//            Set psTitle to "Copy COM Components"
+//            Set psSubTitle to "Displays a dialog that checks if the selected fragment files COM (OCX/DLL) components exists - and helps copy them to the program folder."
+
+//            Object oCopyCOMComponents_btn is a cRDCButton
+//                Set Size to 13 90
+//                Set Location to 128 129
+//                Set Label to "Copy COM Components"
+//                Set psToolTip to "Displays a dialog that checks if the selected fragment files COM (OCX/DLL) components exists - and helps copy them to the program folder."
+//                Set peAnchors to anNone
+//                Procedure OnClick
+//                    String[] sSelectedFileNames
+//                    Get SelectedItems of oWizardManifest_grid to sSelectedFileNames
+//                    Send CopyCOMComponents of ghoManifestFunctionLibrary sSelectedFileNames
+//                    Set Enabled_State of oRunApp_btn to True
+//                End_Procedure
+//            End_Object
+
+            Object oRunApp_btn is a cRDCButton
+                Set Size to 13 90
+                Set Location to 144 129
+                Set Label to "Test Run Program"
+                Set psToolTip to "Runs the program associated with the manifest file"
+                Set peAnchors to anNone
+                Procedure OnClick
+                    String[] sSelectedFileNames
+                    Get SelectedItems of oWizardManifest_grid to sSelectedFileNames
+                    Send RunProgram of ghoManifestFunctionLibrary sSelectedFileNames
+                End_Procedure
+            End_Object
+
+            Object oInfo_tb is a TextBox
+                Set Auto_Size_State to False
+                Set Size to 20 301
+                Set Location to 97 29
+                Set Label to "Verify the generated .manifest file by starting the program."
+//                Set Label to "Click the button to check that all COM (OCX/DLL) components are present in the application's Programs folder and copy them if not."
+                Set Justification_Mode to JMode_Left
+            End_Object
+
+            Procedure OnEntering Integer iFrom Integer iDirection
+                Set Enabled_State of oRunApp_btn to False
+            End_Procedure
+
+            Object oWizardTopContainer is a cWizardTopContainer
+
+                Object oWizardTopTitle is a cWizardTopTitle
+                End_Object
+
+                Object oWizardTopDescription is a cWizardTopDescription
+                End_Object
+
+                Object oWizardTopRightBitmap is a cWizardTopRightBitmap
+                End_Object
+
+            End_Object
+
+        End_Object
+
+        Object oFinish_tp is a cDbCompletionPage
+            Set Label to 'Finish'
+            Set psSideImage to "SideImageWizardFinish.Bmp"
+            Set psTitle to "New Project Wizard Completed"
+            Set psSubTitle to "You are done!"
+            Set psBottomText to "Click on finish to exit the wizard"
+
+            Object oWizardTopContainer is a cWizardTopContainer
+
+                Object oWizardTopTitle is a cWizardTopTitle
+                End_Object
+
+                Object oWizardTopDescription is a cWizardTopDescription
+                End_Object
+
+                Object oWizardTopRightBitmap is a cWizardTopRightBitmap
+                End_Object
+
+            End_Object
+
+            Object oWizardTopSectionLine is a cWizardTopSectionLine
+            End_Object
+
+            Object oWizardSideImage is a cWizardSideImage
+                Set Size to 143 124
+                // Note: The line is here to let the Studio's
+                // parser logic work when selecting to scan for
+                // icons & bitmaps from the Project property dialog, and to
+                // render the image in the Studio
+                Set Bitmap to "SideImageWizardFinish.Bmp"
+            End_Object
+
+            Object oWizardBottomText is a cWizardBottomText
+                Set Location to 153 159
+            End_Object
+
+        End_Object
+
+        Procedure FinishWizard
+            String sPath sManifestFileName
+            Forward Send FinishWizard
+            Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sManifestFileName
+            Get Field_Current_Value of oManHdr_DD Field ManHdr.Path             to sPath
+            If (sManifestFileName <> "" and sPath <> "") Begin
+                Get vFolderFormat of ghoManifestFunctionLibrary sPath to sPath
+                Set psApplicationManifestName of ghoApplication to (sPath + sManifestFileName)
+                Send DoLoadDbMergerViewFromApplicationObject of (Client_Id(ghoCommandBars))
+            End
+            Send Close_Panel
+        End_Procedure
+
+    End_Object
+
+    // Note: All these objects gets relocated
+    // to the bottom of the wizard by their class code.
+    Object oBottomLine is a cWizardBottomLine
+        Set Location to 196 0
+    End_Object
+
+    Object oBackButton is a cBackButton
+        Set Location to 203 192
+    End_Object
+
+    Object oNextButton is a cNextButton
+        Set Location to 203 246
+    End_Object
+
+    Object oCancelButton is a cCancelButton
+        Set Location to 203 300
+    End_Object
+
+    Procedure Page Integer iPageObject
+        Set Icon to "Wizard.ico"
+        Forward Send Page iPageObject    
+    End_Procedure
+End_Object

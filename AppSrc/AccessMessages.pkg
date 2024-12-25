@@ -1,0 +1,44 @@
+//****************************************************************************
+// $Module type: Package
+// $Module name: AccessMessages
+// $Author     : Nils Svedmyr, RDC Tools International, <support@rdctools.com>
+// Created     : 2013-09-07 @ 09:06
+//
+// Description : General purpose access messages used by the Side-By-Side Manifest Studio project.
+//               It is important that this package is Used in the Client_area
+//               of the program.
+//               They have been put in a separate package to not "clutter up" the Client_area.
+//
+//
+// $Rev History:
+//    2013-09-07  Module header created
+//****************************************************************************
+Use cApplication.pkg
+Use cCJCommandBarSystem.pkg
+
+Register_Object oSendSharedFiles_Dialog
+Register_Procedure Activate_oCreateNewProject_Dg
+
+Procedure DoShareManifestFragmentFiles
+    Send Popup of (oSendSharedFiles_Dialog(Client_Id(ghoCommandBars)))
+End_Procedure
+
+Procedure DoShowMainPromptList
+    Handle ho
+    Get phoMainPromptObject of ghoApplication to ho
+    Send Activate of ho
+    Send Prompt of ho
+End_Procedure
+
+Procedure DoStartWizard
+    Handle ho
+    Broadcast Recursive Send Clear
+    Get phoMainPromptObject of ghoApplication to ho
+    // We need to activate the "main" dbform before calling the wizard because if the
+    // focus is in the grid and Ctrl+N is pressed and the Wizard is cancelled, there
+    // is no focus to return to for the cursor, so it "disappears". The reason this
+    // happens is of course that the main grid no nonger can take the focus after all
+    // data has been cleared.
+    Send Activate of ho
+    Send Activate_oCreateNewProject_Dg of (Client_Id(ghoCommandBars))
+End_Procedure

@@ -1,0 +1,10 @@
+// DataAccess WorldWide Visual Report Writer 2013. Main component. (3.0 version)
+<file name="Visual Report Writer 2013 Developer Edition API.ocx">
+	<comClass clsid="{2edbf7a4-201f-4f51-aeb4-08e8ac98990a}" description="Visual Report Writer runtime 3.0" tlbid="{6EF89237-BDDC-4A9D-90AA-2A45E650580C}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="VRWAPI.ViewerCtrl.3.0"></comClass>
+	<typelib tlbid="{6EF89237-BDDC-4A9D-90AA-2A45E650580C}" resourceid="1" version="3.0" helpdir=""></typelib>
+</file>
+// Dependecies:
+//#=df_collate.cfg
+//#=dynapdf.dll
+//#=language.db
+//#=vrw.db

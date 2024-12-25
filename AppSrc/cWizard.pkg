@@ -1,0 +1,877 @@
+// **************************************************************************** //
+// **                                                                        ** //
+// ** Class   : cWizard                                                      ** //
+// **                                                                        ** //
+// ** Purpose : This package defines the following classes:                  ** //
+// **           cWizard                                                      ** //
+// **           cWelcomePage                                                 ** //
+// **           cInteriorPage                                                ** //
+// **           cCompletionPage                                              ** //
+// **                                                                        ** //
+// **           This package also defines the following private classes:     ** //
+// **           cWizard_tb cWizardBack_btn     cWizardNext_btn               ** //
+// **           cWizardCancel_btn cWizardPage  cExteriorPage                 ** //
+// **                                                                        ** //
+// **                                                                        ** //
+// ** Author  : Emil Stojanov                                                ** //
+// **           Quantaris                                                    ** //
+// **                                                                        ** //
+// ** Date    : 16-10-2000                                                   ** //
+// **                                                                        ** //
+// **************************************************************************** //
+
+Use Windows.Pkg   // Standard Windows package
+Use DfLine.Pkg    // LineControl class
+Use DfBitmap.Pkg  // BitmapContainer class
+Use DfClient.Pkg  // dbModalPanel and dbContainer3d classes
+Use Data_Set.Pkg  // to support dataset's
+Register_Function piCurrentPage    Returns Integer
+Register_Function pbWelcomePage    Returns Integer
+Register_Function pbCompletionPage Returns Integer
+Register_Function piWelcomePage    Returns Integer
+Register_Function piCompletionPage Returns Integer
+
+Register_Procedure CancelWizard
+
+Define DS_3DLOOK     For |CI$0004
+Define DS_MODALFRAME For |CI$80   // Can be combined with WS_CAPTION
+Define DS_SETFONT    For |CI$40   // User specified font for Dlg controls
+
+Define WIZARD_FORWARD_NAVIGATE  For 2
+Define WIZARD_BACKWARD_NAVIGATE For 1
+                                   
+                                   
+Class cConfigureDbModalPanel is a dbModalPanel
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Property Handle phoConfigureRigthWizardPane 
+        Property Handle phoConfigureLeftSideButtons 
+    End_Procedure
+    
+End_Class
+
+Class cWizardBase_tb is a TextBox
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set Auto_Size_State to False
+        Set Justification_Mode to JMode_Left
+    End_Procedure
+    
+    Procedure Set Label String sLabel
+        Set Value 0 to (Replaces ("\n", sLabel, Character(13)))
+    End_Procedure
+
+    Function Label Returns String
+        Function_Return (Replaces (Character(13), Value (Self, 0), "\n"))
+    End_Function
+End_Class
+
+Class cWizardSmall_tb is a cWizardBase_tb
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set FontPointHeight to 10
+    End_Procedure
+End_Class
+
+Class cWizardMedium_tb is a cWizardBase_tb
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set FontPointHeight to 12
+    End_Procedure
+End_Class
+
+Class cWizardLarge_tb is a cWizardBase_tb
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set FontPointHeight to 14
+    End_Procedure
+End_Class
+
+Class cWizardBack_btn is a Button
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Set Label to "< &Back"
+        Set Location to 237 195
+        Set Size to 14 50
+    End_Procedure
+
+    Procedure OnClick
+        Send SwitchPage WIZARD_BACKWARD_NAVIGATE
+    End_Procedure
+End_Class
+
+Class cWizardNext_btn is a Button
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Set Label to "&Next >"
+        Set Location to 237 245
+        Set Size to 14 50
+        Set Default_State to True
+    End_Procedure
+
+    Procedure OnClick
+        If (piCurrentPage (Self) = piCompletionPage (Self)) Begin
+            Send FinishWizard
+        End
+        Else Begin
+            Send SwitchPage WIZARD_FORWARD_NAVIGATE
+        End
+    End_Procedure
+End_Class
+
+Class cWizardCancel_btn is a Button
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Set Label to "Cancel"
+        Set Location to 237 302
+        Set Size to 14 50
+    End_Procedure
+
+    Procedure OnClick
+        Send CancelWizard
+    End_Procedure
+End_Class
+
+#IF (!@ >= 120)
+{ OverrideProperty=Size InitialValue=272,362 }
+{ OverrideProperty=Size DesignTime=False }
+{ OverrideProperty=Bitmap InitialValue="cWizard.Bmp" }
+{ OverrideProperty=Bitmap DesignTime=False }
+{ OverrideProperty=Bitmap_Style InitialValue=Bitmap_Actual }
+{ OverrideProperty=Bitmap_Style EnumList="Bitmap_Actual, Bitmap_Stretch, Bitmap_Tile, Bitmap_Center" }
+{ OverrideProperty=Bitmap_Style DesignTime=False }
+{ OverrideProperty=Border_Style InitialValue=Border_Dialog }
+{ OverrideProperty=Border_Style EnumList="Border_None, Border_Normal, Border_Dialog, Border_Thick, Border_ClientEdge, Border_WindowEdge, Border_StaticEdge" }
+{ OverrideProperty=Border_Style DesignTime=False }
+{ OverrideProperty=Caption_Bar InitialValue=True }
+{ OverrideProperty=Caption_Bar DesignTime=False }
+{ OverrideProperty=Color InitialValue=clLtGray }
+{ OverrideProperty=Color DesignTime=False }
+{ OverrideProperty=TextColor InitialValue=clWindowText }
+{ OverrideProperty=TextColor DesignTime=False }
+{ OverrideProperty=Label InitialValue="Wizard label, set this label via psLabel in the wizard" }
+{ OverrideProperty=Label DesignTime=False }
+{ OverrideProperty=Minimize_Icon InitialValue=False }
+{ OverrideProperty=Minimize_Icon DesignTime=False }
+{ OverrideProperty=Maximize_Icon InitialValue=False }
+{ OverrideProperty=Maximize_Icon DesignTime=False }
+{ OverrideProperty=Sysmenu_Icon InitialValue=True }
+{ OverrideProperty=Sysmenu_Icon DesignTime=False }
+#ENDIF
+Class cWizard is a ModalPanel
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Property String psHeaderGraphic
+        Property String Private.psLabel
+
+        Property Integer piCurrentPage    -1
+        Property Integer piWelcomePage    -1
+        Property Integer piCompletionPage -1
+        Property Handle[] phoWizardPages
+
+        Set Minimize_Icon to False
+        Set Maximize_Icon to False
+
+        Set Size to 272 362
+//      Set Border_Style to Border_Dialog
+
+//        Object oWizardPages is an Array
+//        End_Object
+
+        Object oBottomLine is a LineControl
+            Set GuiSize to 2 1600
+            Set Location to 228 0
+        End_Object
+
+        Object oBackButton is a cWizardBack_btn
+        End_Object
+
+        Object oNextButton is a cWizardNext_btn
+        End_Object
+
+        Object oCancelButton is a cWizardCancel_btn
+        End_Object
+
+        On_Key kCancel       Send OnClick to oCancelButton
+        On_Key Key_Alt+Key_N Send OnClick to oNextButton
+        On_Key Key_Alt+Key_B Send OnClick to oBackButton
+        On_Key kClose_Panel  Send CancelWizard
+
+        //      Set Window_Style to WS_POPUPWINDOW False
+        //      Set Window_Style to WS_CLIPCHILDREN False
+        //      Set Window_Style to WS_CAPTION True
+        //      Set Window_Style to WS_POPUP True
+        //      Set Window_Style to DS_3DLOOK True
+        //      Set Window_Style to DS_SETFONT True
+        //      Set Window_Style to DS_MODALFRAME True
+
+        //      Set Extended_Window_Style to WS_EX_DLGMODALFRAME True
+        //      Set Extended_Window_Style to WS_EX_CONTROLPARENT True
+    End_Procedure
+
+    Procedure Set psLabel String sLabel
+        Set private.psLabel to sLabel
+        Set Label to sLabel
+    End_Procedure
+
+    Function psLabel Returns String
+        String sLabel
+        Get private.psLabel to sLabel
+        Function_Return sLabel
+    End_Function
+
+    Function NumberOfPages Returns Integer
+        Handle[] hoWizardPages
+        Get phoWizardPages to hoWizardPages
+        Function_Return (SizeOfArray(hoWizardPages))
+    End_Function
+
+    Procedure AddPage Integer hoObject
+        Handle[] hoWizardPages
+        Integer iPageCount
+
+        Get phoWizardPages to hoWizardPages
+        Move hoObject to hoWizardPages[SizeOfArray(hoWizardPages)]  
+        Get NumberOfPages to iPageCount
+        If (pbWelcomePage (hoObject)) Begin
+            Set piWelcomePage to iPageCount
+        End
+        If (pbCompletionPage (hoObject)) Begin
+            Set piCompletionPage to iPageCount
+        End
+        Set phoWizardPages to hoWizardPages
+    End_Procedure
+
+    Procedure Activate_Group
+        Integer iWelComePage
+        Handle[] hoWizardPages
+        Forward Send Activate_group
+        Set phoWizardPages to hoWizardPages
+        Broadcast Send RegisterPage
+        Get piWelComePage to iWelComePage
+        Send SwitchToPage -1 iWelComePage WIZARD_FORWARD_NAVIGATE
+    End_Procedure
+
+    Procedure SwitchToPage Integer iFrom Integer iTo Integer iDirect
+        Integer iDirection
+        Handle hoFrom hoTo 
+        Handle[] hoWizardPages
+
+        Move 0 to iDirection
+        If (num_arguments > 2) Begin
+            Move iDirect to iDirection
+        End   
+        Get phoWizardPages to hoWizardPages
+        Move hoWizardPages[iTo] to hoTo
+
+        If (iFrom <> -1) Begin
+            Move hoWizardPages[iFrom] to hoFrom
+            Send OnLeaving to hoFrom iTo iDirection
+            Send OnPageChange to hoFrom iFrom iTo iDirection
+            Set Visible_State of hoFrom to False
+        End
+
+        Set piCurrentPage to iTo
+        Set Visible_State of hoTo to True
+
+        // 2002-01-28 Nils Svedmyr
+        // Necessary to re-display the Welcome page upon second wizard activation.
+//        Send Page of hoTo  
+        Send Activate of hoTo                            
+
+        Set Enabled_State of oBackButton to (not (pbWelcomePage (hoTo)))
+        If (pbCompletionPage (hoTo)) Begin
+            Set Label of oNextButton to "Finish"
+        End
+        Else Begin
+            Set Label of oNextButton to "&Next >"
+        End
+
+        Send OnEntering to hoTo iFrom iDirection
+    End_Procedure
+
+    Procedure SwitchPage Integer iDirection
+        Integer iFrom iTo
+        Handle hoFrom hoTo
+        Handle[] hoWizardPages
+        Boolean bOk
+
+        Get phoWizardPages to hoWizardPages
+        Get piCurrentPage to iFrom
+        Move hoWizardPages[iFrom] to hoFrom
+        If (iDirection = WIZARD_BACKWARD_NAVIGATE) Begin
+            Get piPreviousPage of hoFrom to iTo
+        End
+        Else Begin
+            Get piNextPage of hoFrom to iTo
+        End
+        If (iTo >= 0) Begin
+            Move hoWizardPages[iTo] to hoTo
+            Get ConfirmPageChange of hoFrom iDirection to bOk
+            If (bOk) Begin
+                Send SwitchToPage iFrom iTo iDirection
+            End
+        End
+    End_Procedure
+
+    Procedure FinishWizard
+        Send Close_Panel
+    End_Procedure
+
+    Procedure CancelWizard
+        Integer iResult
+
+        Get YesNo_Box "Are you sure you want to close the wizard?" (psLabel(Self)) to iResult
+        If (iResult = MBR_NO) Begin
+            Procedure_Return
+        End
+
+        Send Close_Panel
+    End_Procedure
+
+    Procedure OnEntering Integer iFrom Integer iDirection
+    End_Procedure
+
+    Procedure OnPageChange Integer iFrom Integer iTo Integer iDirection
+    End_Procedure
+
+    Procedure OnLeaving Integer iTo Integer iDirection
+    End_Procedure
+
+End_Class
+
+{ OverrideProperty=Size InitialValue=272,362 }
+{ OverrideProperty=Size DesignTime=False }
+{ OverrideProperty=Bitmap DesignTime=False }
+{ OverrideProperty=Bitmap_Style InitialValue=Bitmap_Actual }
+{ OverrideProperty=Bitmap_Style EnumList="Bitmap_Actual, Bitmap_Stretch, Bitmap_Tile, Bitmap_Center" }
+{ OverrideProperty=Bitmap_Style DesignTime=False }
+{ OverrideProperty=Border_Style InitialValue=Border_Dialog }
+{ OverrideProperty=Border_Style EnumList="Border_None, Border_Normal, Border_Dialog, Border_Thick, Border_ClientEdge, Border_WindowEdge, Border_StaticEdge" }
+{ OverrideProperty=Border_Style DesignTime=False }
+{ OverrideProperty=Caption_Bar InitialValue=True }
+{ OverrideProperty=Caption_Bar DesignTime=False }
+{ OverrideProperty=Color InitialValue=clLtGray }
+{ OverrideProperty=Color DesignTime=False }
+{ OverrideProperty=TextColor InitialValue=clWindowText }
+{ OverrideProperty=TextColor DesignTime=False }
+{ OverrideProperty=Label DesignTime=False }
+{ OverrideProperty=Minimize_Icon InitialValue=False }
+{ OverrideProperty=Minimize_Icon DesignTime=False }
+{ OverrideProperty=Maximize_Icon InitialValue=False }
+{ OverrideProperty=Maximize_Icon DesignTime=False }
+{ OverrideProperty=Sysmenu_Icon InitialValue=True }
+{ OverrideProperty=Sysmenu_Icon DesignTime=False }
+// This class can only be used within a cConfigureDbModalPanel object.
+Class cConfigureRightWizardPane is a Container3d
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Property String psHeaderGraphic
+        Property String Private.psLabel
+
+        Property Integer piCurrentPage    -1
+        Property Integer piWelcomePage    -1
+        Property Integer piCompletionPage -1
+        Property Handle[] phoWizardPages
+        Property String private.psLabel
+        Property Handle private.phoFromButton
+        Property Handle phoConfigureRightPaneHeaderText
+
+        Set Minimize_Icon to False
+        Set Maximize_Icon to False
+
+        Set Size to 272 362
+        Set Border_Style to Border_Normal
+        Set Auto_Top_Item_State to True
+        
+        Delegate Set phoConfigureRigthWizardPane to Self
+        
+//        On_Key kClose_Panel  Send CancelWizard
+    End_Procedure
+
+    Procedure Set phoFromButton Handle ho
+        String sLabel
+        Set private.phoFromButton to ho  
+        Get Label of ho to sLabel
+        Set Label of (phoConfigureRightPaneHeaderText(Self)) to sLabel
+    End_Procedure
+                        
+    Procedure Set psLabel String sLabel
+        Set private.psLabel to sLabel
+        Set Label to sLabel
+    End_Procedure
+
+    Function psLabel Returns String
+        String sLabel
+        Get private.psLabel to sLabel
+        Function_Return sLabel
+    End_Function
+
+    Function NumberOfPages Returns Integer
+        Handle[] hoWizardPages
+        Get phoWizardPages to hoWizardPages
+        Function_Return (SizeOfArray(hoWizardPages))
+    End_Function
+
+    Procedure AddPage Integer hoObject
+        Handle[] hoWizardPages
+        Integer iPageCount
+
+        Get phoWizardPages to hoWizardPages
+        Move hoObject to hoWizardPages[SizeOfArray(hoWizardPages)]  
+        Get NumberOfPages to iPageCount
+        If (pbWelcomePage (hoObject)) Begin
+            Set piWelcomePage to iPageCount
+        End
+        If (pbCompletionPage (hoObject)) Begin
+            Set piCompletionPage to iPageCount
+        End
+        Set phoWizardPages to hoWizardPages
+    End_Procedure
+
+//    Procedure Activate_Group
+//        Integer iWelComePage
+//        Handle[] hoWizardPages
+//        Forward Send Activate_group
+//        Set phoWizardPages to hoWizardPages
+//        Broadcast Send RegisterPage
+//        Get piWelComePage to iWelComePage
+//        Send SwitchToPage -1 iWelComePage WIZARD_FORWARD_NAVIGATE
+//    End_Procedure
+//
+    Procedure Activating
+        Integer iWelComePage
+        Handle[] hoWizardPages
+        Set phoWizardPages to hoWizardPages
+        Broadcast Send RegisterPage   
+    End_Procedure
+
+    Procedure Page Integer iPageObject
+        Forward Send Page iPageObject
+        Send SwitchToPage 0 0 
+    End_Procedure
+                        
+    Procedure SwitchToPage Integer iFrom Integer iTo Integer iDirect
+        Integer iDirection
+        Handle hoFrom hoTo 
+        Handle[] hoWizardPages
+
+        Move 0 to iDirection
+        If (num_arguments > 2) Begin
+            Move iDirect to iDirection
+        End   
+        Get phoWizardPages to hoWizardPages
+        Move hoWizardPages[iTo] to hoTo
+
+        If (iFrom <> -1) Begin
+            Move hoWizardPages[iFrom] to hoFrom
+            Send OnLeaving to hoFrom iTo iDirection
+            Send OnPageChange to hoFrom iFrom iTo iDirection
+            Set Visible_State of hoFrom to False
+        End
+
+        Set piCurrentPage to iTo
+        Set Visible_State of hoTo to True
+
+        // 2002-01-28 Nils Svedmyr
+        // Necessary to re-display the Welcome page upon second wizard activation.
+//        Send Page of hoTo  
+        Send Activate of hoTo                            
+
+        Send OnEntering to hoTo iFrom iDirection
+    End_Procedure
+
+    Procedure SwitchPage Integer iDirection
+        Integer iFrom iTo
+        Handle hoFrom hoTo
+        Handle[] hoWizardPages
+        Boolean bOk
+
+        Get phoWizardPages to hoWizardPages
+        Get piCurrentPage to iFrom
+        Move hoWizardPages[iFrom] to hoFrom
+        If (iDirection = WIZARD_BACKWARD_NAVIGATE) Begin
+            Get piPreviousPage of hoFrom to iTo
+        End
+        Else Begin
+            Get piNextPage of hoFrom to iTo
+        End
+        If (iTo >= 0) Begin
+            Move hoWizardPages[iTo] to hoTo
+            Get ConfirmPageChange of hoFrom iDirection to bOk
+            If (bOk) Begin
+                Send SwitchToPage iFrom iTo iDirection
+            End
+        End
+    End_Procedure
+
+    Procedure FinishWizard
+        Send Close_Panel
+    End_Procedure
+
+    Procedure CancelWizard
+        Integer iResult
+
+        Get YesNo_Box "Are you sure you want to close the wizard?" (psLabel(Self)) to iResult
+        If (iResult = MBR_NO) Begin
+            Procedure_Return
+        End
+
+        Send Close_Panel
+    End_Procedure
+
+    Procedure OnEntering Integer iFrom Integer iDirection
+    End_Procedure
+
+    Procedure OnPageChange Integer iFrom Integer iTo Integer iDirection
+    End_Procedure
+
+    Procedure OnLeaving Integer iTo Integer iDirection
+    End_Procedure
+
+    Procedure End_Construct_Object
+        Forward Send End_Construct_Object
+        Set Border_Style to Border_None
+    End_Procedure
+                        
+End_Class
+
+#IF (!@ >= 120)
+{ OverrideProperty=Sysmenu_Icon InitialValue=True }
+{ OverrideProperty=Sysmenu_Icon DesignTime=False }
+{ OverrideProperty=Visible_State InitialValue=False }
+{ OverrideProperty=Location InitialValue=0,0 }
+{ OverrideProperty=Location DesignTime=False }
+{ OverrideProperty=Size InitialValue=228,362 }
+{ OverrideProperty=Size DesignTime=False }
+{ OverrideProperty=Bitmap_Style InitialValue=Bitmap_Actual }
+{ OverrideProperty=Bitmap_Style EnumList="Bitmap_Actual, Bitmap_Stretch, Bitmap_Tile, Bitmap_Center" }
+{ OverrideProperty=Bitmap_Style DesignTime=False }
+{ OverrideProperty=Border_Style InitialValue=Border_None }
+{ OverrideProperty=Border_Style EnumList="Border_None, Border_Normal, Border_Dialog, Border_Thick, Border_ClientEdge, Border_WindowEdge, Border_StaticEdge" }
+{ OverrideProperty=Border_Style DesignTime=False }
+{ OverrideProperty=Color InitialValue=clLtGray }
+{ OverrideProperty=Color DesignTime=False }
+{ OverrideProperty=TextColor InitialValue=clWindowText }
+{ OverrideProperty=TextColor DesignTime=False }
+#ENDIF
+Class cWizardPage is a Container3d
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+      #IF (!@ >= 120)
+        { InitialValue=False }
+        { DesignTime=False }
+        Property Integer pbWelcomePage False
+        { InitialValue=False }
+        { DesignTime=False }
+      #ENDIF
+        Property Integer pbCompletionPage False
+
+        Property Integer Private.piPreviousPage -1
+        Property Integer Private.piNextPage -1
+
+        Set Location to 0 0
+        Set Size to 228 362
+        Set Border_Style to Border_None
+        Set Visible_State to False
+        Set Attach_Parent_State to True 
+        Set peAnchors to anAll
+    End_Procedure
+
+   #IF (!@ >= 120)
+    { InitialValue=0 }
+   #ENDIF
+    Procedure Set piPreviousPage Integer iPage
+        Set Private.piPreviousPage to iPage
+    End_Procedure
+
+    Function piPreviousPage Returns Integer
+        Integer iPreviousPage
+
+        If (pbWelcomePage (Self)) Begin
+            Move -1 to iPreviousPage
+        End
+        Else Begin
+            If (Private.piPreviousPage (Self) = -1) Begin
+                Move (piCurrentPage (Self) - 1) to iPreviousPage
+            End
+            Else Begin
+                Move (Private.piPreviousPage (Self)) to iPreviousPage
+            End
+        End
+
+        Function_Return iPreviousPage
+    End_Function
+
+   #IF (!@ >= 120)
+    { InitialValue=0 }
+   #ENDIF
+    Procedure Set piNextPage Integer iPage
+        Set Private.piNextPage to iPage
+    End_Procedure
+
+    Function piNextPage Returns Integer
+        Integer iNextPage
+
+        If (pbCompletionPage (Self)) Begin
+            Move -1 to iNextPage
+        End
+        Else Begin
+            If (Private.piNextPage (Self) = -1) Begin
+                Move (piCurrentPage (Self) + 1) to iNextPage
+            End
+            Else Begin
+                Move (Private.piNextPage (Self)) to iNextPage
+            End
+        End
+
+        Function_Return iNextPage
+    End_Function
+
+    Function ConfirmPageChange Integer iDirection Returns Boolean
+        Function_Return True
+    End_Function
+
+    Procedure RegisterPage
+        Integer hoSelf hoParent
+
+        Move Self to hoSelf
+        Move (Parent (hoSelf)) to hoParent
+
+        Send AddPage to hoParent hoSelf
+    End_Procedure
+End_Class
+
+#IF (!@ >= 120)
+{ OverrideProperty=Sysmenu_Icon InitialValue=True }
+{ OverrideProperty=Sysmenu_Icon DesignTime=False }
+{ OverrideProperty=TextColor InitialValue=clWindowText }
+{ OverrideProperty=TextColor DesignTime=False }
+#ENDIF
+Class cConfigureWizardPage is a cWizardPage
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+    End_Procedure
+
+End_Class
+
+#IF (!@ >= 120)
+{ OverrideProperty=Sysmenu_Icon InitialValue=True }
+{ OverrideProperty=Sysmenu_Icon DesignTime=False }
+{ OverrideProperty=TextColor InitialValue=clWindowText }
+{ OverrideProperty=TextColor DesignTime=False }
+#ENDIF
+Class cExteriorPage is a cWizardPage
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Set Color to clWhite
+
+        Object oWatermark is a BitmapContainer
+            Set Location to 0 0
+            Set Size to 228 109
+            Set Border_Style to Border_None
+            Set Focus_Mode    to NonFocusable
+        End_Object
+
+        //      Object oHeaderGraphic is a BitmapContainer
+        //         Set Focus_Mode    to NonFocusable
+        //         Set Location to 11 55
+        //         Set Size to 38 41
+        //         Set Color to clWhite
+        //         Set Border_Style to Border_None
+        //         Set Bitmap_Style to Bitmap_Center
+        //         Set Bitmap to (psHeaderGraphic (Self))
+        //      End_Object // oHeaderGraphic
+
+        Object oTitle is a cWizardLarge_tb
+            Set Location to 8 115
+            Set Size to 24 225
+            Set Label to ""
+            Set Color to clWhite
+//            Set FontSize to 19 9
+//            Set Auto_Size_State to False
+//            Set Justification_Mode to jMode_Left
+        End_Object
+
+        Object oDescription is a cWizardSmall_tb
+            Set Location to 37 115
+            Set Size to 125 225
+            Set Label to ""
+            Set Color to clWhite
+//            Set Auto_Size_State to False
+//            Set Justification_Mode to jMode_Left
+        End_Object
+
+        Object oBottomText is a cWizardSmall_tb
+            Set Location to 209 115
+            Set Size to 10 225
+            Set Label to ""
+            Set Color to clWhite
+//            Set Auto_Size_State to False
+//            Set Justification_Mode to jMode_Left
+        End_Object
+
+    End_Procedure
+
+    Procedure Set psWatermark String sBitmap
+        Set Bitmap of oWatermark to sBitmap
+    End_Procedure
+
+    Function psWatermark Returns String
+        String sBitmap
+        Get Bitmap of oWaterMark to sBitmap
+        Function_Return sBitmap
+    End_Function
+
+    Procedure Set psTitle String sValue
+        Set Label of oTitle to sValue
+    End_Procedure
+
+    Function psTitle Returns String
+        String sTitle
+        Get Label of oTitle to sTitle
+        Function_Return sTitle
+    End_Function
+
+    Procedure Set psDescription String sValue
+        Set Label of oDescription to sValue
+    End_Procedure
+
+    Function psDescription Returns String
+        String sDescription
+        Get Label of oDescription to sDescription
+        Function_Return sDescription
+    End_Function
+
+    Procedure Set psBottomText String sValue
+        Set Label of oBottomText to sValue
+    End_Procedure
+
+    Function psBottomText Returns String
+        String sBottomText
+        Get Label of oBottomText to sBottomText
+        Function_Return sBottomText
+    End_Function
+
+End_Class
+
+#IF (!@ >= 120)
+{ OverrideProperty=Bitmap InitialValue="cInteriorPage.Bmp" }
+{ OverrideProperty=Bitmap DesignTime=False }
+{ OverrideProperty=Sysmenu_Icon InitialValue=True }
+{ OverrideProperty=Sysmenu_Icon DesignTime=False }
+{ OverrideProperty=TextColor InitialValue=clWindowText }
+{ OverrideProperty=TextColor DesignTime=False }
+#ENDIF
+Class cInteriorPage is a cWizardPage
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Object oHeader is a Container3d
+            Set Size to 37 362
+            Set Color to clWhite
+            Set Border_Style to Border_None
+
+            Object oTitle is a cWizardsMall_tb
+                Set Location to 7 14
+                Set Size to 10 250
+                Set Label to ""
+                Set Color to clWhite
+                Set FontWeight to FW_BOLD
+//                Set Auto_Size_State to False
+//                Set Justification_Mode to jMode_Left
+            End_Object
+
+            Object oSubTitle is a cWizardSmall_tb
+                Set Location to 17 28
+                Set Size to 20 280
+                Set Color to clWhite
+//                Set Auto_Size_State to False
+//                Set Justification_Mode to jMode_Left
+            End_Object
+
+            Object oHeaderGraphic is a BitmapContainer
+                Set Location to 0 317
+                Set Size to 38 40
+                Set Color to clWhite
+                Set Border_Style to Border_None
+                Set Bitmap_Style to Bitmap_Center
+                Set Bitmap to (psHeaderGraphic (Self))
+            End_Object
+        End_Object
+
+        Object oLineControl is a LineControl
+            Set Size to 2 362
+            Set Location to 37 0
+        End_Object
+    End_Procedure
+
+    Procedure Set psTitle String sValue
+        Set Label of (oTitle (oHeader (Self))) to sValue
+    End_Procedure
+
+    Function psTitle Returns String
+        String sTitle
+        Get Label of (oTitle (oHeader (Self))) to sTitle
+        Function_Return sTitle
+    End_Function
+
+    Procedure Set psSubTitle String sValue
+        Set Label of (oSubTitle (oHeader (Self))) to sValue
+    End_Procedure
+
+    Function psSubTitle Returns String
+        String sSubTitle
+        Get Label of (oSubTitle (oHeader (Self))) to sSubTitle
+        Function_Return sSubTitle
+    End_Function
+
+End_Class
+
+#IF (!@ >= 120)
+{ OverrideProperty=Bitmap InitialValue="cWelcomePage.Bmp" }
+{ OverrideProperty=Bitmap DesignTime=False }
+{ OverrideProperty=Bitmap_Style InitialValue=Bitmap_Actual }
+{ OverrideProperty=Bitmap_Style EnumList="Bitmap_Actual, Bitmap_Stretch, Bitmap_Tile, Bitmap_Center" }
+{ OverrideProperty=Bitmap_Style DesignTime=False }
+{ OverrideProperty=pbWelcomePage InitialValue=True }
+{ OverrideProperty=pbWelcomePage DesignTime=False }
+{ OverrideProperty=pbCompletionPage InitialValue=False }
+{ OverrideProperty=pbCompletionPage DesignTime=False }
+#ENDIF
+Class cWelcomePage is a cExteriorPage
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Set pbWelcomePage to True
+        Set pbCompletionPage to False
+    End_Procedure
+End_Class
+
+{ OverrideProperty=Bitmap InitialValue="cCompletionPage.Bmp" }
+{ OverrideProperty=Bitmap DesignTime=False }
+{ OverrideProperty=pbWelcomePage InitialValue=False }
+{ OverrideProperty=pbWelcomePage DesignTime=False }
+{ OverrideProperty=pbCompletionPage InitialValue=True }
+{ OverrideProperty=pbCompletionPage DesignTime=False }
+Class cCompletionPage is a cExteriorPage
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Set pbWelcomePage to False
+        Set pbCompletionPage to True
+    End_Procedure
+End_Class

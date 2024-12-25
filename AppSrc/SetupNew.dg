@@ -1,0 +1,705 @@
+﻿Use cConfigureWizard.pkg
+Use cRDCIniFileForm.pkg
+Use cRDCComboForm.pkg
+Use cRDCButton.pkg                    
+Use cRDCSliderOffOn.pkg  
+Use cRDCSpinForm.pkg
+
+Object oConfigureWizardDialog is a cConfigureDbModalPanel
+    Set Size to 194 413
+    Set Icon to "Settings.ico"
+    Set Border_Style to Border_Normal
+
+    Property Boolean pbRestart False
+
+    Object oConfigureLeftHeader_tb is a cConfigureSmall_tb
+        Set Size to 10 112
+        Set Location to 7 5
+        Set FontWeight to fw_Bold  
+        Set Label to "Program Settings"
+    End_Object  
+
+    Object oRigthHandImage is a cConfigureRightImage
+    End_Object
+
+    Object oConfigureRightHeader_tb is a cConfigureRightHeader_tb
+        Set Label to "Right Header Text"
+    End_Object
+
+    Object oRightTop_grp is a Container3d
+        Set Size to 142 284
+        Set Location to 20 125
+        Set Border_Style to Border_Normal
+        Set peAnchors to anAll
+            
+        Object oScrollingContainerRight is a cScrollingContainer
+            
+            Object oScrollingClientAreaRight is a cScrollingClientArea
+                
+                Object oConfigureRigthWizardPane is a cConfigureRightSidePane  
+                    Set peAnchors to anTopLeftRight
+
+                    Object oLibraries_tp is a cConfigurePage
+                        Set Location to 0 0
+                        Set Label to "Libraries"
+
+                        Object oManifestLibrariespath_grp is a cConfigurePageGroup
+                            Set Size to 42 260
+                            Set Location to 8 10
+                            Set Label to "Manifest Fragment Library"
+                            Set peAnchors to anTopLeftRight
+
+                            Object oManifestLibraryFolder_fm is a cRDCIniFileForm
+                                Set Size to 14 192
+                                Set Location to 18 0
+                                Set Status_Help to "Select path to the local Manifest Fragment Library. Click the 'Browse' button or press (F4)."
+                                Set psKey to CS_ManifestFolder
+                                Set pbFolderValue to True
+                                Set psPromptFolderHeaderText to "Select the Manifest Fragment Library folder"
+                                Set Label_Justification_Mode to JMode_Top
+                                Set Label_Row_Offset to 1
+                                Set Label_Col_Offset to 0
+                                Set peAnchors to anTopLeftRight
+       
+                                Procedure WriteIniValue
+                                    String sValue
+                                    Forward Send WriteIniValue
+                                    Get Value to sValue
+                                    Set psManifestFragmentLibrary of ghoManifestFunctionLibrary to sValue
+                                End_Procedure
+        
+                                // Sets the default Manifest Fragment Library path.
+                                Procedure OnCreate
+                                    String sPath sOrgPath
+                                    Boolean bExists
+        
+                                    Move CS_IniFileFolder to sOrgPath
+                                    Get vFolderFormat of ghoManifestFunctionLibrary sOrgPath to sOrgPath
+                                    Move (sOrgPath + CS_ManifestFolder) to sOrgPath
+                                    Get Value to sPath
+                                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_ManifestFolder sOrgPath to sPath
+                                    Get vFilePathExists sPath to bExists
+                                    If (bExists = False or sPath = "" or sPath = "\") Begin
+                                        Move sOrgPath to sPath
+                                    End
+        
+                                    // If the Manifest Fragment Library folder doesn't exists; create it.
+                                    Get vFilePathExists sPath to bExists
+                                    If (bExists = False) Begin
+                                        Get vCreateDirectory sPath to bExists
+                                        If (bExists = False) Begin
+                                            Send Info_Box ("Critical Error: Could not create Manifest Fragment Library!\n" + sPath)
+                                            Move "" to sPath
+                                        End
+                                    End
+        
+                                    // Note: This must be done _after_ vFilePathExists & vCreateDirectory.
+                                    Get vFolderFormat of ghoManifestFunctionLibrary sPath to sPath
+                                    Set IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_ManifestFolder to sPath
+                                    Set psManifestFragmentLibrary of ghoManifestFunctionLibrary to sPath
+                                    Set Value to sPath
+                                End_Procedure
+        
+                            End_Object 
+                            
+                            Object oManifestLibraryFolder_Btn is a cRDCButton
+                                Set Location to 18 196
+                                Set Label to "Browse..."
+                                Set Status_Help to "Set the path to the Manifest Fragment Library"
+                                Set psImage to "FolderOpen.ico"
+                                Set peAnchors to anTopRight
+        
+                                Procedure OnClick
+                                    Send Prompt of oManifestLibraryFolder_fm
+                                End_Procedure
+                            End_Object   
+
+                        End_Object
+
+                        Object oCommonComLibraryFolder_grp is a cConfigurePageGroup
+                            Set Location to 64 10
+                            Set Label to "Common COM Library"
+                            Set peAnchors to anTopLeftRight
+
+                            Object oCommonComLibraryFolder_fm is a cRDCIniFileForm
+                                Set Size to 14 192
+                                Set Location to 18 0
+                                Set Label_Col_Offset to 0
+                                Set Label_Justification_Mode to JMode_Top
+                                Set Status_Help to "Select path to the Common COM (OCX/DLL) Library where you keep copies of your COM (OCX/DLL) components that needs to be copied to a workspace. Click the 'Browse' button or press (F4)."
+                                Set psKey to CS_CommonCOMFolderName
+                                Set pbFolderValue to True
+                                Set psPromptFolderHeaderText to "Select Common COM (OCX/DLL) Library Folder"
+                                Set Label_Row_Offset to 1
+                                Set peAnchors to anTopLeftRight
+        
+                                Procedure WriteIniValue
+                                    String sValue
+                                    Forward Send WriteIniValue
+                                    Get Value to sValue
+                                    Set psCommonCOMLibrary of ghoManifestFunctionLibrary to sValue
+                                End_Procedure
+        
+                                // Sets the default Common COM Library path.
+                                Procedure OnCreate
+                                    String sPath sOrgPath
+                                    Boolean bExists bState
+        
+                                    Move CS_IniFileFolder to sOrgPath
+                                    Get vFolderFormat of ghoManifestFunctionLibrary sOrgPath to sOrgPath
+                                    Move (sOrgPath + CS_CommonCOMFolderName) to sOrgPath
+                                    Get Value to sPath
+                                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CommonCOMFolderName sOrgPath to sPath
+                                    Get vFilePathExists sPath to bExists
+                                    If (bExists = False or sPath = "" or sPath = "\") Begin
+                                        Move sOrgPath to sPath
+                                    End
+        
+                                    // If the Common COM Library folder doesn't exists; create it.
+                                    Get vFilePathExists sPath to bExists
+                                    If (bExists = False) Begin
+                                        Get vCreateDirectory sPath to bState
+                                        If (bState = True) Begin
+                                            Send Info_Box ("Could not create Common COM Library!\n" + sPath)
+                                            Move "" to sPath
+                                        End
+                                    End
+        
+                                    // Note: This must be done _after_ vFilePathExists & vCreateDirectory.
+                                    Get vFolderFormat of ghoManifestFunctionLibrary sPath to sPath
+                                    Set IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) to CS_CommonCOMFolderName sPath
+                                    Set psCommonCOMLibrary of ghoManifestFunctionLibrary to sPath
+                                    Set Value to sPath
+                                End_Procedure
+        
+                            End_Object  
+                            
+                            Object oCommonComLibraryFolder_Btn is a cRDCButton
+                                Set Size to 14 48
+                                Set Location to 18 196
+                                Set Label to "Browse..."
+                                Set Status_Help to "Set the path to the Common COM Library folder"
+                                Set psImage to "FolderOpen.ico"
+                                Set peAnchors to anTopRight
+        
+                                Procedure OnClick
+                                    Send Prompt of oCommonComLibraryFolder_fm
+                                End_Procedure
+        
+                            End_Object
+                        End_Object
+
+                    End_Object
+
+                    Object oEditor_tp is a cConfigurePage
+                        Set Location to 0 1
+                        Set Label to "Editor"
+
+                        Object oEditor_grp is a cConfigurePageGroup
+                            Set Location to 8 10
+                            Set Label to "Use Editor"
+
+                            Object oEditor_fm is a cRDCIniFileForm
+                                Set Size to 14 192
+                                Set Location to 18 0
+                                Set Label_Col_Offset to 0
+                                Set Label_Justification_Mode to JMode_Top
+                                Set Status_Help to "Select the editor program to use when viewing Manifest Fragment Files. Click the 'Browse' button or press (F4)."
+                                Set peAnchors to anTopLeftRight
+                                Set psKey to CS_Editor
+                                Set psDefault to CS_Notepad
+                                Set pbFileValue to True
+                                Set psPromptFileHeaderText to "Select An Editor Program"
+                                Set psFileMask to "Select Editor Program (*.exe)|*.exe"
+                                Set Label_Row_Offset to 1
+                            End_Object        
+                            
+                            Object oSelect_Btn is a cRDCButton
+                                Set Location to 18 196
+                                Set Label to "Browse..."
+                                Set Status_Help to "Select the editor program to be used to edit and viewing Manifest Fragment Files"
+                                Set psImage to "FolderOpen.ico"
+                                Set peAnchors to anTopRight
+        
+                                Procedure OnClick
+                                    Send Prompt of oEditor_fm
+                                End_Procedure
+                            End_Object  
+                            
+                        End_Object
+
+                        Object oEditorParams_grp is a cConfigurePageGroup
+                            Set Location to 64 10
+                            Set Label to "Optional Parameters"
+
+                            Object oEditorParam_fm is a cRDCIniFileForm
+                                Set Size to 14 88
+                                Set Location to 18 0
+                                Set Label_Col_Offset to 0
+                                Set Label_Justification_Mode to JMode_Top
+                                Set Label_Row_Offset to 1
+                                Set Status_Help to "Enter any editor parameters that needs to be passed on the command line to the editor."
+                                Set psKey to CS_EditorParams 
+                                Set Prompt_Button_Mode to PB_PromptOff
+                            End_Object
+                            
+                        End_Object
+
+                    End_Object
+
+                    Object oStudio_tp is a cConfigurePage
+                        Set Label to "Studio"
+
+                        Object oStudio_grp is a cConfigurePageGroup
+                            Set Location to 8 10
+                            Set Label to "Add to Studio's Tools Menu"
+
+                            Object oStudioMinorVersion_sf is a cRDCSpinForm
+                                Set Size to 14 27
+                                Set Location to 18 132
+                                Set Label_Col_Offset to 2
+                                Set Label to "Minor Version"
+                                Set Status_Help to "Visual DataFlex minor version - e.g. '0'"
+                                Set Maximum_Position to 9
+                                Set Minimum_Position to 0
+                                Set Value to FMAC_REVISION
+                                Set Label_Justification_Mode to JMode_Right
+                                Set peAnchors to anNone
+                            End_Object
+                            
+                            Object oInstallInStudio_btn is a cRDCButton
+                                Set Location to 18 172
+                                Set Label to "Add Now"
+                                Set Status_Help to "Add to Visual DataFlex Studios 'Tools' menu. The Studio version can be selected with the two spinforms. The COMManifestStudio program gets added to the Studios Tools menu. When selected from the Studio it will pass the current project name on the command line so that the current program's manifest file is automatically loaded by the COMManifestStudio program."
+                                Set psImage to "ActionAddButton.ico"
+        
+                                Procedure OnClick
+                                    Integer iRetval iMajorVersion iMinorVersion
+                                    String sText sStudioVersion
+                                    Get Value of oStudioMajorVersion_sf to iMajorVersion
+                                    Get Value of oStudioMinorVersion_sf to iMinorVersion
+                                    Move (String(iMajorVersion) + "." + String(iMinorVersion)) to sStudioVersion
+                                    Get AddProgramToStudioToolsMenu of ghoManifestFunctionLibrary sStudioVersion to iRetval
+                                    Case Begin
+                                        Case (iRetval = cx_RegKeyAlreadyExist)
+                                            Move ("The program already exists in the" * sStudioVersion * "Visual DataFlex Studios Tools menu.") to sText
+                                            Break
+                                        Case (iRetval = cx_RegKeyCreated)
+                                            Move ("Success. The tool was added to the" * sStudioVersion *  "Visual DataFlex Studios Tools menu.") to sText
+                                            Break
+                                        Case (iRetval = cx_RegkeyFailed)
+                                            Move "Failed. Could not create the registry key for adding the program to the Visual DataFlex Studios Tools menu." to sText
+                                            Break
+                                        Case (iRetval = cx_RegKeyVDFKeyDoesNotExist)
+                                            Move ("Could not find the Studio registry key. Is Visual DataFlex Studio version" * sStudioVersion * "really installed on this machine?") to sText
+                                            Break
+                                        Case (iRetval = CX_InstalledOkVdfUnder16)
+                                            Move ("The program was added to the" * sStudioVersion * "Studios Tools menu successfully, but because you installed for an earlier version of the Studio than 16.0 you need to compile this program under that same VDF version, else the Studio can't start the program properly. (Sorry, just a 'feature' of earlier versions of the Studio)") to sText
+                                            Break
+                                    Case End
+        
+                                    Send Info_Box sText
+                                End_Procedure
+                            End_Object
+                            
+                            Object oStudioMajorVersion_sf is a cRDCSpinForm
+                                Set Size to 14 27
+                                Set Location to 18 50
+                                Set Maximum_Position to 30
+                                Set Minimum_Position to 14
+                                Set Label_Col_Offset to 2
+                                Set Label_Justification_Mode to JMode_Right
+                                Set Label to "Major Version"
+                                Set Status_Help to "Visual DataFlex main version - e.g. '19'"
+                                Set Value to FMAC_VERSION
+                                Set peAnchors to anNone
+                            End_Object  
+                        
+                        End_Object
+                    
+                    End_Object
+
+                    Object oDialog_tp is a cConfigurePage
+                        Set Label to "Dialog"
+
+                        Object oDialog_grp is a cConfigurePageGroup
+                            Set Location to 8 10
+                            Set Label to "Show 'First Time Usage' dialog on startup"
+
+                            Object oFirstTimeUsage_cb is a cRDCSliderOffOn
+                                Set Size to 20 40
+                                Set Location to 14 0
+                                Set psKey to CS_FirstTimeUsageText 
+                            End_Object
+                        
+                        End_Object
+
+                    End_Object              
+
+                    Object oGrid_tp is a cConfigurePage
+                        Set Label to "Grid"
+
+                        Object oHighlightGrid_grp is a cConfigurePageGroup
+                            Set Location to 8 10
+                            Set Label to "Highlight current grid row"
+
+                            Object oUseHightligthRowState_cb is a cRDCSliderOffOn
+                                Set Size to 20 40
+                                Set Location to 14 10
+                                Set peAnchors to anNone
+                                Set psKey to CS_UseHighlightstateText
+                            End_Object      
+                            
+                            Object oRowBackgroundColor_cf is a cRDCComboForm
+                                Set Size to 14 87
+                                Set Location to 19 59
+                                Set Entry_State to False
+                                Set Combo_Sort_State to False
+                                Set peAnchors to anNone
+        
+                                Procedure Activating
+                                    Boolean bChecked
+                                    String sYes
+                                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseHighlightstateText CS_BooleanNo to sYes
+                                    Move (CS_BooleanYes = sYes) to bChecked
+                                    Set Enabled_State to bChecked
+                                End_Procedure
+        
+                                Procedure Combo_Fill_List
+                                    String sColor
+                                    Send Combo_Add_Item "clActiveRow"
+                                    Send Combo_Add_Item "clGreenGreyLight"
+                                    Send Combo_Add_Item "clGreenGrey"
+                                    Send Combo_Add_Item "clDefault"
+                                    Send Combo_Add_Item "clAqua"
+                                    Send Combo_Add_Item "clBlack"
+                                    Send Combo_Add_Item "clBlue"
+                                    Send Combo_Add_Item "clDkGray"
+                                    Send Combo_Add_Item "clFuchsia"
+                                    Send Combo_Add_Item "clGray"
+                                    Send Combo_Add_Item "clGreen"
+                                    Send Combo_Add_Item "clLime"
+                                    Send Combo_Add_Item "clLtGray"
+                                    Send Combo_Add_Item "clMaroon"
+                                    Send Combo_Add_Item "clNavy"  
+                                    Send Combo_Add_Item "clNone"
+                                    Send Combo_Add_Item "clOlive"
+                                    Send Combo_Add_Item "clPurple"
+                                    Send Combo_Add_Item "clRed"
+                                    Send Combo_Add_Item "clSilver"
+                                    Send Combo_Add_Item "clTeal"
+                                    Send Combo_Add_Item "clWhite"
+                                    Send Combo_Add_Item "clYellow"
+                                    Send Combo_Add_Item "clPurple"
+                                    Send Combo_Add_Item "clScrollBar"
+                                    Send Combo_Add_Item "clBackground"
+                                    Send Combo_Add_Item "clActiveCaption"
+                                    Send Combo_Add_Item "clInactiveCaption"
+                                    Send Combo_Add_Item "clMenu"
+                                    Send Combo_Add_Item "clWindow"
+                                    Send Combo_Add_Item "clWindowFrame"
+                                    Send Combo_Add_Item "clMenuText"
+                                    Send Combo_Add_Item "clWindowText"
+                                    Send Combo_Add_Item "clCaptionText"
+                                    Send Combo_Add_Item "clActiveBorder"
+                                    Send Combo_Add_Item "clInactiveBorder"
+                                    Send Combo_Add_Item "clAppWorkSpace"
+                                    Send Combo_Add_Item "clHighlight"
+                                    Send Combo_Add_Item "clHighlightText"
+                                    Send Combo_Add_Item "clBtnFace"
+                                    Send Combo_Add_Item "clBtnShadow"
+                                    Send Combo_Add_Item "clGrayText"
+                                    Send Combo_Add_Item "clBtnText"
+                                    Send Combo_Add_Item "clInactiveCaptionText"
+                                    Send Combo_Add_Item "clBtnHighlight"
+                                    Send Combo_Add_Item "cl3DDkShadow"
+                                    Send Combo_Add_Item "cl3DLight"
+                                    Send Combo_Add_Item "clInfoText"
+                                    Send Combo_Add_Item "clInfoBk"
+                                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_HighlightColorText clDefault to sColor
+                                    Set Value 0 to sColor
+                                End_Procedure
+                                Send Combo_Fill_List
+        
+                                // Note: This includes a bugfix for Visual DataFlex when entry_state=false.
+                                //       The bug has been around for as long as I can remember <sigh>.
+                                Procedure OnCloseUp
+                                    String sColor
+                                    Integer iItem
+                                    Forward Send OnCloseUp
+                                    Get Value to sColor
+                                    // DataFlex Bugfix. We need to get the selected value this way when
+                                    // the comboform has Entry_State is set to false:
+                                    Get WinCombo_Current_Item to iItem
+                                    Get WinCombo_Value iItem to sColor              
+                                    Set psGridRowBackgroundColor of ghoApplication to sColor
+//                                    Set IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_HighlightColorText to sColor
+                                    Broadcast Recursive Set piSelectedRowBackColor of (Client_Id(phoMainPanel(ghoApplication))) to sColor
+                                    Broadcast Recursive Set piHighlightBackColor   of (Client_Id(phoMainPanel(ghoApplication))) to sColor
+                                End_Procedure
+        
+                            End_Object    
+                            
+                        End_Object
+
+                        Object oAlternateGridRow_grp is a cConfigurePageGroup
+                            Set Location to 64 10
+                            Set Label to "Use Alternate Grid Row Background Color"
+
+                            Object oUseAlternateRowBackgroundColor_cb is a cRDCSliderOffOn
+                                Set Size to 20 40
+                                Set Location to 10 7
+                                Set peAnchors to anNone
+                                Set psKey to CS_pbAlternateRowColor
+                            End_Object 
+                            
+                        End_Object
+
+                    End_Object
+
+                    Object oToolbars_tp is a cConfigurePage
+                        Set Label to "Toolbars"
+
+                        Object oToolbarIconSize_grp is a cConfigurePageGroup
+                            Set Location to 8 10
+                            Set Label to "Toolbar Icon Size"
+
+                            Object oToolbarIconSize_cf is a cRDCComboForm
+                                Set Size to 14 130
+                                Set Location to 18 0
+                                Set Entry_State to False
+                                Set Combo_Sort_State to False
+                                Set peAnchors to anNone
+                                Set Label_Justification_Mode to JMode_Top
+                                Set Label_Row_Offset to 1
+                                Set Label_Col_Offset to 0
+        
+                                Procedure Combo_Fill_List
+                                    Integer iSize
+                                    String sValue
+                                    Send Combo_Add_Item CS_piToolbarSize16x16
+                                    Send Combo_Add_Item CS_piToolbarSize24x24
+                                    Send Combo_Add_Item CS_piToolbarSize32x32
+        
+                                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_piToolbarIconSize 24 to iSize
+                                    If (iSize = 16) ;
+                                        Move CS_piToolbarSize16x16 to sValue
+                                    If (iSize = 24) ;
+                                        Move CS_piToolbarSize24x24 to sValue
+                                    If (iSize = 32) ;
+                                        Move CS_piToolbarSize32x32 to sValue
+                                    Set Value 0 to sValue
+                                End_Procedure
+                                Send Combo_Fill_List
+        
+                                Procedure OnCloseUp
+                                    Delegate Set pbRestart to True
+                                End_Procedure
+        
+                                // Note: This includes a bugfix for Combos when entry_state=false.
+                                //       The bug has been around for as long as I can remember <sigh>.
+                                Procedure WriteIniValue
+                                    Integer iItem iSize
+                                    String sValue
+                                    // VDF Bugfix. We need to get the selected value this way when
+                                    // the comboform has Entry_State set to false:
+                                    Get WinCombo_Current_Item     to iItem
+                                    Get WinCombo_Value iItem to sValue
+                                    If (sValue contains "16") ;
+                                        Move 16 to iSize
+                                    If (sValue contains "24") ;
+                                        Move 24 to iSize
+                                    If (sValue contains "32") ;
+                                        Move 32 to iSize
+                                    Set IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_piToolbarIconSize to iSize
+                                End_Procedure
+        
+                            End_Object   
+                            
+                        End_Object
+
+                        Object oToolbarProperties_grp is a cConfigurePageGroup
+                            Set Location to 64 10
+                            Set Label to "Toolbar Icons And Text"
+
+                            Object oShowTextBelowIcons_cb is a cRDCComboForm
+                                Set Size to 14 130
+                                Set Location to 18 0
+                                Set Entry_State to False
+                                Set Combo_Sort_State to False
+                                Set peAnchors to anNone
+                                Set Label_Col_Offset to 0
+                                Set Label_Row_Offset to 1
+                                Set Label_Justification_Mode to JMode_Top
+        
+                                Procedure Combo_Fill_List
+                                    String sValue
+                                    Send Combo_Add_Item CS_ShowIconOnly
+    //                                    Send Combo_Add_Item CS_ShowTextRightOfIcon
+                                    Send Combo_Add_Item CS_ShowTextBelowIcon
+        
+                                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_ToolbarIconText CS_ShowIconOnly to sValue
+                                    Set Value 0 to sValue
+                                End_Procedure
+                                Send Combo_Fill_List
+        
+                                Procedure OnCloseUp
+                                    Delegate Set pbRestart to True
+                                End_Procedure
+        
+                                // Note: This includes a bugfix for Combos when entry_state=false.
+                                //       The bug has been around for as long as I can remember <sigh>.
+                                Procedure WriteIniValue
+                                    Integer iItem
+                                    String sValue
+                                    // VDF Bugfix. We need to get the selected value this way when
+                                    // the comboform has Entry_State set to false:
+                                    Get WinCombo_Current_Item     to iItem
+                                    Get WinCombo_Value iItem to sValue
+                                    Set IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_ToolbarIconText to sValue
+                                End_Procedure
+        
+                            End_Object   
+                            
+                        End_Object
+                    
+                    End_Object
+
+                End_Object
+                
+            End_Object
+            
+        End_Object
+          
+        Procedure End_Construct_Object
+            Forward Send End_Construct_Object
+            Set Border_Style to Border_None
+        End_Procedure
+        
+    End_Object    
+
+    Object oConfigureLeftSideButtons is a cConfigureLeftSideButtons
+    
+        Object oScrollingContainerLeft is a cScrollingContainer
+            
+            Object oScrollingClientAreaLeft is a cScrollingClientArea
+                Set pbAutoScrollFocus to False
+                Set piAutoScrollMarginX to 0
+                Set piAutoScrollMarginY to 0  
+                Set pbShowDisabledScrollBar to False
+
+                Object oConfigureButton1 is a cConfigureButton
+                    Set Location to 2 1
+                    Set Label to "Libraries"
+                    Set psImage to "Libraries.ico"  
+                End_Object
+
+                Object oConfigureButton2 is a cConfigureButton
+                    Set Location to 25 1
+                    Set Label to "Editor"
+                    Set psImage to "Editor.ico" 
+                End_Object
+
+                Object oConfigureButton3 is a cConfigureButton
+                    Set Location to 47 1
+                    Set Label to "Studio"
+                    Set psImage to "Default.ico" 
+                End_Object
+
+                Object oConfigureButton4 is a cConfigureButton
+                    Set Location to 70 1
+                    Set Label to "Dialog"
+                    Set psImage to "Dialog.ico" 
+                End_Object
+
+                Object oConfigureButton5 is a cConfigureButton
+                    Set Location to 93 1
+                    Set Label to "Grid"
+                    Set psImage to "Grid.ico" 
+                End_Object
+
+                Object oConfigureButton6 is a cConfigureButton
+                    Set Location to 116 1
+                    Set Label to "Toolbars"
+                    Set psImage to "Toolbars.ico" 
+                End_Object
+                               
+            End_Object
+            
+        End_Object
+    
+    End_Object
+
+    Object oLeftButtonLineControl is a LineControl
+        Set Size to 171 3
+        Set Location to 20 122
+        Set Horizontal_State to False
+        Set peAnchors to anTopBottomLeft
+        Set Bottom_Line_Color to clGray
+    End_Object
+
+    Object oOK_Btn is a cRDCButton
+        Set Size to 14 50
+        Set Label    to C_$OK
+        Set Location to 173 302
+        Set peAnchors to anBottomRight
+        Set Default_State to True
+
+        Procedure OnClick
+            String sProgram
+            Boolean bRestart
+            Integer iRetval
+
+            // This will make all values to be written to the ini-file:
+            Broadcast Recursive Send WriteIniValue of (Parent(Self))
+
+            Delegate Get pbRestart to bRestart
+            If (bRestart = True) Begin
+                Send DoChangeToolbars of ghoCommandBars
+                Get YesNo_Box "The program needs to be restarted. Restart now?" to iRetval
+                If (iRetval = MBR_Yes) Begin
+                    // First save skin settings
+                    If (ghoSkinFramework <> 0) Begin
+                        Send SaveSkinPreference of ghoSkinFramework
+                    End
+                    // then sizes & locations of the ghoApplication object etc.
+                    // We pass the object id of the oMain object and True to actually save changes.
+                    Send DoSaveEnvironment of ghoApplication (Parent(Client_Id(ghoCommandBars))) True
+                    Move (Module_Name(Desktop)) to sProgram
+                    // and restart the program.
+                    Runprogram (sProgram + ".exe")
+                End
+            End
+
+            Send Close_Panel
+        End_Procedure
+    End_Object  
+        
+    Object oCancel_Btn is a cRDCButton
+        Set Size to 14 50
+        Set Label    to C_$Cancel
+        Set Status_Help to "Close Panel"
+        Set Location to 173 358
+        Set peAnchors to anBottomRight
+        Procedure OnClick
+            Send Close_Panel
+        End_Procedure
+    End_Object
+
+    Procedure Page Integer iPageObject
+        Set Icon to "Settings.ico"
+        Forward Send Page iPageObject
+    End_Procedure  
+    
+    Procedure Activating
+        Forward Send Activating
+        Set pbRestart to False
+    End_Procedure
+
+    Procedure Deactivating
+        Forward Send Deactivating
+        Set pbRestart to False
+    End_Procedure
+
+    On_Key kCancel Send Close_Panel
+End_Object

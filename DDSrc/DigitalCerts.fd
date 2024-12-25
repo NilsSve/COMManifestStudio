@@ -1,0 +1,11 @@
+#REPLACE FILE3 DigitalCerts
+#REPLACE DigitalCerts.Recnum |FN3,0
+#REPLACE DigitalCerts.ID |FN3,1
+#REPLACE DigitalCerts.FileName |FS3,2
+#REPLACE DigitalCerts.Pw |FS3,3
+#REPLACE DigitalCerts.Description |FS3,4
+#REPLACE DigitalCerts.WebLocation |FS3,5
+#REPLACE DigitalCerts.AddTimeStamp |FN3,6
+#REPLACE DigitalCerts.TimeStampServiceSHA1 |FS3,7
+#REPLACE DigitalCerts.TimeStampServiceSHA256 |FS3,8
+#REPLACE DigitalCerts.DefaultDigitalCert |FN3,9

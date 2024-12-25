@@ -1,0 +1,3642 @@
+﻿//****************************************************************************
+// $Module type: Class Package
+// $Module name: cManifestFunctionLibrary.pkg
+//
+// $Author     : Nils G. Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
+// Web-site    : http://www.rdctools.com
+// Created     : 2012-09-20 @ 19:04 (Military date format - Year-Month-Day)
+//
+// The code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// This is free software; you can redistribute it and/or modify it under the terms of the
+// GNU Lesser General Public License.
+// License: LGPLv3 - GNU LESSER GENERAL PUBLIC LICENSE Version 3 - http://www.gnu.org/licenses/lgpl.txt
+//
+// Contributors: Feedback was provided by Wil van Antwerpen, Peter H. van Wijk
+//               Chuck Atkinson, Andrew Kennard and Bernard Ponemayr. Thank you!
+//
+// Sponsors:     Wil van Antwerpen, Leif Angestam, Todd Forsberg, Pepe Guimaraes,
+//               Marco Kuipers, Garret Mott, Richard Hogg and Ancel Leonie. Thank you!
+//
+//               Please SUPPORT this project by donating the amount what you think it is worth to have.
+//               By donating you not only support the software, but -if you want- you also get to be
+//               named as an official sponsor for the project.
+//               Here is the page at VDF-Guidance:
+//               http://www.VDF-Guidance.com/ContribPage.asp?Page=SOFTGENMANIFESTS&ContribRecId=131
+//
+// Purpose:      This is a function library for the Side-By-Side Manifest Studio program, made as a class.
+//               All class messages (functions & procedures) are sorted alfabetically.
+//               Please read the ManifestSideBySideManagerHelp.rtf in the Help folder for the purpose
+//               of the program as a whole.
+//
+// Note:         An instance of the class is created at the bottom of this file and its object
+//               handle is assigned to the global handle ghoManifestFunctionLibrary for easy access.
+//               *** This is _not_ a general purpose function library! It was specifically made for this
+//               particular project and contains object & data table references that only makes sense here.
+//
+// Compatibility:Visual DataFlex 16.0 and up. The tool was developed with VDF 17,
+//               but is backwards-compatable with VDF 16 and up.
+//               However, there is no reason you can't use the program to generate manifest files
+//               and embed the manifest data into older VDF programs than 16.0. In fact the program
+//               can be used to create and embed manifest data for any executable that uses
+//               COM (OCX/DLL)components!
+//               For the main view DbMergerViewNew.vw and ManHds.sl the newer CodeJock grids are used.
+//               All other code is compatable with VDF 14.0 and up. So if there is a strong
+//               reason to run this program under an earlier VDF version than 16.0 the
+//               DbMergerViewNew.vw and ManHds.sl could be changed to use the older DbGrid class.
+//               For the same reason some older syntax is used though the code. Such as:
+//               Get Create U_Array...
+//                 instead of Get Create (Refclass(Array))..
+//               Move (SortArray(AllTypeLibIdsArray, Self, get_CompareTypeLibIDs))..
+//                 instead of Move (SortArray(AllTypeLibIdsArray, Self, Reffunc(CompareTypeLibIDs)))..
+//
+// Class Help:   Check the Help folder for class help in HTML format, or
+//               simply select "Class Function Library Help" from the running programs Help menu.
+//
+//
+//******************************************************************************
+Use cApplication.pkg
+Use seq_chnl.pkg
+Use Winkern.pkg
+Use cWorkspace.pkg
+Use cRegistry.pkg
+Use cHttpTransfer.pkg
+Use Flexml.pkg
+Use Dfcursor.pkg
+Use cCryptographerEx.pkg
+
+CompilerWarnings Suspend 
+Use cFilesystem.pkg
+CompilerWarnings Restart
+
+Use vWin32fh.pkg
+Use Symdef.pkg
+Use StartProg.pkg
+Use cManifestIniFile.pkg
+Use cDigitalSoftwareCertificate.pkg
+Use cRDCExternalProgramResult.pkg
+
+Use cDigitalCertsDataDictionary.dd
+
+#IFNDEF ghoManifestFunctionLibrary
+    Global_Variable Integer ghoManifestFunctionLibrary
+#ENDIF
+
+// ***** EXTERNAL FUNCTION DECLARATIONS *****
+//
+#IFNDEF get_fGetFileTime
+    External_Function fGetFileTime "GetFileTime" Kernel32.dll;
+        Pointer lpFileName Pointer lpFileCreationTime Pointer lpFileAccessTime Pointer lpFileWriteTime Returns Integer
+#ENDIF
+
+#IFNDEF get_fSetFileTime
+    External_Function fSetFileTime "SetFileTime" Kernel32.dll;
+        Pointer lpFileName Pointer lpFileCreationTime Pointer lpFileAccessTime Pointer lpFileWriteTime Returns Integer
+#ENDIF
+
+#IFNDEF get_fCloseHandle
+    External_Function fCloseHandle "CloseHandle" kernel32.dll ;
+        Handle hObject ;      // Handle to object
+        Returns Integer
+#ENDIF
+
+#IFNDEF get_fCreatefile
+    External_Function fCreatefile "CreateFileA" kernel32.dll ;
+        Pointer lpFile ;      // Filename
+        DWord dwDesAccess ;   // access mode
+        DWord dwShare ;       // share mode
+        Pointer lpSecAtt ;    // SD
+        DWord dwCrDisp ;      // how to create
+        DWord dwFlags ;       // file attributes
+        Handle hTempFile ;    // handle to template fil
+        Returns Integer       // Returns handle that can be used to access the object
+#ENDIF
+
+#IFNDEF get_FileTimeToSystemTime
+    External_Function FileTimeToSystemTime "FileTimeToSystemTime" Kernel32.Dll ;
+        Pointer lpFileTime ;     // Pointer to file time to convert
+        Pointer lpSystemTime ;   // Pointer to structure to receive system time
+        Returns Integer
+#ENDIF
+
+#IFNDEF get_FileTimeToLocalFileTime
+    External_Function FileTimeToLocalFileTime "FileTimeToLocalFileTime" Kernel32.Dll ;
+        Pointer lpFileTime Pointer lpSystemTime Returns Integer
+#ENDIF
+
+#IFNDEF get_GetTimeFormat
+    External_Function GetTimeFormat "GetTimeFormatA" Kernel32.Dll ;
+        DWord LCID DWord dwFlags Pointer lpsSystemTime Pointer lpFormat Pointer lpTimeStr Integer cchTime Returns Integer
+#ENDIF
+
+#IFNDEF get_GetDateFormat
+    External_Function GetDateFormat "GetDateFormatA" Kernel32.Dll ;
+        DWord LCID DWord dwFlags Pointer lpsSystemTime Pointer lpFormat Pointer lpDateStr Integer cchDate Returns Integer
+#ENDIF
+
+#IFNDEF get_FindWindowExEf
+    External_Function FindWindowExEf "FindWindowExA" user32.dll Handle hWndParent Handle hWndChildAfter Pointer pClass Pointer pWindowName Returns Handle
+#ENDIF
+
+#IFNDEF get_GetModuleFilenameExEf
+    External_Function GetModuleFilenameExEf "GetModuleFileNameExA" psapi.dll Handle hProcess Handle hModule Pointer pFilename Integer iSize Returns Integer
+#ENDIF
+
+#IFNDEF get_OpenProcessEf
+    External_Function OpenProcessEf "OpenProcess" kernel32.dll Integer dwDesiredAccess Integer bInheritHandle Integer dwProcessId Returns Handle
+#ENDIF
+
+#IFNDEF get_CloseHandleEf
+    External_Function CloseHandleEf "CloseHandle" KERNEL32.DLL Handle hObject Returns Integer
+#ENDIF
+
+#IFNDEF get_GetWindowThreadProcessIdEf
+    External_Function GetWindowThreadProcessIdEf "GetWindowThreadProcessId" user32.dll Handle hWnd Pointer lpdwProcessId Returns Integer
+#ENDIF
+
+#IFNDEF get_Win32AllocConsole
+    External_Function Win32AllocConsole "AllocConsole" Kernel32.dll Returns Integer
+#ENDIF
+
+#IFNDEF get_Win32FreeConsole
+    External_Function Win32FreeConsole "FreeConsole" Kernel32.dll Returns Integer
+#ENDIF
+
+#IFNDEF get_Win32AttachConsole
+    External_Function Win32AttachConsole "AttachConsole" Kernel32.dll DWord dwProcessID Returns Integer
+#ENDIF
+
+#IFNDEF get_Win32GetStdHandle
+    External_Function Win32GetStdHandle "GetStdHandle" Kernel32.dll DWord nStdHandle Returns Integer
+#ENDIF
+
+#IFNDEF get_Win32WriteConsole
+    External_Function Win32WriteConsole "WriteConsoleA" Kernel32.dll Handle hConsole Pointer lpBuffer ;
+        DWord nCharsToWrite Pointer lpnCharsWritten Pointer lpReserved Returns Integer
+#ENDIF
+
+#IFNDEF get_Win32SetConsoleMode
+    External_Function Win32SetConsoleMode "SetConsoleMode" Kernel32.dll Handle hConsole DWord iMode Returns Integer
+#ENDIF
+
+#IFNDEF get_Win32PeekConsoleInput
+    External_Function Win32PeekConsoleInput "PeekConsoleInput" Kernel32.dll Handle hConsole Pointer lpBuffer DWord dwLength Pointer lpNumberOfEventsRead Returns Integer
+#ENDIF
+
+#IFNDEF GET_GetTempPathEf
+    External_Function GetTempPathEf "GetTempPathA" kernel32.dll Integer dwBufferLen Pointer lpBuffer Returns Integer
+#ENDIF
+
+#IFNDEF GET_GetShortPathNameEf
+    External_Function GetShortPathNameEf "GetShortPathNameA" kernel32.dll Pointer lpLongPath Pointer lpShortPath DWord dwBuffer Returns DWord
+#ENDIF
+
+Register_Object oSendSharedFiles_Dialog
+Register_Procedure Activate_oCOMComponents_dg
+Register_Procedure Activate_oCheckManifests
+Register_Procedure Activate_oDownloadFiles_dg
+Declare_Datafile ManHdr
+Declare_Datafile ManDet
+
+Class cManifestFunctionLibrary is a cObject
+    // Construct object with various properties.
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        // These properties gets set automatically when either;
+        // a record is found in the main view or
+        // an application manifest file is selected with the Browse button.
+        // They are central for most of the class functions.
+        Property String psManifestFragmentLibrary
+        Property String psCommonCOMLibrary
+        Property String psManifestFileName
+        Property String psTargetPath
+        Property String psExeFilePath
+        Property String psExeFileName
+        Property Boolean pbApplicationStringsOk False
+    End_Procedure
+
+    // Adds the ManifestSideBySide program to the VDF Studio's Tools menu.
+    // Pass the Studio version as a dot separated string. E.g. "17.0"
+    // The Studio uses a registry string for the purpose.
+    // Checks are made so that if the program already exists in the Studio's
+    // tools menu - nothing will be changed. A check is also performed that
+    // the Studio for the passed version actually is installed on the machine.
+    // Returns:
+    //   cx_RegKeyAlreadyExist, cx_RegKeyCreated, cx_RegkeyFailed, cx_RegKeyVDFKeyDoesNotExist or CX_InstalledOkVdfUnder16
+    Function AddProgramToStudioToolsMenu String sStudioVersion Returns Integer
+        Boolean bOk bExists bOpen
+        String sKey sValue sProgramPath sProgram sProduct sStudioPath
+        Handle hoReg hoArray
+        Integer i iItems iCreated iRetval
+
+        Move False to bOk
+        Move (CS_StudioPath + (Trim(sStudioVersion)))  to sStudioPath
+        If (sStudioVersion > "17.1") Begin
+            Move (Replace("Visual ", sStudioPath, "")) to sStudioPath
+        End
+
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sProgramPath
+        Get PathAtIndex of (phoWorkspace(ghoApplication)) sProgramPath 1 to sProgramPath
+        Get vFolderFormat sProgramPath to sProgramPath
+        Get psProduct     of (phoWorkspace(ghoApplication)) to sProduct
+        Get Module_Name to sProgram
+        Get Create (RefClass(cRegistry)) to hoReg
+        Set phRootKey of hoReg to HKEY_CURRENT_USER
+
+        // First check if the VDF version is installed
+        Get KeyExists of hoReg sStudioPath to bExists
+        If (bExists = False) Begin
+            Send Destroy of hoReg
+            Function_Return cx_RegKeyVDFKeyDoesNotExist
+        End
+
+        // Then check if any tools have been installed in the Tools Menu.
+        // If no tools created yet, create the Tools registry key.
+        Move (sStudioPath + CS_StudioTools) to sStudioPath
+        Get KeyExists of hoReg sStudioPath to bExists
+        If (bExists = False) Begin
+            Set pfAccessRights of hoReg to KEY_ALL_ACCESS
+            Get CreateKey of hoReg sStudioPath to iCreated
+            If (iCreated <> 0) Begin
+                Move cx_RegkeyFailed to iRetval
+            End
+            Else Begin
+                Move True to bExists
+            End
+        End
+
+        If (bExists = True) Begin
+            Get OpenKey of hoReg sStudioPath to bOk
+            If (bOk = True) Begin
+                Get Create (RefClass(Array)) to hoArray
+                Get GetSubkeys of hoReg hoArray to iItems
+                Decrement iItems
+                Move False to bExists
+                Set pfAccessRights of hoReg to KEY_READ
+                // Check if the key already exists:
+                For i from 0 to iItems
+                    Get Value of hoArray i to sKey
+                    Move (sStudioPath + "\" + sKey) to sKey
+                    Get OpenKey of hoReg sKey to bOpen
+                    If (bOpen = True) Begin
+                        Get ReadString of hoReg CS_Name to sValue
+                        If (sValue = sProduct) ;
+                            Move True to bExists
+                    End
+                Loop
+                Send Destroy of hoArray
+                If (bExists = False) Begin
+                    Set pfAccessRights of hoReg to KEY_ALL_ACCESS
+                    // We need to create the next key number:
+                    // The studio expect tools menu items to be numbered 1,2,3...n
+                    Increment iItems
+                    Increment iItems
+                    Get CreateKey of hoReg (sStudioPath + "\" + String(iItems)) to iCreated
+                    If (iCreated = 0) Begin
+                        Send WriteString of hoReg CS_Name sProduct
+                        // From DataFlex 16 and up the params for the Studio's Tools menu changed slightly:
+                        If (sStudioVersion >= "16.0") Begin
+                            Send WriteString of hoReg CS_Command (sProgramPath + sProgram)
+                            Send WriteString of hoReg CS_CommandLine CS_RegApplication
+                        End
+                        Else Begin
+                            Send WriteString of hoReg CS_CommandLine ('"' + sProgramPath + sProgram + ".exe" + '"' * CS_RegApplication)
+                            Move CX_InstalledOkVdfUnder16 to iRetval
+                        End
+                        Send WriteDword  of hoReg CS_Separator 1
+                        Move cx_RegKeyCreated to iRetval
+                    End
+                    Else Begin
+                        Move cx_RegkeyFailed to iRetval
+                    End
+                End
+                Else Begin
+                    Move cx_RegKeyAlreadyExist to iRetval
+                End
+                Send CloseKey of hoReg
+            End
+        End
+
+        Send Destroy of hoReg
+        Function_Return iRetval
+    End_Function
+
+    // Function returns all Manifest Fragment Library Text Files as a string array,
+    // that exists in the "Manifest Fragment Library" specified in the ini-file.
+    // If ini-file doesn't contain a correct pathing, the function will use the
+    // standard manifest fragment library path of this workspace.
+    // Note: The ini-file must reside in the Home folder.
+    Function AllManifestFragmentFiles Returns String[]
+        String[] sFilesArray
+        tsSearchResult[] SearchFileArray
+        Handle ho
+        String sManifestFolder sHome sFiles
+        Integer i iItems
+
+        Get ReadString of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_ManifestFolder "" to sManifestFolder
+        Get vFolderFormat sManifestFolder to sManifestFolder
+        If (not(sManifestFolder contains ":")) Begin
+            Get psHome of (phoWorkspace(ghoApplication)) to sManifestFolder
+            Get vFolderFormat sManifestFolder to sManifestFolder
+            Move (sManifestFolder + CS_ManifestFolder) to sManifestFolder
+        End
+
+        Get Create U_cFilesystem to ho
+        Move (sManifestFolder + CS_TextFileWildCards) to sFiles
+        Get FileSearch of ho sFiles DIRMODE_FILES_ONLY to SearchFileArray
+        Move (SizeOfArray(SearchFileArray)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Move SearchFileArray[i].sFilename to sFilesArray[i]
+        Loop
+        Send Destroy of ho
+
+        Function_Return sFilesArray
+    End_Function
+
+    // Reads all TypeLib declarations from the Manifest library folder.
+    // Pass a string array with all manifest fragment files to search
+    // Returns an struct array with the filenames and typelib values
+    Function AllTypeLibsAsArray String[] ByRef sFilesArray Returns tFileStruct[]
+        String sFileName sValue sManifestFragmentLibrary
+        Integer i iFiles iItem iCh
+        tFileStruct[] AllTypeLibIdsArray
+
+        Move (SizeOfArray(sFilesArray)) to iFiles
+        Decrement iFiles
+        Move 0 to iItem
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+
+        For i from 0 to iFiles
+            Move sFilesArray[i] to sFileName
+            Get Seq_Open_Input_Channel (sManifestFragmentLibrary - sFileName) to iCh
+
+            If (iCh > 0) Begin
+                While (not(SeqEof))
+                    Readln channel iCh sValue
+                    If (Uppercase(sValue) contains Uppercase(CS_XMLTypeLibStart)) Begin
+                        Move sFileName      to AllTypeLibIdsArray[iItem].sFileNameFirstCol
+                        Move (Trim(sValue)) to AllTypeLibIdsArray[iItem].sFileNameSecondCol
+                        Increment iItem
+                        Move True to SeqEof
+                    End
+                Loop
+                Send Seq_Close_Channel iCh
+            End
+        Loop
+
+        Function_Return AllTypeLibIdsArray
+    End_Function
+
+    // Creates a backup of a file and if it already exists, it creates a
+    // copy with the current date & time added to the filename, before the extension part.
+    // Note: Military date format is used
+    Procedure BackupFile String sPath String sFileName
+        String  sFile
+        String  sExt
+        String  sDateTimeStamp
+        Integer iRetval
+
+        Get vFolderFormat sPath to sPath
+        Get ParseFileExtension sFileName to sExt
+        // Remove file extension
+        Move (Left(sFileName, Length(sFileName) - (Length(sExt) + 1))) to sFile
+        Get DateTimeStamp to sDateTimeStamp
+        Get vRenameFile (sPath + sFileName) (sPath + sFile + "-" + sDateTimeStamp + "." + sExt) to iRetval
+    End_Procedure
+
+    Procedure BuildManifestFile String sFileName String[] sFilesArray
+        String[] sDuplicatesArray
+        Integer iDuplicates iSize
+        Boolean bApplicationStringsOk bExists
+
+        If (Trim(sFileName) = "") Begin
+            Send Info_Box "Please select a manifest file first, then try again."
+            Procedure_Return
+        End
+
+        Get pbApplicationStringsOk to bApplicationStringsOk
+        If (bApplicationStringsOk = False) Begin
+            Procedure_Return
+        End
+
+        Move (SizeOfArray(sFilesArray)) to iSize
+        If (iSize = 0) Begin
+            Send Info_Box "No files selected. Please try again."
+            Procedure_Return
+        End
+        Get CheckLocalManifestFragmentFiles (&sFilesArray) to bExists
+        If (bExists = False) Begin
+            Send Info_Box "Not all selected Manifest Fragment files exists in your local Manifest Fragment Library. Those files missing are marked with red in the grid.\n\nYou could try to press the 'Download New Fragment Files' button to download the missing file(s) from VDF-Guidance."
+            Procedure_Return
+        End
+
+        Get CheckForDuplicateTypeLibs (&sFilesArray) to iDuplicates
+//        If (iDuplicates > 0) Begin
+//            Send Activate_oCheckManifests of (Client_Id(ghoCommandBars)) sFilesArray
+//        End
+//        Else Begin
+            Send CreateAppManifestFile (&sFilesArray) (&sDuplicatesArray)
+//        End
+    End_Procedure
+
+    // Function that takes a string array with fragment files and returns a struct
+    // with all dependency modules.
+    // Example of dependency info from the Visual Report Writer 2012 Developer Edition API.v2.1.txt fragment file:
+    //      // Dependecies:
+    //      //#=df_collate.cfg
+    //      //#=dfapi30.dll
+    //      //#=dynapdf.dll
+    // This info tells the program to also copy those components to an applications program folder
+    // when the "Copy COM Components" is triggered.
+    Function CheckForDependecies String[] sFragmentFiles Returns tFileStruct[]
+        tFileStruct[] sComponentFilesArray sDependencyFilesArray
+        Integer iItems i iDependecyItems j iSize
+        String sFragmentFileName
+
+        Move (SizeOfArray(sFragmentFiles)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Move sFragmentFiles[i] to sFragmentFileName
+            Get IsCOMDependencies sFragmentFileName to sDependencyFilesArray
+            Move (SizeOfArray(sDependencyFilesArray)) to iDependecyItems
+            // If there are dependency files we need to loop through them and
+            // add them to our return array. Else the loop will only add one record.
+            Decrement iDependecyItems
+            For j from 0 to iDependecyItems
+                Move (SizeOfArray(sComponentFilesArray)) to iSize
+                Move sDependencyFilesArray[j].sFileNameFirstCol  to sComponentFilesArray[iSize].sFileNameFirstCol
+                Move sDependencyFilesArray[j].sFileNameSecondCol to sComponentFilesArray[iSize].sFileNameSecondCol
+                Move sDependencyFilesArray[j].sCOMComponentPath  to sComponentFilesArray[iSize].sCOMComponentPath
+                Move sDependencyFilesArray[j].bExists            to sComponentFilesArray[iSize].bExists
+                Move sDependencyFilesArray[j].bDependencyFile    to sComponentFilesArray[iSize].bDependencyFile
+            Loop
+
+        Loop
+        Function_Return sComponentFilesArray
+    End_Function
+
+    // Returns the number of typelib declarations
+    Function CheckForDuplicateTypeLibs String[] ByRef sFilesArray Returns Integer
+        Integer iRetval
+        tFileStruct[] DuplicateLibIdsArray
+        Get DuplicateTypeLibs (&sFilesArray) to DuplicateLibIdsArray
+        Move (SizeOfArray(DuplicateLibIdsArray)) to iRetval
+        Function_Return iRetval
+    End_Function
+
+    // Function returns an array with new Manifest Fragment Files that exists
+    // remotely in the VDF-Guidance global repository, but is missing from the local 'Manifest Fragment Library'.
+    // It also returns True if the download went OK via a ByRef param.
+    Function CheckForNewManifestFragmentFiles Boolean ByRef bOk String[] ByRef sNewFragmentFilesArray Returns Boolean
+        String[] sLocalFragmentFilesArray sRemoteFragmentFilesArray
+        String sDataPath sValue
+        Integer i iItems iItem iIndex
+
+        Get psDataPath of (phoWorkspace(ghoApplication)) to sDataPath
+        Get PathAtIndex of (phoWorkspace(ghoApplication)) sDataPath 1 to sDataPath
+        Get vFolderFormat sDataPath to sDataPath
+        Get DownloadFile CS_VdfGuidanceSVN CS_VdfGuidanceLibrary (sDataPath + CS_TempHTHMLPage) to bOk
+        If (bOk = True) Begin
+            Get ParseManifestLibraryHTMLPage (sDataPath - CS_TempHTHMLPage) to sRemoteFragmentFilesArray
+            Get AllManifestFragmentFiles to sLocalFragmentFilesArray
+            Move (SortArray(sRemoteFragmentFilesArray))   to sRemoteFragmentFilesArray
+            Move (SortArray(sLocalFragmentFilesArray))    to sLocalFragmentFilesArray
+            Move (SizeOfArray(sRemoteFragmentFilesArray)) to iItems
+            Decrement iItems
+            For i from 0 to iItems
+                // As the arrays can have different sizes we need to check
+                // that the i value exists in the array - else runtime error "Array value out of bounce" gets triggered,
+                // which we want to avoid.
+                Move sRemoteFragmentFilesArray[i] to sValue
+                Move (SearchArray(sValue, sLocalFragmentFilesArray)) to iIndex
+                // If iIndex = -1 the file doesn't exist locally.
+                If (iIndex = -1) Begin
+                    Move sValue to sNewFragmentFilesArray[iItem]
+                    Increment iItem
+                End
+            Loop
+        End
+        Else Begin
+            Send Info_Box "The VDF-Guidance site couldn't be contacted. Please try again later."
+        End
+        Function_Return True
+    End_Function
+
+    // Checks if the passed CLSID is registered with Windows registry database.
+    // Returns True if the component is registered
+    // It first looks in the normal root
+    Function CheckIfCLSIDIsRegistered String sCLSID Returns Boolean
+        Boolean bExists
+        Handle hoReg
+        String sKey
+
+        Move (Trim(sCLSID)) to sCLSID
+        If (sCLSID = "") Begin
+            Function_Return False
+        End
+        Move False to bExists
+        Get Create U_cRegistry to hoReg
+        Set phRootKey of hoReg to HKEY_CLASSES_ROOT
+        Set pfAccessRights of hoReg to KEY_READ
+        Move ("CLSID" + "\" + sCLSID) to sKey
+        Get KeyExists of hoReg sKey to bExists
+        If (bExists = False) Begin
+            Get KeyExists of hoReg (CS_CLSIDKey64Machine + "\" + sCLSID) to bExists
+        End
+        Send Destroy of hoReg
+
+        Function_Return bExists
+    End_Function
+
+    // Function that takes a COM Component path & filename as parameters and returns True/False,
+    // if it is registered or not with Windows registry.
+    Function CheckIfCOMComponentIsRegistered String sCOMComponentPath String sCOMComponentFileName Returns Boolean
+        Integer iRetval i iItems
+        String sProgramsPath sCLSID sPath
+        String[]   sCLSIDArray
+        tSxSInfo[] sCLSIDArraystruct
+        tSxSInfo   sSxSInfo
+        Boolean bRegistered bOk
+
+        Move False to bRegistered
+        Send Cursor_Wait of Cursor_Control
+        Get vFolderFormat sCOMComponentPath to sCOMComponentPath
+
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sProgramsPath
+        Get PathAtIndex   of (phoWorkspace(ghoApplication)) sProgramsPath 1 to sProgramsPath
+        Get vFolderFormat sProgramsPath to sProgramsPath
+
+        // Execute command:
+        Get ExternalProgramResult of ghoExternalProgramResult ('"' + sProgramsPath + CS_CLSExportExe + '"') ('"' + sCOMComponentPath + sCOMComponentFileName) sProgramsPath (&sCLSIDArray) to iRetval
+
+        // Was the ExternalProgramResult call successful?
+        If (iRetval > 0) Begin
+            Get ConvertFromCLSIDArrayToStruct sCLSIDArray to sCLSIDArraystruct
+            Move (SizeOfArray(sCLSIDArraystruct)) to iItems
+            Decrement iItems
+            // Loop through the screen dump looking for CLSID's:
+            For i from 0 to iItems
+                Move sCLSIDArraystruct[i].sCLSID to sCLSID
+
+                // All CLSID's must be registered (different component classes)
+                Get IsCLSIDRegisteredFromCOMComponent sClsid sCOMComponentFileName sPath to bOk
+                If (bOk = True) Begin
+                    Move True to bRegistered
+                End
+            Loop
+        End
+        Send Cursor_Ready of Cursor_Control
+        Function_Return bRegistered
+    End_Function
+
+    // Function that checks if a COM component listed in a fragment file is registered with Windows registry database.
+    // Parameter: The name of a manifest fragment file without path.
+    // Returns: True if the component is registered
+    Function CheckCOMRegistrationFromManifestFragmentFile String sManifestFragmentFile Returns Boolean
+        Boolean bExists
+        String sManifestFragmentLibrary sCLSID
+
+        Move False to bExists
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFilePathExists (sManifestFragmentLibrary + sManifestFragmentFile) to bExists
+        If (bExists = False) Begin
+            Send Info_Box ("Could not find the manifest fragment file:\n" + (sManifestFragmentLibrary + sManifestFragmentFile))
+            Function_Return False
+        End
+
+        Get ExtractCLSID sManifestFragmentFile to sCLSID
+        Get CheckIfCLSIDIsRegistered sCLSID to bExists
+
+        Function_Return bExists
+    End_Function
+
+    Procedure CheckForUpdates
+//        String sPath
+//        Get psProgramPath of (phoWorkspace(ghoApplication)) to sPath
+//        Send vShellExecute "open" CS_PADUpdaterProgram CS_PADFileName sPath
+        String sPath sUpdateProgram sParam
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sPath
+        Get vFolderFormat sPath to sPath
+        Move "updater.exe" to sUpdateProgram
+        Move "/checknow"   to sParam
+        Runprogram Shell Wait ('"' + sPath + sUpdateProgram + '"') sParam
+    End_Procedure
+
+    // Helper function that returns True if duplicate typelibs exists for the passed sFileName.
+    Function CheckIfDuplicateTypeLib String sFileName String[] ByRef sDuplicatesArray Returns Boolean
+        Boolean bSkipLine
+        Integer i iItems
+        String sDupFileName
+
+        Move (SizeOfArray(sDuplicatesArray)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Move sDuplicatesArray[i] to sDupFileName
+            If (Trim(sFileName) = Trim(sDupFileName)) Begin
+                Move True to bSkipLine
+                Move iItems to i // And we are out of here.
+            End
+        Loop
+
+        Function_Return bSkipLine
+    End_Function
+
+    // Function takes an array with fragment files
+    // Returns: True if all files in the array exists in the Manifest Fragment Library.
+    Function CheckLocalManifestFragmentFiles String[] ByRef sFilesArray Returns Boolean
+        Boolean bExists
+        Integer i iItems
+        String sFileName sManifestFragmentLibrary
+
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        Move (SizeOfArray(sFilesArray)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Move sFilesArray[i] to sFileName
+            Get vFilePathExists (sManifestFragmentLibrary + sFileName) to bExists
+            If (bExists = False) Begin
+                Move iItems to i // End loop
+            End
+        Loop
+        Function_Return bExists
+    End_Function
+
+    // Custom comparison sort function:
+    //   Returns (GT) if struct value in first parameter > struct value in second parameter.
+    //   Returns (LT) if struct value in first parameter < struct value in second parameter.
+    //   Otherwise returns (EQ).
+    // Note: We only sort the first part of the typelib string, up to but not including
+    //       the version number.
+    Function CompareTypeLibIDs tFileStruct TypeLib1 tFileStruct TypeLib2 Returns Integer
+        String sTypeLib1 sTypeLib2
+        Integer iPos
+
+        Move TypeLib1.sFileNameSecondCol to sTypeLib1
+        Move (Pos(CS_XMLClosingBrace, sTypeLib1)) to iPos
+        Move (Left(sTypeLib1, iPos))     to sTypeLib1
+        Move (Uppercase(sTypeLib1))      to sTypeLib1
+
+        Move TypeLib2.sFileNameSecondCol to sTypeLib2
+        Move (Pos(CS_XMLClosingBrace, sTypeLib2)) to iPos
+        Move (Left(sTypeLib2, iPos))     to sTypeLib2
+        Move (Uppercase(sTypeLib2))      to sTypeLib2
+
+        If (sTypeLib1 > sTypeLib2) ;
+            Function_Return (GT)
+        If (sTypeLib1 < sTypeLib2) ;
+            Function_Return (LT)
+        Function_Return (EQ)
+    End_Function
+
+    // Compresses a program (.exe file) with the help of the UpxCompress.exe program.
+    // If successful it displays how much the .exe was compressed in %.
+    Procedure CompressExeFile
+        String sPath sProgram sProgramPath sPreSize sPostSize sOutput sValue
+        String[] sOutputArray
+        Boolean bExists
+        Integer iRetval i iItems
+        Number nPreSize nPostSize
+
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sProgramPath
+        Get vFolderFormat sProgramPath to sProgramPath
+        Get vFilePathExists (sProgramPath + CS_CompressExeProgram) to bExists
+        If (bExists = False) Begin
+            Send Info_Box ("The Exe file compress program does not exist in the Programs folder. Process stopped. (" + CS_CompressExeProgram + ")")
+        End
+
+        Send Cursor_Wait of Cursor_Control
+
+        Get psExeFilePath to sPath
+        Get vFolderFormat sPath to sPath
+        Get psExeFileName to sProgram
+        Get vWin32_APIFileSize (sPath + sProgram)  to nPreSize
+        
+        // Convert bytes to MB.
+        Move (nPreSize/1024/1024) to nPreSize
+        Get NumberToString nPreSize 2 to sPreSize
+
+        Get ExternalProgramResult of ghoExternalProgramResult CS_CompressExeProgram ('"' + sPath + sProgram + '"') sProgramPath (&sOutputArray) to iRetval
+        Move (SizeOfArray(sOutputArray)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Move sOutputArray[i] to sValue
+            If (sValue contains CS_CompressionLines) Begin
+                Move (sOutput + "\n" + sValue + "\n") to sOutput
+            End
+            Else If (sValue contains CS_CompressCopyRight) Begin
+                Move (sOutput + "\n" + Trim(sValue) + "\n") to sOutput
+            End
+            Else If (sValue = "") Begin
+                Move (sOutput + "\n") to sOutput
+            End
+            Else Begin
+                Move (sOutput + String(sValue)) to sOutput
+            End
+        Loop
+        Move (Trim(sOutput)) to sOutput
+
+        Send Cursor_Ready of Cursor_Control
+        If (iRetval = 0) Begin
+            Get vWin32_APIFileSize (sPath + sProgram) to nPostSize
+            // Convert bytes to MB.
+            Move (nPostSize/1024/1024)     to nPostSize
+            Get NumberToString nPostSize 2 to sPostSize
+            Send Info_Box ("The compression of the selected program ended successfully. The size before compression was:" * String(sPreSize) * "MB and the size after the compression is:" * String(sPostSize) * "MB.\n\n" + sOutput)
+        End
+        Else If (iRetval = 2) Begin
+            Send Info_Box ("The program has previously been compressed. No further compression was attempted. The file size is:" * String(sPreSize) * "MB.\n\n" + sOutput)
+        End
+        Else Begin
+            Send Info_Box ("The compression of the selected program did NOT work - and ended with error code:" * String(iRetval) + "\n\n" + sOutput)
+        End
+    End_Procedure
+
+    // Helper function that converts CLSID's to a struct array with CLSID's + Description's
+    Function ConvertFromCLSIDArrayToStruct String[] sCLSIDArray Returns tSxSInfo[]
+        tSxSInfo[] sCLSIDStructArray
+        Integer i iItems iPos iStart iEnd
+        String sValue
+
+        Move (SizeOfArray(sCLSIDArray)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Move sCLSIDArray[i] to sValue
+            Move (Trim(sValue)) to sValue
+            Move (Pos("{",sValue)) to iStart
+            Move (Pos("}",sValue)) to iEnd
+            If (iStart > 0 and iEnd > 0) Begin
+                Move (Mid(sValue, (iEnd - iStart +1), iStart)) to sCLSIDStructArray[i].sCLSID
+            End
+            Move (Pos(" ", sValue)) to iPos
+            If (iPos > 0) Begin
+                Move (Mid(sValue, (Length(sValue) - iPos), (iPos +1))) to sCLSIDStructArray[i].sDescription
+            End
+        Loop
+
+        Function_Return sCLSIDStructArray
+    End_Function
+
+    // Converts a long Windows path to the short format;
+    // i.e. as used by DOS at the command prompt.
+    // Function is used to compare COM component names in the registry (InprocServer32 value).
+    // Sometimes they get saved as "long" filenames and path, sometimes in
+    // the short format.
+    Function ConvertToShortPath String sPath Returns String
+        String sShort sLong
+        Integer iRet
+
+        Move (ZeroString(4096)) to sShort
+        Move (sPath + (Character(0))) to sLong
+        Move (OemToAnsi(AddressOf(sLong), AddressOf(sLong))) to iRet
+        Move (GetShortPathNameEf(AddressOf(sLong), AddressOf(sShort), 4096)) to iRet
+
+        If (iRet = 0 or iRet > 4096) Begin
+            Function_Return sPath
+        End
+
+        Move (AnsiToOem(AddressOf(sShort), AddressOf(sShort))) to iRet
+        Move (CString(sShort)) to sShort
+        If (sShort = "") Begin
+            Function_Return sPath
+        End
+
+        Function_Return sShort
+    End_Function
+
+    Procedure CopyCOMComponents String[] sSelectedFileNames
+        Integer iItems
+        tFileStruct[] COMComponentsArray
+        Get CheckForDependecies sSelectedFileNames to COMComponentsArray
+        Get IsCOMComponentsMissing COMComponentsArray to iItems
+        If (iItems = 0) Begin
+            Send Info_Box "All COM (OCX/DLL) components are present in the application folder."
+        End
+        Else Begin
+            Send Activate_oCOMComponents_dg of (Client_Id(ghoCommandBars)) (&COMComponentsArray)
+        End
+    End_Procedure
+
+    // Copies all COM components in the passed array to the psTargetPath class property.
+    // Returns True if successful.
+    // It checks for the COM component in three different places in the following order:
+    // 1. The "Common COM Library"
+    // 2. If it is a CodeJock component; checks the appropriate CodeJock folder e.g.
+    //    "C:\Program Files (x86)\Codejock Software\ActiveX\Xtreme SuitePro ActiveX v13.4.2"
+    // 3. Searches the registry for the path to the component and checks that the component listed in
+    //    Windows registry exists. Then asks if it should be copied to the target.
+    Function CopyCOMComponents String[] ByRef sFragmentFilesArray String[] ByRef sFilesArray Returns Boolean
+        String sProgramsPath sFileName sVersion sExeFilePath sCommonComLibraryPath
+        String sCLSID sCOMComponentWithPath sFragmentFile
+        Integer i iItems iRetval
+        Boolean bExists bCodeJock bRetval bOk
+
+        Move (SizeOfArray(sFilesArray)) to iItems
+        If (iItems = 0) Begin
+            Function_Return False
+        End
+
+        Move True to bRetval
+        Get psCommonCOMLibrary to sCommonComLibraryPath
+        Get vFolderFormat sCommonComLibraryPath to sCommonComLibraryPath
+        Get psExeFilePath to sExeFilePath
+        Get vFolderFormat sExeFilePath to sExeFilePath
+
+        // This will give us the program path to Windows Programs Path. E.g. "Program Files (x86)"
+        Get vSHGetFolderPath vCSIDL_PROGRAM_FILES to sProgramsPath
+        Get vFolderFormat sProgramsPath to sProgramsPath
+        Move (sProgramsPath + CS_CodeJockBaseFolder) to sProgramsPath
+        Decrement iItems
+        For i from 0 to iItems
+            Move sFragmentFilesArray[i] to sFragmentFile
+            Get ExtractCLSID sFragmentFile to sCLSID
+            Move sFilesArray[i] to sFileName
+
+            // First check the 'Common COM Library' folder for existence
+            Get vFilePathExists (sCommonComLibraryPath + sFileName) to bExists
+            If (bExists = True) Begin
+                Get vCopyFile (sCommonComLibraryPath + sFileName) sExeFilePath to iRetval
+            End
+
+            // Then check CodeJock folders under "C:\Program Files..." for existence
+            If (bExists = False) Begin
+                Move (Uppercase(sFileName) contains "CODEJOCK") to bCodeJock
+                If (bCodeJock = True) Begin
+                    Get ExtractCodeJockVersion sFileName to sVersion
+                    Get vFilePathExists (sProgramsPath * sVersion + CS_CodeJockBinFolder + sFileName) to bExists
+                    If (bExists = True) Begin
+                        Get vCopyFile (sProgramsPath * sVersion + CS_CodeJockBinFolder + sFileName) sExeFilePath to iRetval
+                    End
+                End
+
+                // No, no CodeJock component, nor does it exists in the "Common COM Library".
+                // Check Windows registry for the path.
+                If (bExists = False) Begin
+                    Get RegistryComponentPathByCLSID sCLSID to sCOMComponentWithPath
+                    If (sCOMComponentWithPath = "") Begin
+                        Send Info_Box ("Could not find the COM (OCX/DLL) component to copy:\n" + (sCommonComLibraryPath + sFileName) * "to:\n" + sExeFilePath)
+                        Move False to bRetval
+                    End
+                    Else Begin
+
+                        // Also check that the file named in the registry actually exists.
+                        Get vFilePathExists sCOMComponentWithPath to bOk
+                        If (bOk = True) Begin
+                            Get YesNo_Box ("The component path was found in the Windows registry. Copy this component to the target folder?\n" + sCOMComponentWithPath) to iRetval
+                            If (iRetval = MBR_Yes) Begin
+                                Get vCopyFile sCOMComponentWithPath sExeFilePath to iRetval
+                            End
+                        End
+                        Else Begin
+                            Send Info_Box ("Could not find the COM (OCX/DLL) component to copy:\n" + sCOMComponentWithPath)
+                            Move False to bRetval
+                        End
+                    End
+                End
+            End
+        Loop
+
+        Function_Return bRetval
+    End_Function
+
+    // Creates an application manifest file with the the passed description.
+    // Params: Pass a boolean True as the third param to include DPI information in the manifest file.
+    Function CreateApplicationManifestFromTemplate String sPath String sManifestFileName String sDescription Boolean bIncludeDPI Returns Boolean
+        Integer iCh
+        String sManifestTemplateText
+        Boolean bOk
+
+        Move True to bOk
+        Get vFolderFormat sPath to sPath
+        Get Seq_Open_Output_Channel (sPath + sManifestFileName) to iCh
+        If (iCh < 0) Begin
+            Function_Return False
+        End
+
+        Get FormattedManifestTemplateText sDescription bIncludeDPI to sManifestTemplateText
+        If (sManifestTemplateText <> "") Begin
+            Writeln channel iCh sManifestTemplateText
+        End
+        Else Begin
+            Move False to bOk
+        End
+
+        Send Seq_Close_Channel iCh
+
+        Function_Return bOk
+    End_Function
+
+    // If the function succeeds, the return value is nonzero and is a handle to the console (DOS-window).
+    { Visibility=Private MethodType=Event  NoDoc=True }
+    Function CreateConsole Returns Handle
+        Integer iRetVal
+        Move 0 to iRetVal
+        // If the function succeeds, the return value is nonzero.
+        Move (Win32AllocConsole()) to iRetVal
+        // Get a Window handle to the console, if previous call was successful.
+        If (iRetVal <> 0) Begin
+            Move (Win32GetStdHandle(STD_OUTPUT_HANDLE)) to iRetVal
+        End
+        Function_Return iRetVal
+    End_Function
+
+    // Helper function that reads the output from the CLSExport console mode program, as a struct array.
+    // It creates a manifest fragment file in the "Manifest Fragment Library" folder.
+    // Pass the full path & the name of the manifest fragment file to create,
+    // the name of the COM component file and a struct array with CLSID's & descriptions.
+    // Returns the name of new manifest fragment file with full path if successful - else an emtpy string.
+    Function CreateFromCLSIDArray String sToFile String sCOMComponentPath String sCOMComponentFileName tSxSInfo[] sCLSIDStructArray Returns String
+        String sRetval sValue sManifestFragmentLibrary sTabChar
+        String sClsid sDescription sVersion sOutputString sTypeLibOutput
+        String sComponentDescription sVersionText
+        Integer iChOut iRetval i iItems
+        Boolean bExists bTypeLibValueWritten
+        tSxSInfoOut SxSInfoOutInfo
+
+        Move False to bTypeLibValueWritten
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        // Check if the manifest fragment file already exists.
+        Get vFilePathExists (sManifestFragmentLibrary + sToFile) to bExists
+        If (bExists = True) Begin
+            Get YesNo_Box ("The following manifest fragment file already exists:\n" + (sManifestFragmentLibrary + sToFile) + "\n\nDo you want to overwrite it?") to iRetval
+            If (iRetval = MBR_No) Begin
+                Function_Return ""
+            End
+        End
+
+        Move (SizeOfArray(sCLSIDStructArray)) to iItems
+        If (iItems = 0) Begin
+            Send Info_Box "The CLSID array was empty and the process was unable to create the manifest fragment file. Process stopped."
+            Function_Return ""
+        End
+        Move (Character(CI_TabCharacter)) to sTabChar
+        // Output to:
+        Get Seq_Open_Output_Channel (sManifestFragmentLibrary + sToFile) to iChOut
+
+        // This will give us the full typelib line. It contains more info than what can
+        // be read from the registry.
+        Get ExtractTypeLib sCOMComponentPath sCOMComponentFileName (&sComponentDescription) (&sVersionText) to sTypeLibOutput
+
+        // First line in manifest fragment file:
+        If (sComponentDescription <> "") Begin
+            Writeln channel iChOut (CS_VDFComment * sComponentDescription * sVersionText)
+        End
+        Else Begin
+            Writeln channel iChOut (CS_VDFComment * "Write a description for the component here! It will be displayed in the Side-By-Side Manifest Studio grid.")
+        End
+
+        Writeln channel iChOut (CS_XMLCOMFileName + '"' + sCOMComponentFileName + '"' + '>')
+
+        Move (sTabChar + sTypeLibOutput) to sTypeLibOutput
+
+        Decrement iItems
+        For i from 0 to iItems
+
+            Move sCLSIDStructArray[i].sCLSID        to sClsid
+            Move sCLSIDStructArray[i].sDescription  to sDescription
+            // We propably don't need the description here...
+            Get RegistrySxSInfo sClsid sDescription to SxSInfoOutInfo
+
+            // It happens that CLSID's from the component doesn't exist
+            // in the registry, so check for it:
+            Move SxSInfoOutInfo.sCLSID to sClsid
+            If (sClsid <> "") Begin
+                If (sTypeLibOutput = "") Begin
+                    // Only get info from the registry if the mt.exe program failed.
+                    // There can only be one typelib definition for each manifest fragment file.
+                    Move SxSInfoOutInfo.sTypeLib to sValue
+                    If (sValue <> "" and bTypeLibValueWritten = False) Begin
+                        Move (CS_XMLTypeLibStart + "=" + '"' + sValue + '"') to sOutputString
+                        Move SxSInfoOutInfo.sVersion to sVersion
+                        If (sVersion = "") Begin
+                            Move "1.0" to sVersion                                   // A version must exist in the string.
+                        End                                                          // There must be a "heldir=" in the string.
+                        Move (sOutputString * CS_XMLVersion + "=" + '"' + sVersion + '"' * CS_XMLHelpDir + '"">' + CS_XMLTypeLibEnd) to sOutputString
+
+                        Move  (sTabChar + sOutputString) to sTypeLibOutput
+                        // Ok, we have written a typelib def so we should _not_ do it again as only one
+                        // is allowed.
+                        Move True to bTypeLibValueWritten
+                    End
+                End
+
+                // CLSID class keys:
+                If (sClsid <> "") Begin
+                    Move (CS_XMLComClassCLSID + "=" + '"' + sClsid + '"') to sOutputString
+                End
+                Move SxSInfoOutInfo.sDescription to sValue
+                If (sValue <> "") Begin
+                    Move (sOutputString * CS_XMLDescription + "=" + '"' + sValue + '"') to sOutputString
+                End
+                Move SxSInfoOutInfo.sTypeLib to sValue
+                If (sValue <> "") Begin
+                    Move (sOutputString * CS_XMLtlbidTag + "=" + '"' + sValue + '"') to sOutputString
+                End
+                Move SxSInfoOutInfo.sThreadingModel to sValue
+                If (sValue <> "") Begin
+                    Move (sOutputString * CS_XMLThreadingModel + '"' + sValue + '"') to sOutputString
+                End
+                Move SxSInfoOutInfo.iMiscStatus to sValue
+                If (sValue <> "0") Begin
+                    Get TranslateStatusContentToString sValue to sValue
+                    Move (sOutputString * CS_XMLMiscStatusContent + '"' + sValue + '"') to sOutputString
+                End
+                Move SxSInfoOutInfo.sProgID to sValue
+                If (sValue <> "") Begin
+                    Move (sOutputString * CS_XMLProgID + '"' + sValue + '"') to sOutputString
+                End
+                // Finally add the closing tag:
+                Move (sOutputString + ">" + CS_XMLComClassEnd) to sOutputString
+
+                // Write comClass info line to output file:
+                Writeln channel iChOut (sTabChar + sOutputString)
+            End
+        Loop
+
+        // We write the "Typelib tlbid" at the bottom, else it can wind up in the middle of the "<comCLass clsid=" declarations:
+        Writeln channel iChOut sTypeLibOutput
+        // Finally write the final closing node tag "</file>":
+        Writeln channel iChOut CS_XMLActaveXFileEnd
+        Send Seq_Close_Channel iChOut
+        // If we got this far we (hopefully) succeded with creating the new manifest fragment file:
+        Move (sManifestFragmentLibrary + sToFile) to sRetval
+
+        Function_Return sRetval
+    End_Function
+
+    // Creates a manifest fragment file by extracting data from a COM component.
+    // Pass the full path and the name of the COM component.
+    // Returns a string with the full filename including path of the newly created manifest fragment file - or
+    // a blank string if the creation failed.
+    // It does so by memory piping with the help of the ExternalProgramResult function.
+    Function CreateManifestFragmentFile String sCOMComponentPath String sCOMComponentFileName Returns String
+        Integer iRetval
+        String sManifestFragmentLibrary sManifestFragmentFileName sProgramsPath sRetval
+        String[]   sCLSIDArray
+        tSxSInfo[] sCLSIDStructArray
+
+        Send Cursor_Wait of Cursor_Control
+        Get vFolderFormat sCOMComponentPath to sCOMComponentPath
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        Move (Replace(".ocx", sCOMComponentFileName, ".txt"))     to sManifestFragmentFileName
+        Move (Replace(".dll", sManifestFragmentFileName, ".txt")) to sManifestFragmentFileName
+        Move (Replace(".OCX", sManifestFragmentFileName, ".txt")) to sManifestFragmentFileName
+        Move (Replace(".DLL", sManifestFragmentFileName, ".txt")) to sManifestFragmentFileName
+
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sProgramsPath
+        Get PathAtIndex   of (phoWorkspace(ghoApplication)) sProgramsPath 1 to sProgramsPath
+        Get vFolderFormat sProgramsPath to sProgramsPath
+
+        // Extract data from the COM component with the help of the CLSExport command program and memory piping.
+        // The result will be placed in the sCLSIDArray string array variable.
+        Get ExternalProgramResult of ghoExternalProgramResult ('"' + sProgramsPath + CS_CLSExportExe + '"') ('"' + sCOMComponentPath + sCOMComponentFileName + '"') sProgramsPath (&sCLSIDArray) to iRetval
+
+        // Did the command execute OK?
+        If (iRetval > 0) Begin
+            Get ConvertFromCLSIDArrayToStruct sCLSIDArray to sCLSIDStructArray
+            // This will create the actual manifest fragment file in the manifest fragment library:
+            Get CreateFromCLSIDArray sManifestFragmentFileName sCOMComponentPath sCOMComponentFileName sCLSIDStructArray to sRetval
+        End
+        Send Cursor_Ready of Cursor_Control
+        Function_Return sRetval
+    End_Function
+
+    // Returns a line formatted string with a full application manifest file template.
+    // Pass a boolean True/False if DPI information should be included or not.
+    Function CreateManifestTemplateAsString Boolean bIncludeDPI String sDescription Returns String
+        String sValue sText
+
+        Move ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' + CR_LF) to sValue
+        Move (sValue + '<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">' + CR_LF) to sValue
+        Move (sValue + '  <assemblyIdentity version="1.0.0.0"' + CR_LF) to sValue
+        Move (sValue + '                    processorArchitecture="X86"' + CR_LF) to sValue
+        Move ('                    name="XXXXXXXXXX"') to sText
+        Move (Replace("XXXXXXXXXX", sText, sDescription)) to sText
+        Move (sValue + sText + CR_LF) to sValue
+        Move (sValue + '                    type="win32"/>' + CR_LF) to sValue
+        Move '  <description>XXXXXXXXXX</description>' to sText
+        Move (Replace("XXXXXXXXXX", sText, sDescription)) to sText
+        Move (sValue + sText + CR_LF) to sValue
+        Move (sValue + '    <dependency>' + CR_LF) to sValue
+        Move (sValue + '      <dependentAssembly>' + CR_LF) to sValue
+        Move (sValue + '        <assemblyIdentity type="win32"' + CR_LF) to sValue
+        Move (sValue + '                        name="Microsoft.Windows.Common-Controls"' + CR_LF) to sValue
+        Move (sValue + '                        version="6.0.0.0" processorArchitecture="X86"' + CR_LF) to sValue
+        Move (sValue + '                        publicKeyToken="6595b64144ccf1df"' + CR_LF) to sValue
+        Move (sValue + '                        language="*"/>' + CR_LF) to sValue
+        Move (sValue + '      </dependentAssembly>' + CR_LF) to sValue
+        Move (sValue + '    </dependency>' + CR_LF) to sValue
+        Move (sValue + '  <v3:trustInfo xmlns:v3="urn:schemas-microsoft-com:asm.v3">' + CR_LF) to sValue
+        Move (sValue + '    <v3:security>' + CR_LF) to sValue
+        Move (sValue + '      <v3:requestedPrivileges>' + CR_LF) to sValue
+        Move (sValue + '        <v3:requestedExecutionLevel level="asInvoker" />' + CR_LF) to sValue
+        Move (sValue + '      </v3:requestedPrivileges>' + CR_LF) to sValue
+        Move (sValue + '    </v3:security>' + CR_LF) to sValue
+        Move (sValue + '  </v3:trustInfo>' + CR_LF) to sValue
+        Move (sValue + '</assembly>' + CR_LF) to sValue
+        If (bIncludeDPI = True) Begin
+            Move (sValue + '<v3:application xmlns:v3="urn:schemas-microsoft-com:asm.v3">' + CR_LF) to sValue
+            Move (sValue + '  <v3:windowsSettings xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">' + CR_LF) to sValue
+            Move (sValue + '    <dpiAware>True</dpiAware>' + CR_LF) to sValue
+            Move (sValue + '  </v3:windowsSettings>' + CR_LF) to sValue
+            Move (sValue + '</v3:application>') to sValue
+        End
+        Function_Return sValue
+    End_Function
+
+    // *** Main Procedure ***
+    // This does the actual update of the application manifest file.
+    // - It first makes a backup copy of the application manifest file.
+    // - It then reads the top part of the current manifest file up to the COM declarations, or
+    // an end "</assembly>" string.
+    // - All the info from the selected fragment files are added.
+    // But if duplicate TypeLib's exists they are first removed for the passed
+    // non-selected fragment files (duplicates array).
+    // - Finally a question is asked to update the modified time of the
+    //   .exe file. This is because Windows can cache .manifest file data!
+    //   So even if the .manifest file is changed and the .exe file is not,
+    //   Windows will read from cached manifest data and discard your latest changes!
+    Procedure CreateAppManifestFile String[] ByRef sFilesArray String[] ByRef sDuplicatesArray
+        String sManifestFileName sExeFileName sTargetPath sExePath sFileName sManifestFragmentLibrary
+        Boolean bApplicationStringsOk bSkipLine bOk
+        Integer i iFiles iDuplicates iRetval iChIn iChOut
+        String sValue sTabChar sComment sCompare
+        Boolean bCommentRow bOfInterest
+        tWinFileTimeDC stFileTime
+        String[] sSelectedFileNames
+
+        Get pbApplicationStringsOk to bApplicationStringsOk
+        If (bApplicationStringsOk = False) Begin
+            Send Info_Box "Oops, something went wrong because all properties have not been set correctly by the program."
+            Procedure_Return
+        End
+
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        Get psManifestFileName        to sManifestFileName
+        Get psExeFileName             to sExeFileName
+        Get psExeFilePath             to sExePath
+        Get vFolderFormat sExePath    to sExePath
+        Get psTargetPath              to sTargetPath
+        Get vFolderFormat sTargetPath to sTargetPath
+
+        // This file backup copy will be used to read from when we create the new manifest file.
+        Get vCopyFile (sTargetPath + sManifestFileName) (sTargetPath + sManifestFileName + CS_XMLBackupName) to iRetval
+        If (iRetval = True) Begin
+            Send Info_Box "A backup copy of the application manifest file could not be created. No changes were made to the manifest file."
+            Procedure_Return
+        End
+
+        // Create a backup of the manifest file with todays date (military date format)
+        // and the current time appended to the end of the manifest file name.
+        // Note: This backup copy is unique, but the vCopyFile above will get overwritten the next time
+        //       the file is updated.
+        Send BackupFile sTargetPath sManifestFileName
+
+        Move (Character(CI_TabCharacter)) to sTabChar
+
+        Get Seq_Open_Input_Channel (sTargetPath + sManifestFileName - CS_XMLBackupName) to iChIn
+        Get Seq_Open_Output_Channel (sTargetPath + sManifestFileName) to iChOut
+        If (iChIn > 0 and iChOut > 0) Begin
+
+            // First read the top part of the manifest file until we find the COM declarations or
+            // we an end "</assembly>" string.
+            While (not(SeqEof))
+                Readln channel iChIn sValue
+                If (sValue contains CS_XMLCOMFileName or sValue contains CS_XMLAssembly) Begin
+                    Move True to SeqEof // Ok, we are done with the top part.
+                End
+                Else Begin
+                    Writeln channel iChOut sValue
+                End
+            Loop
+            Send Seq_Close_Channel iChIn
+
+            Move (SizeOfArray(sFilesArray))      to iFiles
+            Move (SizeOfArray(sDuplicatesArray)) to iDuplicates
+            Decrement iFiles
+
+            // Loop trough the selected list of manifest fragments
+            For i from 0 to iFiles
+                Move sFilesArray[i] to sFileName
+                // Now all that is needed is to read from the selected manifest fragment files and
+                // add them to the application manifest file.
+                Get Seq_Open_Input_Channel (sManifestFragmentLibrary + sFileName) to iChIn
+                If (iChIn > 0) Begin
+                    While (not(SeqEof))
+                        Readln channel iChIn sValue
+                        Move (Trim(sValue))    to sValue
+                        Move (Left(sValue, 2)) to sComment
+                        Move (sComment = ("/" + "/")) to bCommentRow
+                        // Check that the manifest fragment file doesn't contain any other information that is of no interest to us:
+                        Move (Uppercase(sValue)) to sCompare
+                        Move (sCompare contains Uppercase(CS_XMLCOMFileName) or sCompare contains Uppercase(CS_XMLActaveXFileEnd) or sCompare contains Uppercase(CS_XMLTypeLibStart) or sCompare contains Uppercase(CS_XMLComClassDescription) or sCompare contains Uppercase(CS_XMLComClassCLSID)) to bOfInterest
+                        If (bCommentRow = False and bOfInterest = True) Begin
+                            // If duplicate TypeLib's exists we need to remove the typelib
+                            // for the selected fragment file.
+                            If (iDuplicates > 0 and sValue contains CS_XMLTypeLibStart) Begin
+                                Get CheckIfDuplicateTypeLib sFileName (&sDuplicatesArray) to bSkipLine
+                                If (bSkipLine = True) ;
+                                    Move "" to sValue
+                            End
+                            If (sValue <> "") Begin
+                                If (sValue contains CS_XMLCOMFileName or sValue contains CS_XMLActaveXFileEnd) Begin
+                                    // Write to the new manifest file! (One tab-character)
+                                    Writeln channel iChOut (sTabChar + String(sValue))
+                                End
+                                Else Begin
+                                    // Write to the application manifest file! (Two tab-characters)
+                                    Writeln channel iChOut (sTabChar + sTabChar + String(sValue))
+                                End
+                            End
+                        End
+                    Loop
+                End
+                Send Seq_Close_Channel iChIn
+            Loop
+
+            // Finally write the end tag.
+            Writeln channel iChOut CS_XMLAssembly
+            Send Seq_Close_Channel iChOut
+            Get ValidateManifestFile to bOk
+
+            // We need to know if it is the running program's manifest file that is
+            // to be changed. If so, we cannot try to change the time as it is open.
+            Get IsThisProgramFile (sExePath + sExeFileName) to iRetval
+            If (iRetval = 0) Begin
+                Get YesNo_Box "Windows caches manifest data. If you need to have a manifest rescanned, the 'Date modified' of the manifested .exe program needs to be changed. This has the drawback that the DataFlex Studio wants to re-compile your program.\n\nWould you like to change the modified time of the .exe file to instruct Windows to rescan manifest data?" "IMPORTANT" to iRetval
+                If (iRetval = MBR_Yes) Begin
+                    Get FileTimeWinApi (sExePath + sExeFileName) to stFileTime
+                    // Change the modified time of the exe file:
+                    Move (stFileTime.dwHighDateTime + 10) to stFileTime.dwHighDateTime
+                    Set FileTimeWinApi (sExePath + sExeFileName) to stFileTime
+                End
+            End
+
+            If (bOk = True) Begin
+                Send Info_Box "Ready. The application manifest file was successfully created and checked for syntactical errors."
+                Get YesNo_Box "You also need to check/copy COM components to the Programs folder. Do that now?" to iRetval
+                If (iRetval = MBR_Yes) Begin
+                    Get SelectedItems of (phoManifest_grid(ghoApplication)) to sSelectedFileNames
+                    Send CopyCOMComponents sSelectedFileNames
+                End
+            End
+        End
+        Else Begin
+            Send Info_Box "Couldn't find free channels to read and write to. No changes were made to the manifest file."
+        End
+    End_Procedure
+
+    // To check if the passed program name and path is identical to
+    // the currently running program.
+    // Returns:
+    //   True if they are identical
+    Function IsThisProgramFile String sProgramPathAndFileName Returns Boolean
+        String sPath sModule
+
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sPath
+        Get vFolderFormat sPath to sPath
+        Get Module_Name to sModule
+        Move (sModule + ".exe") to sModule
+
+        Function_Return (Lowercase(sPath + sModule) = Lowercase(sProgramPathAndFileName))
+    End_Function
+
+    // Creates a datetime stamp string in military date format (yyyymmdd-hhmmss)
+    // Used by the BackupFile function.
+    // The reason for using military date format is to make it easy to list manifest backup
+    // files in alfabetical order, and that will also sort them in historical order.
+    Function DateTimeStamp Returns String
+        Integer iOrgDateFmt iOrgDateSep
+        Date dDate
+        String sDate sTime sDateTimeStamp
+        Integer iHour iMinute iSecond
+
+        Get_Attribute DF_DATE_FORMAT    to iOrgDateFmt
+        Get_Attribute DF_DATE_SEPARATOR to iOrgDateSep
+        Set_Attribute DF_DATE_FORMAT    to DF_DATE_MILITARY
+        Set_Attribute DF_DATE_SEPARATOR to (Ascii("-"))
+
+        Sysdate dDate iHour iMinute iSecond
+        Move ( (If(iHour < 10, "0", "")) + String(iHour) + (If(iMinute < 10, "0", "")) + String(iMinute) + (If(iSecond < 10, "0", "")) + String(iSecond) ) to sTime
+        Move dDate to sDate
+        Move (Replaces("-", sDate, "")) to sDate
+        Move (sDate + "-" + sTime)      to sDateTimeStamp
+        Set_Attribute DF_DATE_FORMAT    to iOrgDateFmt
+        Set_Attribute DF_DATE_SEPARATOR to iOrgDateSep
+        Function_Return sDateTimeStamp
+    End_Function
+
+    // Checks if a COM component exists.
+    // Pass: Manifest Fragment filename (no path)
+    // Returns: A struct with the name of the component and a True/False if the
+    //          component that it refers to exists in either the "Common COM Library" of this Workspace,
+    //          or if it is a CodeJock component, installed in
+    //          "Programs Files\CodeJock Software\ActiveX\Xtreme SuitePro ActiveX vnnnnn".
+    Function DoesCOMComponentExist String sFileName Returns tFileStruct
+        Boolean bExists bCodeJock
+        String sValue sCOMName sPath sProgramsPath sVersion sUppercaseFilename sCommonCOMLibraryPath
+        Integer iCh iStart iEnd
+        tFileStruct COMComponent
+
+        Get psManifestFragmentLibrary to sPath
+        Get vFolderFormat sPath to sPath
+        Get vFilePathExists (sPath + sFileName) to bExists
+        If (bExists = False) Begin
+            Function_Return COMComponent
+        End
+        Get psCommonCOMLibrary to sCommonCOMLibraryPath
+        Get vFolderFormat sCommonCOMLibraryPath to sCommonCOMLibraryPath
+        Get Seq_Open_Input_Channel (sPath + sFileName) to iCh
+
+        If (iCh > 0) Begin
+            While (not(SeqEof))
+                Readln channel iCh sValue
+                If (Uppercase(sValue) contains Uppercase(CS_XMLCOMFileName)) Begin
+                    Move (Pos('"', sValue)) to iStart
+                    Move (Replace('"', sValue, '')) to sValue
+                    Move (Pos('"', sValue)) to iEnd
+                    Move (Mid(sValue, (iEnd - iStart), iStart)) to sCOMName
+                    Get vFilePathExists (sCommonCOMLibraryPath + sCOMName)  to bExists
+                    If (bExists = True) Begin
+                        Move sFileName to COMComponent.sFileNameFirstCol
+                        Move sCOMName  to COMComponent.sFileNameSecondCol
+                        Move bExists   to COMComponent.bExists
+                        Move sCommonCOMLibraryPath to COMComponent.sCOMComponentPath
+                        Move True to SeqEof
+                    End
+
+                    // Check the application's Programs folder
+                    Else Begin
+                        Get psExeFilePath to sProgramsPath
+                        Get vFolderFormat sProgramsPath to sProgramsPath
+                        Get vFilePathExists (sProgramsPath + sCOMName)  to bExists
+                        If (bExists = True) Begin
+                            Move sFileName      to COMComponent.sFileNameFirstCol
+                            Move sCOMName       to COMComponent.sFileNameSecondCol
+                            Move bExists        to COMComponent.bExists
+                            Move sProgramsPath  to COMComponent.sCOMComponentPath
+                            Move True to SeqEof
+                        End
+                    End
+                End
+            Loop
+            Send Seq_Close_Channel iCh
+
+            // If the COM component did not exist in the CommonCOMLibrary; it is probably
+            // a CodeJock component, check if it is installed in a "Programs FilesXX/CodeJock..." folder.
+            Move (Uppercase(sFileName) contains "CODEJOCK") to bCodeJock
+            If (bExists = False and bCodeJock = True) Begin
+                // This will give us the program path to Windows Programs Path. E.g. "Program Files (x86)"
+                Get vSHGetFolderPath vCSIDL_PROGRAM_FILES to sProgramsPath
+                Get vFolderFormat sProgramsPath to sProgramsPath
+                Move (sProgramsPath + CS_CodeJockBaseFolder) to sProgramsPath
+                Move (Uppercase(sFileName)) to sUppercaseFilename
+                Move (Replace(".TXT", sUppercaseFilename, ".OCX")) to sUppercaseFilename
+                Get ExtractCodeJockVersion sUppercaseFilename to sVersion
+
+                // Then check CodeJock folders under "C:\Program Files..." for existence
+                Get vFilePathExists (sProgramsPath * sVersion + CS_CodeJockBinFolder + sUppercaseFilename) to bExists
+                If (bExists = True) Begin
+                    Move sFileName to COMComponent.sFileNameFirstCol
+                    Move sCOMName  to COMComponent.sFileNameSecondCol
+                    Move bExists   to COMComponent.bExists
+                    Move (sProgramsPath * sVersion + CS_CodeJockBinFolder) to COMComponent.sCOMComponentPath
+                End
+            End
+        End
+
+        Function_Return COMComponent
+    End_Function
+
+    // Helper function that downloads a filename from an Internet address.
+    // Params:
+    //   sHost - The name of the site
+    //   sPage - the address at the sHost site
+    //   sFileName - The path & filename for where to save the download.
+    // Returns:
+    //   True if success.
+    // Sample usage:
+    //   Get DownloadFile CS_VdfGuidanceSVN CS_VdfGuidanceLibrary "c:\temp.htm" to bSuccess
+    Function DownloadFile String sHost String sPage String sFileName Returns Boolean
+        Handle hoHttpTransfer
+        Boolean bOk bExists
+
+        Get vFilePathExists sFileName to bExists
+        If (bExists = True) Begin
+            Get vDeleteFile sFileName to bOk
+        End
+
+        Move False to bOk
+        Get Create U_cHttpTransfer to hoHttpTransfer
+        If (hoHttpTransfer <> 0) Begin
+            Set psAcceptTypes  of hoHttpTransfer to "*/*"
+            Set psRemoteHost   of hoHttpTransfer to sHost
+            Set psSaveAsFile   of hoHttpTransfer to sFileName
+            Get HTTPGetRequest of hoHttpTransfer sPage to bOk
+            Send Destroy of hoHttpTransfer
+        End
+
+        Function_Return bOk
+    End_Function
+
+    Procedure DownloadManifestFragmentFiles
+        String[] sNewFilesArray
+        tFileStruct[] FileStructArray
+        Integer iItems
+        Boolean bOk
+
+        Send Cursor_Wait of Cursor_Control
+        Get CheckForNewManifestFragmentFiles (&bOk) (&sNewFilesArray) to bOk
+        // bOk = False an error occured when contacting the web-site; and we're done.
+        If (bOk = True) Begin
+            Move (SizeOfArray(sNewFilesArray)) to iItems
+            If (iItems > 0) Begin
+                Get StringArrayToFileStructArray sNewFilesArray to FileStructArray
+                Send Cursor_Ready of Cursor_Control
+                Send Activate_oDownloadFiles_dg of (Client_Id(ghoCommandBars)) FileStructArray
+            End
+            Else Begin
+                Send Info_Box "You already have all the latest 'Manifest Fragment' files from the global repository at VDF-Guidance installed in your local repository."
+            End
+        End
+        Send Cursor_Ready of Cursor_Control
+    End_Procedure
+
+    // Helper function that downloads the files in the passed array
+    // to the local Manifest Fragment Library.
+    Function DownloadNewFiles String[] ByRef sFilesArray Returns Boolean
+        Integer i iItems
+        Boolean bOk bRetval
+        String sFileName sManifestFragmentLibrary
+
+        Move True to bOk
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        Move (SizeOfArray(sFilesArray)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Move sFilesArray[i] to sFileName
+            Get DownloadFile CS_VdfGuidanceSVN (CS_VdfGuidanceLibrary - sFileName) (sManifestFragmentLibrary + sFileName) to bRetval
+            // If at least one download didn't work (bRetval = false) we will return a False from this function.
+            If (bRetval = False) ;
+                Move False to bOk
+        Loop
+
+        Function_Return bOk
+    End_Function
+
+    // Returns all duplicate typelib declarations.
+    Function DuplicateTypeLibs String[] ByRef sFilesArray Returns tFileStruct[]
+        String[] sDuplicatesArray
+        Integer i iFiles iItem iDuplicates iIndex j iDupExists
+        tFileStruct[] AllTypeLibIdsArray SortedLibIdsArray DuplicateLibIdsArray ZeroTypeLibs
+        tFileStruct TypeLibIdValue
+
+        // Get the numer of items
+        Move (SizeOfArray(sFilesArray)) to iFiles
+        If (iFiles = 0) Begin
+            Send UserError "No files to process"
+            Function_Return ZeroTypeLibs
+        End
+
+        // Get all typelibs' as an array
+        Get AllTypeLibsAsArray (&sFilesArray) to AllTypeLibIdsArray
+        // Sort the array alphabetically
+        Move (SortArray(AllTypeLibIdsArray, Self, get_CompareTypeLibIDs)) to SortedLibIdsArray
+        Move (SizeOfArray(SortedLibIdsArray)) to iFiles
+        Decrement iFiles
+        Move 0 to iItem
+
+        // Rotate through all files and see if we can spot duplicate type libs:
+        For i from 0 to iFiles
+            Move SortedLibIdsArray[i].sFileNameFirstCol  to TypeLibIdValue.sFileNameFirstCol
+            Move SortedLibIdsArray[i].sFileNameSecondCol to TypeLibIdValue.sFileNameSecondCol
+            // Call CompareTypeLibIDs function to count array elements that match TypeLibIdValue
+            Move (CountArray(TypeLibIdValue, SortedLibIdsArray, Self, get_CompareTypeLibIDs)) to iDuplicates
+            If (iDuplicates > 1) Begin
+
+                Move (CountArray(TypeLibIdValue, DuplicateLibIdsArray, Self, get_CompareTypeLibIDs)) to iDupExists
+
+                If (iDupExists <= 1) Begin
+                    // Call CompareTypeLibIDs function to search array elements for the TypeLibIdValue value
+                    // This is the first of the type lib values that are the same.
+                    Move (SearchArray(TypeLibIdValue, SortedLibIdsArray, Self, get_CompareTypeLibIDs)) to iIndex
+                    Decrement iDuplicates
+
+                    // Loop through the number of duplicates and copy them to our return array
+                    For j from 0 to iDuplicates
+                        Move SortedLibIdsArray[iIndex + j].sFileNameFirstCol  to DuplicateLibIdsArray[iItem].sFileNameFirstCol
+                        Move SortedLibIdsArray[iIndex + j].sFileNameSecondCol to DuplicateLibIdsArray[iItem].sFileNameSecondCol
+                        Increment iItem
+                    Loop
+                End
+            End
+
+        Loop
+
+        Function_Return DuplicateLibIdsArray
+    End_Function
+
+    // Opens the application manifest file in the editor.
+    Procedure EditAppManifestFile
+        String sManifestFileName sEditor sEditorParams sPath
+        Integer iRetval
+
+        Get psFileEditor       of ghoManifestIniFile to sEditor
+        If (Trim(sEditor) = "") Begin
+            Move CS_Notepad to sEditor
+        End
+        Get psFileEditorParams of ghoManifestIniFile to sEditorParams
+        Get psManifestFileName to sManifestFileName
+        Get psTargetPath       to sPath
+        Move (sPath + sManifestFileName) to sManifestFileName
+        Get vFilePathExists sManifestFileName to iRetval
+        If (iRetval = False) Begin
+            Send Info_Box "The application manifest file could not be found."
+            Procedure_Return
+        End
+        If (sEditorParams <> "") Begin
+            Runprogram Background sEditor ('"' + sEditorParams + '"' * '"' + sManifestFileName + '"')
+        End
+        Else Begin
+            Runprogram Background sEditor ('"' + sManifestFileName + '"')
+        End
+    End_Procedure
+
+    Procedure EmbedManifestInProgram
+        String sPath sExePath sManifestFileName sExeName sCurrProgPath sParams sText sValue
+        String[] sOutputArray
+        Boolean bExist bBusy
+        Integer iRetval iItems iCount
+        tWinFileTimeDC stFileTime
+
+        Get psManifestFileName to sManifestFileName
+        Get psTargetPath       to sPath
+        Get psExeFilePath      to sExePath
+        Get psExeFileName      to sExeName
+        Get vFilePathExists (sPath + sManifestFileName) to bExist
+        If (bExist = False) Begin
+            Send Info_Box "Please select a manifest file first, then try again."
+            Procedure_Return
+        End
+
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sCurrProgPath
+        Get PathAtIndex   of (phoWorkspace(ghoApplication)) sCurrProgPath 1 to sCurrProgPath
+        Get vFolderFormat sCurrProgPath to sCurrProgPath
+
+        Get vFilePathExists (sCurrProgPath + CS_MtExeProgram) to bExist
+        If (bExist = False) Begin
+            Send Info_Box ("The" * CS_MtExeProgram * "program is missing from this workspace Programs folder and the manifest file cannot be embedded into the" * sExeName * "program.")
+            Procedure_Return
+        End
+
+        Get vFilePathExists (sExePath + sExeName) to bExist
+        If (bExist = False) Begin
+            Send Info_Box ("The" * sExeName * "program is missing and the manifest file cannot be embedded. Maybe the program hasn't been compiled?")
+            Procedure_Return
+        End
+
+        Get IsAppRunning (sPath + sExeName) to bBusy
+        If (bBusy = True) Begin
+            Send Info_Box ("The program:\n" + (sPath + sExeName) * "\nis running and cannot be updated with manifest data.\nPlease close it and try again.")
+            Procedure_Return
+        End
+        
+        Get YesNo_Box "This will embedd the .manifest file into the executable file (*.exe). Continue?" to iRetval
+        If (iRetval <> MBR_Yes) Begin
+            Procedure_Return
+        End
+
+        Move (CS_MtManifest * '"' + (sPath + sManifestFileName) + '"' * CS_MtOutputSource + '"' + (sExePath + sExeName) + '"') to sParams
+
+        Send Cursor_Wait of Cursor_Control
+
+        // Before doing the actual process we will get & save the current file datetime, to restore it after process has finished,
+        // that way the Studio doesn't think it needs to recompile the program.
+        Get FileTimeWinApi (sExePath + sExeName) to stFileTime
+
+        Get ExternalProgramResult of ghoExternalProgramResult CS_MtExeProgram sParams sCurrProgPath (&sOutputArray) to iRetval
+
+        // And reset the last modified datetime of the file to what it was before signing the file:
+
+        Send Cursor_Ready of Cursor_Control
+
+        Move (SizeOfArray(sOutputArray)) to iItems
+        Decrement iItems
+        For iCount from 0 to iItems
+            Move sOutputArray[iCount] to sValue
+            If (sValue <> "") Begin
+                Move (sText + String(sValue) + "\n") to sText
+            End
+        Loop
+
+        If (iRetval = 0) Begin
+            Set FileTimeWinApi (sExePath + sExeName) to stFileTime
+            Send Info_Box ("Done! The manifest data from:\n" + (sPath + sManifestFileName) * "was embedded in" * sExeName + "\n\n" + sText)
+        End
+
+        // Parse the output error array & format text for the info_box:
+        Else Begin
+            Send Info_Box ("Error. Could not embed the manifest data in the executable.\n\n" + sText)
+        End
+    End_Procedure
+
+    // Function takes a manifest fragment file without path and
+    // returns the first CLSID.
+    // Sample output: {707A5994-8950-11D2-9E58-00A024A8859A}
+    Function ExtractCLSID String sManifestFragmentFile Returns String
+        String sValue sRetval sManifestFragmentLibrary
+        Boolean bExists bCLSIDRow
+        Integer iCh iStart iEnd
+
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFilePathExists (sManifestFragmentLibrary + sManifestFragmentFile) to bExists
+        If (bExists = False) Begin
+            Send Info_Box ("Could not find the manifest fragment file:\n" + (sManifestFragmentLibrary + sManifestFragmentFile))
+            Function_Return ""
+        End
+
+        Move "" to sRetval
+        Get Seq_Open_Input_Channel (sManifestFragmentLibrary + sManifestFragmentFile) to iCh
+        While (SeqEof = False)
+            Readln channel iCh sValue
+            Move (Trim(sValue)) to sValue
+            Move (sValue contains (CS_XMLclsidTag + "=")) to bCLSIDRow
+            If (bCLSIDRow = True) Begin
+                Move (Pos('"{',sValue)) to iStart
+                Move (Pos('}"',sValue)) to iEnd
+                If (iStart > 0 and iEnd > 0) Begin
+                    Move (Mid(sValue, (iEnd - iStart), (iStart + 1))) to sRetval
+                    Move True to SeqEof // We are done here.
+                End
+            End
+        Loop
+        Send Seq_Close_Channel iCh
+
+        Function_Return sRetval
+    End_Function
+
+    // Function takes a 'screen dump' string variable with CLSID's and returns the first CLSID.
+    // Sample output: {707A5994-8950-11D2-9E58-00A024A8859A}
+    { Visibility=Private }
+    { MethodType=Event  NoDoc=True }
+    Function ExtractCLSIDFromDump String sValue Returns String
+        String sRetval
+        Integer iStart iEnd
+
+        Move "" to sRetval
+        Move (Trim(sValue)) to sValue
+        Move (Pos("{", sValue)) to iStart
+        Move (Pos("}", sValue)) to iEnd
+        If (iStart > 0 and iEnd > 0) Begin
+            Move (Mid(sValue, (iEnd - iStart +1), iStart)) to sRetval
+        End
+
+        Function_Return sRetval
+    End_Function
+
+    // Helper function
+    // Only for CJ components. Pass a Fragment Library Filename and
+    // function will return the CJ version of the COM component.
+    Function ExtractCodeJockVersion String sFileName Returns String
+        String sRetval
+        Integer iPos
+
+        Move (Uppercase(sFileName)) to sFileName
+        Move (Pos(".V", sFileName)) to iPos
+        Move (Mid(sFileName, 50, iPos)) to sRetval
+        Move (Replace(".OCX", sRetval, "")) to sRetval
+        Move (Replace(".", sRetval, ""))    to sRetval
+
+        Function_Return sRetval
+    End_Function
+
+    // Function that takes a manifest fragment file as argument and returns the
+    // name of the COM component file.
+    Function ExtractCOMFileName String sManifestFragmentFileName Returns String
+        String sRetval sValue sManifestFragmentLibrary
+        Integer iCh iStart iEnd
+
+        Move "" to sRetval
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        Get Seq_Open_Input_Channel (sManifestFragmentLibrary + sManifestFragmentFileName) to iCh
+
+        If (iCh > 0) Begin
+            While (not(SeqEof))
+                Readln channel iCh sValue
+                If (Uppercase(sValue) contains Uppercase(CS_XMLCOMFileName)) Begin
+                    Move (Pos('"', sValue)) to iStart
+                    Move (Replace('"', sValue, '')) to sValue
+                    Move (Pos('"', sValue)) to iEnd
+                    Move (Mid(sValue, (iEnd - iStart), iStart)) to sRetval
+                    Move True to SeqEof
+                End
+            Loop
+            Send Seq_Close_Channel iCh
+        End
+        Function_Return sRetval
+    End_Function
+
+    // Pass a Manifest Fragment File name without pathing.
+    // Returns: The comments in the file as a string.
+    // Note: Manifest Fragment Files can contain comments. The format must be the same
+    // as with the Visual DataFlex language; two forward slashes (//).
+    Function ExtractManifestFragmentFileComment String sManifestFragmentFile Returns String
+        String sValue sRetval sComment sDoubleBackSlash sManifestFragmentLibrary
+        Boolean bExists bCommentRow
+        Integer iCh
+
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFilePathExists (sManifestFragmentLibrary + sManifestFragmentFile) to bExists
+        If (bExists = False) ;
+            Function_Return ""
+
+        Move ("/" + "/") to sDoubleBackSlash
+        Get Seq_Open_Input_Channel (sManifestFragmentLibrary + sManifestFragmentFile) to iCh
+        While (SeqEof = False)
+            Readln channel iCh sValue
+            Move (Trim(sValue)) to sValue
+            Move (Left(sValue, 2)) to sComment
+            Move (sComment = sDoubleBackSlash) to bCommentRow
+            If (bCommentRow = True) Begin
+                Move (Replace(sDoubleBackSlash, sValue, "")) to sValue
+                Move (Trim(sValue)) to sValue
+                If (sRetval = "") Begin
+                    Move sValue to sRetval
+                End
+                Else Begin
+                    Move (sRetval + " " + sValue) to sRetval
+                End
+            End
+        Loop
+        Send Seq_Close_Channel iCh
+
+        Function_Return sRetval
+    End_Function
+
+    // Function that uses the CS_MtExeProgram command line program to extract the typelib value,
+    // the component description and version text from a COM component.
+    // The reason to use this function rather than looking up the TypeLib value in the registry
+    // is that it gives us more info than what is available in the registry.
+    // The return string can look like this:
+    // <typelib tlbid="{5B7759CE-C04E-4C5D-993B-8297E30D9065}" version="1.0" helpdir="" flags="hasdiskimage"/>
+    { Visibility=Private }
+    { MethodType=Event  NoDoc=True }
+    Function ExtractTypeLib String sPath String sCOMFileName String ByRef sComponentDescription String ByRef sVersionText Returns String
+        String sCurrProgPath sRetval sValue sParams sTempPath
+        String[] sValueArray
+        Boolean bExist
+        Integer iRetval iStart iEnd iCh
+
+        Get psProgramPath of (phoWorkspace(ghoApplication))                 to sCurrProgPath
+        Get PathAtIndex   of (phoWorkspace(ghoApplication)) sCurrProgPath 1 to sCurrProgPath
+        Get vFolderFormat sCurrProgPath to sCurrProgPath
+        Get vFilePathExists (sCurrProgPath + CS_MtExeProgram) to bExist
+        If (bExist = False) Begin
+            Send Info_Box ("The" * CS_MtExeProgram * "program is missing from this workspace Programs folder and the manifest file cannot be validated.")
+            Function_Return False
+        End
+
+        Send Cursor_Wait of Cursor_Control
+        Get vFolderFormat sPath to sPath
+        Get WindowsTempDirectory to sTempPath
+        Get vFolderFormat sTempPath to sTempPath
+
+        // Setup parameters to be passed to the mt.exe program:
+        Move ("-nologo -tlb:" + '"' + (sPath + sCOMFileName) + '"' * "-dll:" + '"' +  (sPath + sCOMFileName) + '"' * "-out:" + '"' + (sTempPath + CS_TempFilename) + '"') to sParams
+
+        // Execute command:
+        Get gStartProgram ('"' + sCurrProgPath + CS_MtExeProgram + '"') sParams sCurrProgPath False True to iRetval
+        Send Cursor_Ready of Cursor_Control
+
+        If (iRetval = -1) Begin
+            Send Info_Box ("Error: The" * CS_MtExeProgram * "program could not run correctly.")
+            Function_Return False
+        End
+
+        Else If (iRetval > 0) Begin
+            If (iRetval = 31) Begin
+                Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code =" * String(iRetval) + ", and the application manifest file could not be verified. This error could be caused by an Anti-virus program.")
+            End
+            Else Begin
+                Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code =" * String(iRetval) + ", and the application manifest file could not be verified.")
+            End
+            Function_Return False
+        End
+
+        Get Seq_Open_Input_Channel (sTempPath + CS_TempFilename) to iCh
+        If (iCh > 0) Begin
+            While (not(SeqEof))
+                Readln channel iCh sValue
+
+                // First try to find the "description=" text in the very long sValue string
+                // then find the end quote of the description text and move it to sComponentDescription
+                Move (Pos((CS_XMLDescription + "="), sValue)) to iStart
+                If (iStart > 0) Begin
+                    Move (Mid(sValue, (Length(sValue) - iStart), iStart)) to sComponentDescription
+                    Move (Pos("=", sComponentDescription)) to iStart
+                    Increment iStart
+                    Move (Replace('"', sComponentDescription, '')) to sComponentDescription
+                    Move (Pos('"', sComponentDescription)) to iEnd
+                    Move (Mid(sComponentDescription, (iEnd - iStart), iStart)) to sComponentDescription
+                End
+
+                // Then find the version text
+                Move (Pos((CS_XMLVersion + "="), sValue)) to iStart
+                If (iStart > 0) Begin
+                    Move (Mid(sValue, (Length(sValue) - iStart), iStart)) to sVersionText
+                    Move (Replace('"', sVersionText, '')) to sVersionText
+                    Move (Pos('"', sVersionText)) to iEnd
+                    Move (Left(sVersionText, (iEnd -1))) to sVersionText
+                End
+
+                // And finally find the TypeLib value text
+                Move (Pos(CS_XMLTypeLibStart, sValue)) to iStart
+                Move (Pos(CS_XMLTypeLibEnd, sValue))   to iEnd
+                If (iEnd > 0) Begin
+                    Move (iEnd + Length(CS_XMLTypeLibEnd)) to iEnd
+                    Move (Mid(sValue, (iEnd - iStart), iStart)) to sRetval
+                End
+                If (sRetval <> "") ;
+                    Move True to SeqEof // We're done.
+            End
+            Send Seq_Close_Channel iCh
+        End
+
+        Function_Return sRetval
+    End_Function
+
+    // Takes a string array with manifest fragment files that has been selected by user
+    // The second param is the total number of fragment files in the Manifest Fragment Library.
+    // Returns a string array with unique file names from the sManifestLibraryArray that does not exists in sFilesArray.
+    Function FilesArrayDifference String[] ByRef sFilesArray String[] ByRef sManifestLibraryArray Returns String[]
+        String[] sRetvalArray sEmptyArrary
+        Integer i iItems iSize iSize2 iCount iIndex
+        String sFileName sManifestFile
+
+        Move (SizeOfArray(sFilesArray))           to iSize
+        Move (SizeOfArray(sManifestLibraryArray)) to iSize2
+        If (iSize = 0) Begin
+            Function_Return sManifestLibraryArray
+        End
+
+        Decrement iSize
+        Decrement iSize2
+
+        Move (SortArray(sFilesArray))             to sFilesArray
+        Move (SortArray(sManifestLibraryArray))   to sManifestLibraryArray
+        Move (iSize min iSize2)                   to iItems
+
+        For i from 0 to iItems
+            Move "" to sFileName
+            If (iSize < iSize2) Begin
+                If (i <= iSize) Begin
+                    Move sFilesArray[i] to sFileName
+                End
+
+                // Try to find a match in the sManifestLibraryArray.
+                // If a match Move "" to the value so it can be removed later.
+                Move (SearchArray(sFileName, sManifestLibraryArray)) to iIndex
+                If (iIndex <> -1) Begin
+                    Move "" to sManifestLibraryArray[iIndex]
+                End
+            End
+        Loop
+
+        // Finally move all files from the sManifestLibraryArray to
+        // the return array, but not the blank ones (those were duplicates).
+        Move 0 to iCount
+        Move (SizeOfArray(sManifestLibraryArray)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Move sManifestLibraryArray[i] to sManifestFile
+            If (sManifestFile <> "") Begin
+                Move sManifestFile to sRetvalArray[iCount]
+                Increment iCount
+            End
+        Loop
+
+        // One final test needs to be done. Check that the result array is
+        // the same as the passed sFilesArray. Then all files have been selected by user
+        // and we should return an emply array.
+        Move 0 to iCount
+        Move (SizeOfArray(sFilesArray))  to iSize
+        Move (SizeOfArray(sRetvalArray)) to iSize2
+        If (iSize = iSize2) Begin
+            Move iSize to iItems
+            Decrement iItems
+            For i from 0 to iItems
+                Move sFilesArray[i]           to sFileName
+                Move sManifestLibraryArray[i] to sManifestFile
+                If (sFileName = sManifestFile) Begin
+                    Increment iCount
+                End
+            Loop
+            If (iCount = iSize) Begin
+                Move sEmptyArrary to sRetvalArray
+            End
+        End
+
+        Function_Return sRetvalArray
+    End_Function
+
+    // Function takes a tFileStruct array as parameter and
+    // a boolean True if the sFileNameFirstCol values should be returned;
+    // else the sFileNameSecondCol values
+    // Values are returned as string array.
+    Function FileStructArrayAsStringArray tFileStruct[] FilesStructArray Boolean bFileNameFirstCol Returns String[]
+        String[] sFilesArray
+        Integer i iItems
+        Move (SizeOfArray(FilesStructArray)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            If (bFileNameFirstCol = True) Begin
+                Move FilesStructArray[i].sFileNameFirstCol to sFilesArray[i]
+            End
+            Else Begin
+                Move FilesStructArray[i].sFileNameSecondCol to sFilesArray[i]
+            End
+        Loop
+        Function_Return sFilesArray
+    End_Function
+
+    // The return value for this function is a struct with two DWord datetime values.
+    // These values are _not_ DateTime values. The return value only makes
+    // sense if used together with the Set FileTimeWinApi function.
+    // It can be used to e.g. reset the the file date to a previous value.
+    // First do a "Get FileTimeWinApi to MyVar", then manipulate the file somehow
+    // that changes the file date & finally do a "Set FileTimeWinApi hFile to MyVar",
+    // to reset the file date value. This is used by e.g. the "CreateAppManifestFile" message.
+    // NOTE: To get the file datetime as a DataFlex DateTime value; use the
+    //       "WinAPIFileTimeToDateTime" function.
+    Function FileTimeWinApi String sFileName Returns tWinFileTimeDC
+        tWinFileTimeDC stFileTime
+        Handle hFileName
+        Integer iRetval
+
+        Get _WinAPIOpenFileForReadAndWrite sFileName to hFileName
+        If (hFileName <> 0) Begin
+            Get _WinAPIGetFileTime hFileName to stFileTime
+            Get _WinAPICloseFile hFileName   to iRetval
+            Move 0 to stFileTime.iError
+        End
+        Else Begin
+            Move 1 to stFileTime.iError
+        End
+
+        Function_Return stFileTime
+    End_Function
+
+    // Please see: Function FileTimeWinApi for usage.
+    Procedure Set FileTimeWinApi String sFileName tWinFileTimeDC stFileTime
+        Handle hFileName
+        Integer iRetval
+
+        Get _WinAPIOpenFileForReadAndWrite sFileName to hFileName
+        If (hFileName <> 0) Begin
+            Get _WinAPISetFileTime hFileName stFileTime to iRetval
+            Get _WinAPICloseFile hFileName              to iRetval
+        End
+    End_Procedure
+
+    // Function returns an application manifest skeleton (template)
+    // Pass the description - the executable filename will do - to be used as the
+    // description for the manifest file
+    // Pass a boolean (True/False) if DPI information should be included in the manifest.
+    // Returns: A string with the formated application manifest template to be
+    // written to a file.
+    // Note: It first checks to see that a template file called "template.manifest" exists
+    // in the Programs folder. If the file exists it reads and returns the entire template. If
+    // the template cannot be found the function falls back and returns a template from hard-coded
+    // data from the CreateManifestTemplateAsString sub-function.
+    Function FormattedManifestTemplateText String sDescription Boolean bIncludeDPI Returns String
+        String sValue sPath
+        Boolean bExists
+
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sPath
+        Get vFolderFormat sPath to sPath
+        Get vFilePathExists (sPath + CS_TemplateManifest) to bExists
+        If (bExists = True) Begin
+            // Read the manifest template from the Program folder.
+            Get ReadManifestTemplateAsString bIncludeDPI sDescription (sPath + CS_TemplateManifest)  to sValue
+        End
+        Else Begin
+            // Then we create it from hardcoded structure.
+            Get CreateManifestTemplateAsString bIncludeDPI to sValue
+        End
+
+        Function_Return sValue
+    End_Function
+
+    // If the function succeeds, the return value is true.
+    { Visibility=Private }
+    { MethodType=Event  NoDoc=True }
+    Function FreeConsole Returns Boolean
+        Integer iRetval
+        Move (Win32FreeConsole()) to iRetval
+        Function_Return (iRetval <> 0)
+    End_Function
+
+    Function GetProcessesForWindows Returns String[]
+        Handle hWnd hProcess
+        Integer iProcessId iThreadId iRet iCount
+        String sProgram sPreviousProgram
+        String[] sModulesNames
+
+        Move (FindWindowExEf(0,0,0,0)) to hWnd
+        While (hWnd <> 0)
+            Move 0 to iProcessId
+            Move (GetWindowThreadProcessIdEf(hWnd, AddressOf(iProcessId))) to iThreadId
+            If (iProcessId <> 0) Begin
+                Move (OpenProcessEf(PROCESS_ALL_ACCESS_EF, False, iProcessId)) to hProcess
+                If (hProcess <> 0) Begin
+                    Move (ZeroString(1024)) to sProgram
+                    Move (GetModuleFilenameExEf(hProcess, 0, AddressOf(sProgram), 1024)) to iRet
+                    Move (CloseHandleEf(hProcess)) to iRet
+                    Move (Utf8ToAnsi(sProgram)) to sProgram
+                    Move (CString(sProgram)) to sProgram
+                    If (sProgram <> "?" and sProgram <> sPreviousProgram) Begin
+                        Move sProgram to sModulesNames[iCount]
+                        Increment iCount
+                        Move sProgram to sPreviousProgram
+                    End
+                End
+            End
+            Move (FindWindowExEf(0, hWnd, 0, 0)) to hWnd
+        End
+        Function_Return sModulesNames
+    End_Function
+
+    // NOTE: Function borrowed from Sture Andersens "StureAPSPublicLib" - Stringfunctions.pkg!
+    //
+    // Inserts thousands separators into the number passed.
+    Function InsertThousandsSeparators String sValue Returns String
+        Integer iPos iSeparator
+        Boolean bNegative
+        String sDecimalSeparator sThousandsSeparator
+
+        Get_Attribute DF_DECIMAL_SEPARATOR    to iSeparator
+        Move (Character(iSeparator))          to sDecimalSeparator
+        If (sDecimalSeparator = ",") ;
+            Move "." to sThousandsSeparator
+        Else ;
+            Move "," to sThousandsSeparator
+
+        Move (Trim(sValue)) to sValue
+        Move (Left(sValue,1) = "-") to bNegative
+
+        If (bNegative) ;
+            Move (Remove(sValue, 1, 1)) to sValue // if (lbNegative) get StringRightBut sValue 1 to sValue
+
+        Move (Pos(sDecimalSeparator,sValue)) to iPos
+        If (iPos = 0) ;
+            Move (Length(sValue) + 1) to iPos
+
+        While (iPos > 4)
+            Move (iPos - 3) to iPos
+            Move (Insert(sThousandsSeparator,sValue,iPos)) to sValue
+        Loop
+        If (bNegative) ;
+            Move ("-" + sValue) to sValue
+        Function_Return sValue
+    End_Function
+
+    // Function takes an executable program name with full path as parameter.
+    // Returns: True if the program is running.
+    Function IsAppRunning String sFileName Returns Boolean
+        Boolean bFound
+        String[] sProgramNamesArray
+        Integer i iItems
+        String sProgramName
+
+        Get GetProcessesForWindows to sProgramNamesArray
+        Move (SizeOfArray(sProgramNamesArray)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Move sProgramNamesArray[i] to sProgramName
+            Move (Uppercase(sProgramName) = Uppercase(sFileName)) to bFound
+            If (bFound = True) Begin
+                Move iItems to i // We're out of here
+            End
+        Loop
+
+        Function_Return bFound
+    End_Function
+
+    // Checks if the passed CLSID exists in the Windows registry database.
+    // It returns two values;
+    //   - A boolean if the component i registered or not
+    //   - The full path + component name as a ByRef string value as the third parameter.
+    Function IsCLSIDRegisteredFromCOMComponent String sCLSID String sCOMComponentFileName String ByRef sPath Returns Boolean
+        tSxSInfo sSxSInfo
+        String sValue sKey
+        Boolean bRegistered bExists bOpen
+        Handle hoReg
+
+        Move (Trim(sCLSID)) to sCLSID
+        If (sCLSID = "") Begin
+            Function_Return False
+        End
+
+        Move False to bRegistered
+        Get Create U_cRegistry to hoReg
+        Set phRootKey of hoReg to HKEY_CLASSES_ROOT
+        Set pfAccessRights of hoReg to KEY_READ
+        Move ("CLSID" + "\" + sCLSID) to sKey
+        Get KeyExists of hoReg sKey to bExists
+        If (bExists = False) Begin
+            Move ("CLSID" + "\" + CS_CLSIDKey64Machine + "\" + sCLSID) to sKey
+            Get KeyExists of hoReg sKey to bExists
+        End
+        If (bExists = True) Begin
+            Move (sKey  + "\" + CS_InprocServer32) to sKey
+            Set pfAccessRights of hoReg to KEY_READ
+            Get KeyExists of hoReg sKey to bExists
+            If (bExists = True) Begin
+                Set pfAccessRights of hoReg to KEY_READ
+                Get OpenKey of hoReg sKey to bOpen
+                If (bOpen = True) Begin
+                    Get ReadString of hoReg "" to sValue
+
+                    // This is the ByRef string value
+                    Move sValue to sPath
+                    Get ConvertToShortPath sValue to sValue
+                    Get ConvertToShortPath sCOMComponentFileName to sCOMComponentFileName
+                    Move (Uppercase(sValue) contains Uppercase(sCOMComponentFileName)) to bRegistered
+                    Send CloseKey of hoReg
+                End
+            End
+        End
+
+        Send Destroy of hoReg
+        Function_Return bRegistered
+    End_Function
+
+    // Pass a struct array with COM components
+    // Returns the number of files that are missing (bExists = False)
+    Function IsCOMComponentsMissing tFileStruct[] COMComponentsArray Returns Integer
+        Integer i iItems iRetval
+        Boolean bExists
+
+        Move (SizeOfArray(COMComponentsArray)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Move COMComponentsArray[i].bExists to bExists
+            If (bExists = False) ;
+                Increment iRetval
+        Loop
+        Function_Return iRetval
+    End_Function
+
+    // Pass: A manifest fragment filename (no path)
+    // Returns: A struct with the fragment filename, name of the component and a True/False if the
+    //          component that it refers to exists in the application's Programs folder.
+    Function IsCOMComponentProgramsFolder String sFileName Returns tFileStruct
+        Boolean bExists
+        String sPath sValue sCOMName sManifestFragmentLibrary
+        Integer iCh iStart iEnd
+        tFileStruct COMComponent
+
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        Get psExeFilePath to sPath
+        Get vFolderFormat sPath to sPath
+        Get Seq_Open_Input_Channel (sManifestFragmentLibrary - sFileName) to iCh
+
+        If (iCh > 0) Begin
+            While (not(SeqEof))
+                Readln channel iCh sValue
+                If (Uppercase(sValue) contains Uppercase(CS_XMLCOMFileName)) Begin
+                    Move (Pos('"', sValue)) to iStart
+                    Move (Replace('"', sValue, '')) to sValue
+                    Move (Pos('"', sValue)) to iEnd
+                    Move (Mid(sValue, (iEnd - iStart), iStart)) to sCOMName
+                    Get vFilePathExists (sPath + sCOMName)  to bExists
+                    Move sFileName to COMComponent.sFileNameFirstCol
+                    Move sCOMName  to COMComponent.sFileNameSecondCol
+                    Move bExists   to COMComponent.bExists
+                    Move True to SeqEof
+                End
+            Loop
+            Send Seq_Close_Channel iCh
+        End
+
+        Function_Return COMComponent
+    End_Function
+
+    // Returns an array of COM dependency modules listed in the passed fragment file
+    Function IsCOMDependencies String sFileName Returns tFileStruct[]
+        Boolean bExists bDependency bOK
+        String sPath sValue sComponentName sManifestFragmentLibrary iSize
+        Integer iCh iStart iEnd
+        tFileStruct[] COMComponentsArray
+
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        Get psExeFilePath to sPath
+        Get vFolderFormat sPath to sPath
+        Get Seq_Open_Input_Channel (sManifestFragmentLibrary - sFileName) to iCh
+
+        If (iCh > 0) Begin
+            While (not(SeqEof))
+                Readln channel iCh sValue
+                Move False to  bOK
+                If (Uppercase(sValue) contains Uppercase(CS_XMLCOMFileName)) Begin
+                    Move (Pos('"', sValue)) to iStart
+                    Move (Replace('"', sValue, '')) to sValue
+                    Move (Pos('"', sValue)) to iEnd
+                    Move (Mid(sValue, (iEnd - iStart), iStart)) to sComponentName
+                    Move False to bDependency
+                    Move True to bOK
+                End
+                Else If (Uppercase(sValue) contains Uppercase(CS_DependencyStart)) Begin
+                    Move (Pos('=', sValue)) to iStart
+                    Move (Length(sValue))   to iEnd
+                    Move (Mid(sValue, (iEnd - iStart), (iStart +1))) to sComponentName
+                    Move True to bDependency
+                    Move True to bOK
+                End
+                If (bOK = True) Begin
+                    Get vFilePathExists (sPath + sComponentName)  to bExists
+                    Move (SizeOfArray(COMComponentsArray)) to iSize
+                    Move sFileName      to COMComponentsArray[iSize].sFileNameFirstCol
+                    Move sComponentName to COMComponentsArray[iSize].sFileNameSecondCol
+                    Move bExists        to COMComponentsArray[iSize].bExists
+                    Move bDependency    to COMComponentsArray[iSize].bDependencyFile
+                End
+            Loop
+            Send Seq_Close_Channel iCh
+        End
+
+        Function_Return COMComponentsArray
+    End_Function
+
+    // Takes a string as argument.
+    // Returns: True if all is numeric.
+    //          False if string contains any other character than digits.
+    Function IsNumeric Global String sValue Returns Boolean
+        Boolean bOk
+        Integer iLen iCount
+        String sChar
+
+        Move (Trim(sValue))   to sValue
+        Move (Length(sValue)) to iLen
+        If (not(iLen)) Begin
+            Function_Return False
+        End
+        Move True to bOk
+        For iCount from 1 to iLen
+            Move (Mid(sValue, 1, iCount)) to sChar
+            If (not("-0123456789" contains sChar)) Begin
+                Move (False) to bOk
+            End
+            If (not(bOk)) Begin
+                Move iLen to iCount // End loop
+            End
+        Loop
+        Function_Return bOk
+    End_Function
+
+    // Calling the function below will convert the number passed in nNumber to a
+    // string containing iDecimals decimals rounding excess decimals. Parameter iDecimals
+    // may be negative. The expression (NumberToString(oStringFunctions,1789,-3)) will evaluate to "2000".
+    // The function handles a maximum of 8 decimals.
+    // Borrowed from Sture Andersens "StureAPSPublicLib" - Stringfunctions.pkg
+    Function NumberToString Number nValue Integer iDecimals Returns String
+        Integer iPos iAscii
+        Number nCorr
+        String sRval sDecimalSeparator
+
+        If (iDecimals < 0) ;
+            Function_Return (NumberToString(Self, nValue * (10 ^ iDecimals), 0) + Left("00000000", - iDecimals))
+        Move (0.5 / (10 ^ iDecimals)) to nCorr
+        If (nValue >= 0) ;
+            Move (nCorr + nValue) to nValue
+        Else ;
+            Move (nValue - nCorr) to nValue
+        Get_Attribute DF_DECIMAL_SEPARATOR to iAscii
+        Move (Character(iAscii)) to sDecimalSeparator
+        Move nValue to sRval
+        If (not(Pos(sDecimalSeparator, sRval))) ;
+            Move (sRval + sDecimalSeparator) to sRval
+        Move (sRval + "00000000") to sRval
+        Move (Pos(sDecimalSeparator,sRval)) to iPos
+        If (iDecimals=0) ;
+            Decrement iPos
+        Move (Left(sRval,iPos+iDecimals)) to sRval
+        Get InsertThousandsSeparators sRval to sRval
+        Function_Return sRval
+    End_Function
+
+    // Used by the wizard when creating a new record.
+    Procedure OpenApplicationFileWizard Handle hoFileName_fm Handle hoPath_fm Boolean bIncludeDPI
+        String sValue sExeFileName sPath sExeFilePath sManifestFile
+        Boolean bExists bOk
+        Integer iRetval
+
+        Get psTargetPath to sPath        
+        Get psExeFilePath to sExeFilePath
+        Get vSelect_File "Program Files (*.exe)|*.exe|Manifest Files (*.manifest)|*.manifest|All Files (*.*)|*.*" "Select a Program File" sExeFilePath to sValue
+        If (sValue = "") Begin
+            Procedure_Return
+        End
+
+        Get ParseFileName   sValue to sExeFileName
+        Get ParseFolderName sValue to sPath
+        Get vFolderFormat sPath to sPath
+        Move (sExeFileName + CS_ManifestExtension) to sManifestFile
+
+        Get vFilePathExists (sPath + sManifestFile) to bExists
+
+        If (bExists = False) Begin
+            Get YesNo_Box "An application manifest file for the selected program doesn't exist and needs to be created. Create it now?" to iRetval
+            If (iRetval = MBR_Yes) Begin
+                Get CreateApplicationManifestFromTemplate sPath sManifestFile sExeFileName bIncludeDPI to bOk
+                If (bOk = False) Begin
+                    Send Info_Box "The application manifest file could not be created."
+                    Procedure_Return
+                End
+                Else Begin
+                    Send SetApplicationStrings (sValue + CS_ManifestExtension)
+                    Send Info_Box "The new application manifest was created successfully."
+                End
+            End
+        End
+
+        // An app manifest file exists, but instead an executable was selected. What to do now?
+        Else Begin
+            Get YesNo_Box "An application manifest file exists for the selected program. Do you want to use it?" to iRetval
+            If (iRetval = MBR_Yes) Begin
+                Send SetApplicationStrings (sValue + CS_ManifestExtension)
+            End
+            Else Begin
+                Get YesNo_Box "Do you want to create a new application manifest file for the selected executable?" to iRetval
+                If (iRetval = MBR_Yes) Begin
+                    Get CreateApplicationManifestFromTemplate sPath sManifestFile sExeFileName bIncludeDPI to bOk
+                    If (bOk = True) Begin
+                        Send SetApplicationStrings (sValue + CS_ManifestExtension)
+                        Send Info_Box "The new application manifest was created successfully."
+                    End
+                End
+                Else Begin
+                    Send SetApplicationStrings ""
+                End
+            End
+        End
+
+        If (sExeFileName <> "") Begin
+            Set Value of hoFileName_fm 0 to sExeFileName
+            Set Value of hoPath_fm     0 to sPath
+        End
+    End_Procedure
+
+    // Opens the workspace "Common Com Library" folder in Windows Explorer.
+    Procedure OpenCommonCOMFolder
+        String sPath
+        Get psCommonCOMLibrary to sPath
+        Send vShellExecute "open" "Explorer.exe" sPath ""
+    End_Procedure
+
+    // Opens the currently pointed to file name in the editor
+    Procedure OpenCurrentGridItem
+        String  sFileName sEditor sEditorParams sPath
+        Boolean bOpen
+
+        Get_Attribute DF_FILE_OPENED of ManDet.File_Number to bOpen
+        If (bOpen = False) Begin
+            Open ManDet
+        End
+        Move (Trim(ManDet.ManifestFragmentFile)) to sFileName
+        If (sFileName contains ".txt") Begin
+            Get psManifestFragmentLibrary to sPath
+            Get vFolderFormat sPath to sPath
+            Get psFileEditor of ghoManifestIniFile to sEditor
+            Get psFileEditorParams of ghoManifestIniFile to sEditorParams
+            If (sEditorParams <> "") Begin
+                Runprogram Background sEditor ('"' + sEditorParams + '"' * '"' + sPath + sFileName + '"')
+            End
+            Else Begin
+                Runprogram Background sEditor ('"' + sPath + sFileName + '"')
+            End
+        End
+    End_Procedure
+
+    // Opens the workspace "Manifest Fragment Library" folder in Windows Explorer.
+    Procedure OpenFragmentFolder
+        String sPath
+        Get psManifestFragmentLibrary to sPath
+        Send vShellExecute "open" "Explorer.exe" sPath ""
+    End_Procedure
+
+    // Opens the selected application manifest file's folder in Windows Explorer.
+    Procedure OpenProgramsFolder
+        String sPath
+        Get psExeFilePath to sPath
+        Send vShellExecute "open" "Explorer.exe" sPath ""
+    End_Procedure
+
+    // Function that takes an html page (the manifest fragment library html page at vdf-guidance)
+    // as a parameter and returns all manifest fragment library text files as
+    // a text string array.
+    // It also deletes the passed sHTMLFile from disk after the parsing is complete.
+    Function ParseManifestLibraryHTMLPage String sHTMLFile Returns String[]
+        String[] sFilesArray
+        Integer i iItem iCh iStart iEnd iRetval
+        String sValue sFileName
+
+        Move 0 to iItem
+        Get Seq_Open_Input_Channel sHTMLFile to iCh
+        If (iCh > 0) Begin
+            While (not(SeqEof))
+                Readln channel iCh sValue
+                // If we found a manifest fragment text file, parse the file name:
+                If (sValue contains CS_AhRef and sValue contains CS_HTMLTextExt) Begin
+                    Move (Pos(CS_AhRef, sValue)) to iStart
+                    Move (iStart + Length(CS_AhRef) + 1) to iStart
+                    Move (Pos(CS_HTMLTextExt, sValue)) to iEnd
+                    Move (iEnd + Length(CS_HTMLTextExt) -2) to iEnd
+                    Move (Mid(sValue, (iEnd - iStart), iStart)) to sFileName
+                    Move (Replaces(CS_HTMLSpace, sFileName, " ")) to sFileName
+                    Move sFileName to sFilesArray[iItem]
+                    Increment iItem
+                End
+            Loop
+            Send Seq_Close_Channel iCh
+            Get vDeleteFile sHTMLFile to iRetval
+        End
+        Function_Return sFilesArray
+    End_Function
+
+    // Helper function that reads and parses a temporary file output by the CLSExport console mode program.
+    // It creates a manifest fragment file in the "Manifest Fragment Library" folder.
+    // Pass the temp file name with full path & the name of the manifest fragment file to create.
+    // Returns the name of new manifest fragment file with full path if successful - else an emtpy string.
+    { Visibility=Private }
+    { MethodType=Event  NoDoc=True }
+    Function ParseTempFile String sInputFile String sToFile String sCOMComponentFileName Returns String
+        String sRetval sValue sManifestFragmentLibrary sTabChar
+        String[] sCLSIDsArray
+        String sClsid sDescription sVersion sOutputString sTypeLibOutput
+        Integer iChOut iRetval i iItems
+        Boolean bExists bTypeLibValueWritten
+        tSxSInfoOut SxSInfoOutInfo
+
+        Move False to bTypeLibValueWritten
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        // Check if the manifest fragment file already exists.
+        Get vFilePathExists (sManifestFragmentLibrary + sToFile) to bExists
+        If (bExists = True) Begin
+            Get YesNo_Box ("The following manifest fragment file already exists:\n" + (sManifestFragmentLibrary + sToFile) + "\n\nDo you want to overwrite it?") to iRetval
+            If (iRetval = MBR_No) Begin
+                Function_Return ""
+            End
+        End
+
+        // Get the temp file's all CLSID's to an array:
+        Get ParseTempFileCLSIDs sInputFile to sCLSIDsArray
+        Move (SizeOfArray(sCLSIDsArray)) to iItems
+        If (iItems = 0) Begin
+            Send Info_Box "The CLSID array was empty and the temporary manifest fragment file could not be created."
+            Function_Return ""
+        End
+        Move (Character(CI_TabCharacter)) to sTabChar
+        // Output to:
+        Get Seq_Open_Output_Channel (sManifestFragmentLibrary + sToFile) to iChOut
+
+        // First line in manifest fragment file:
+        Writeln channel iChOut (CS_VDFComment * "Write a comment here! It will be displayed as a description for the component by the Side-By-Side Manifest Studio program.")
+        Writeln channel iChOut (CS_XMLCOMFileName + '"' + sCOMComponentFileName + '"' + '>')
+
+        Decrement iItems
+        For i from 0 to iItems
+
+            Move sCLSIDsArray[i] to sClsid
+            Get RegistrySxSInfo sClsid to SxSInfoOutInfo
+
+            // It happens that CLSID's from the component doesn't exist
+            // in the registry, so check for it:
+            Move SxSInfoOutInfo.sCLSID to sClsid
+            If (sClsid <> "") Begin
+
+                // There can only be one typelib definition for each manifest fragment file.
+                Move SxSInfoOutInfo.sTypeLib to sValue
+                If (sValue <> "" and bTypeLibValueWritten = False) Begin
+                    Move (CS_XMLTypeLibStart + "=" + '"' + sValue + '"') to sOutputString
+                    Move SxSInfoOutInfo.sVersion to sVersion
+                    If (sVersion = "") Begin
+                        Move "1.0" to sVersion                                   // A version must exist in the string.
+                    End                                                          // There must be a "heldir=" in the string.
+                    Move (sOutputString * CS_XMLVersion + "=" + '"' + sVersion + '"' * CS_XMLHelpDir + '""' + "/>") to sOutputString
+
+                    Move  (sTabChar + sOutputString) to sTypeLibOutput
+                    // Ok, we have written a typelib def so we should _not_ do it again:
+                    Move True to bTypeLibValueWritten
+                End
+
+                // CLSID class keys:
+                If (sClsid <> "") Begin
+                    Move (CS_XMLComClassCLSID + "=" + '"' + sClsid + '"') to sOutputString
+                End
+                Move SxSInfoOutInfo.sDescription to sValue
+                If (sValue <> "") Begin
+                    Move (sOutputString * CS_XMLDescription + "=" + '"' + sValue + '"') to sOutputString
+                End
+                Move SxSInfoOutInfo.sTypeLib to sValue
+                If (sValue <> "") Begin
+                    Move (sOutputString * CS_XMLtlbidTag + "=" + '"' + sValue + '"') to sOutputString
+                End
+                Move SxSInfoOutInfo.sThreadingModel to sValue
+                If (sValue <> "") Begin
+                    Move (sOutputString * CS_XMLThreadingModel + '"' + sValue + '"') to sOutputString
+                End
+                Move SxSInfoOutInfo.iMiscStatus to sValue
+                If (sValue <> "0") Begin
+                    Get TranslateStatusContentToString sValue to sValue
+                    Move (sOutputString * CS_XMLMiscStatusContent + '"' + sValue + '"') to sOutputString
+                End
+                Move SxSInfoOutInfo.sProgID to sValue
+                If (sValue <> "") Begin
+                    Move (sOutputString * CS_XMLProgID + '"' + sValue + '"') to sOutputString
+                End
+                // Finally add the closing tag:
+                Move (sOutputString + "/>") to sOutputString
+
+                // Write comClass info line to output file:
+                Writeln channel iChOut (sTabChar + sOutputString)
+            End
+        Loop
+
+        // Write the "Typelib tlbid" at the bottom, else it can wind up in the middle of the "<comCLass clsid=" declarations:
+        Writeln channel iChOut sTypeLibOutput
+        // Finally write the final closing node tag "</file>":
+        Writeln channel iChOut CS_XMLActaveXFileEnd
+        Send Seq_Close_Channel iChOut
+        // If we got this far we (hopefully) succeded with creating the new manifest fragment file:
+        Move (sManifestFragmentLibrary + sToFile) to sRetval
+
+        Function_Return sRetval
+    End_Function
+
+    // Takes a temporary file name with full path, that has been
+    // created by the CLSExport program and returns a string array
+    // with the component's all CLSID's.
+    { Visibility=Private }
+    { MethodType=Event  NoDoc=True }
+    Function ParseTempFileCLSIDs String sInputFile Returns String[]
+        String[] sCLSIDsArray
+        String sValue
+        Integer iCh iCount iPos
+
+        Move 0 to iCount
+        Get Seq_Open_Input_Channel sInputFile to iCh
+        While (not(SeqEof))
+            Readln channel iCh sValue
+            Move (Trim(sValue)) to sValue
+            If (Left(sValue, 1) = "{") Begin
+                Move (Pos("}", sValue)) to iPos
+                Move (Left(sValue, iPos)) to sValue
+                Move sValue to sCLSIDsArray[iCount]
+                Increment iCount
+            End
+        Loop
+        Send Seq_Close_Channel iCh
+
+        Function_Return sCLSIDsArray
+    End_Function
+
+    // Helper function that reads and parses a side-by-side xml assembly manifest text file (sInputFile)
+    // and creates a manifest fragment file in the "Manifest Fragment Library" folder.
+    // Pass the input xml file with full path & the name of the manifest fragment file to create.
+    // Returns the name of new manifest fragment file with full path if successful - else an emtpy string.
+    { Visibility=Private }
+    { MethodType=Event  NoDoc=True }
+    Function ParseXMLManifestFile String sInputFile String sToFile Returns String
+        String sRetval sValue sManifestFragmentLibrary sTabChar
+        String sClsid sTlbid sDescription sResourceid sVersion sHelpdir sMiscStatusContent
+        Integer iChOut iRetval i
+        Boolean bOk bExists
+        Handle hoXML hoRoot hoNode
+
+        Get psManifestFragmentLibrary to sManifestFragmentLibrary
+        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        // Check if the manifest fragment file already exists.
+        Get vFilePathExists (sManifestFragmentLibrary + sToFile) to bExists
+        If (bExists = True) Begin
+            Get YesNo_Box ("The manifest fragment file" * (sManifestFragmentLibrary + sToFile) * "already exists! Overwrite?") to iRetval
+            If (iRetval = MBR_No) Begin
+                Function_Return ""
+            End
+        End
+
+        Get Create U_cXMLDOMDocument to hoXML
+        Set psDocumentName of hoXML to sInputFile
+        Set pbValidateOnParse of hoXML to True
+
+        Get LoadXMLDocument of hoXML to bOk
+        If (bOK = False) Begin
+           Send Destroy of hoXML
+           Send Info_Box ("Could not load the temporary XML file:" * sInputFile)
+           Function_Return ""
+        End
+
+        Get DocumentElement of hoXML to hoRoot
+        If (hoRoot = 0) Begin
+            Send UserError "Could not find the root node for the XML document."
+            Send Destroy of hoXML
+            Function_Return ""
+        End
+
+        Move (Character(CI_TabCharacter)) to sTabChar
+        Get Seq_Open_Output_Channel (sManifestFragmentLibrary + sToFile) to iChOut
+
+        // This is the top node that will get written to the fragment file. It can look like this:
+        // <file name="Codejock.CommandBars.v13.4.2.ocx" hashalg="SHA1">
+        Get FirstChild of hoRoot to hoNode
+        If (hoNode = 0) Begin
+            Send UserError "The first child node for the XML document could not be found."
+            Send Destroy of hoNode
+            Send Destroy of hoXML
+            Function_Return ""
+        End
+        Get AttributeValue of hoNode CS_XMLNameTag to sValue
+        Writeln channel iChOut (CS_VDFComment * "Write a comment here! It will be displayed as a description for the component by the Side-By-Side Manifest Studio program.")
+        Writeln channel iChOut (CS_XMLCOMFileName + '"' + sValue + '"' + '>')
+
+        Get FirstChild of hoNode to hoNode
+        If (hoNode = 0) Begin
+            Send UserError "A comClass or typelib node in the XML document could not be found."
+            Send Destroy of hoXML
+            Function_Return ""
+        End
+
+        // There are two node names that are of interest:
+        // "comClass" and "typelib"
+        While (hoNode <> 0)
+
+            // Is it a "comClass" node? It will look something like this:
+            // <comClass clsid="{49529F28-4246-43E8-AE29-E386AA899AB2}" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" description="Xtreme CommandBars Control" />
+            Get AttributeValue of hoNode CS_XMLclsidTag        to sClsid
+            If (sClsid <> "") Begin
+                Get AttributeValue of hoNode CS_XMLtlbidTag    to sTlbid
+                Get AttributeValue of hoNode CS_XMLDescription to sDescription
+                Move ('<' + CS_XMLComClassTag * CS_XMLclsidTag + '="' + sClsid + '"' * CS_XMLtlbidTag + '="' + sTlbid + '"') to sValue
+                // We only write those comClass nodes that has a description
+                If (sDescription <> "") Begin
+                    // We also need to check if there is a miscStatusContent value stored in Windows registry for this
+                    // comClass CLSID. In case we will add it to the current CLSID class row.
+                    Get RegistryMiscStatusContent sClsid to sMiscStatusContent
+                    If (sMiscStatusContent <> "") Begin
+                        Move (sValue * sMiscStatusContent * CS_XMLDescription + '="' + sDescription + '"' + CS_XMLComClassEnd) to sValue
+                    End
+                    Else Begin
+                        Move (sValue * CS_XMLDescription + '="' + sDescription + '"' + CS_XMLComClassEnd) to sValue
+                    End
+                    Writeln channel iChOut (sTabChar + sValue)
+                End
+            End
+
+            // If it wasn't a comClass node - it better be a typelib node! And it can look like this:
+            // <typelib tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" resourceid="1" version="13.4" helpdir="" />
+            Else If (sClsid = "") Begin
+                Get AttributeValue of hoNode CS_XMLtlbidTag   to sTlbid
+                If (sTlbid <> "") Begin
+                    Get AttributeValue of hoNode CS_XMLResourceid to sResourceid
+                    Get AttributeValue of hoNode CS_XMLVersion    to sVersion
+                    Get AttributeValue of hoNode CS_XMLHelpdir    to sHelpdir
+                    Move ('<' + CS_XMLTypeLibTag * CS_XMLtlbidTag + '="' + sTlbid + '"')           to sValue
+                    Move (sValue * CS_XMLResourceid + '="' + sResourceid + '"')                    to sValue
+                    Move (sValue * CS_XMLVersion    + '="' + sVersion    + '"')                    to sValue
+                    Move (sValue * CS_XMLHelpdir    + '="' + sHelpdir    + '"' + CS_XMLTypeLibEnd) to sValue
+                    Writeln channel iChOut (sTabChar + sValue)
+                End
+            End
+
+            Get NextNode of hoNode to hoNode
+        Loop
+
+        // Finally write the final closing node tag "</file>":
+        Writeln channel iChOut CS_XMLActaveXFileEnd
+        Send Seq_Close_Channel iChOut
+        Send Destroy of hoRoot
+        Send Destroy of hoXML
+        // If we got this far we (hopefully) succeded with creating the new manifest fragment file:
+        Move (sManifestFragmentLibrary + sToFile) to sRetval
+
+        Function_Return sRetval
+    End_Function
+
+
+    // Reads data from a DOS-command window (console)
+    { Visibility=Private }
+    { MethodType=Event  NoDoc=True }
+    Function ReadConsole Handle hConsole Returns String
+        Handle  lpnCharsRead lpsBuffer
+        Integer iCharsWritten iRetval
+        String sBuffer
+        Move 0 to iCharsWritten
+        Move (Repeat(Character(0), 64000)) to sBuffer // Buffer length
+        Move (AddressOf(sBuffer)) to lpsBuffer
+        Move (AddressOf(lpnCharsRead)) to lpnCharsRead
+        Move (Win32PeekConsoleInput(hConsole, lpsBuffer, 64000, lpnCharsRead)) to iRetval
+        Function_Return (CString(sBuffer))
+    End_Function
+
+    // This function reads the template application manifest file that should reside in this
+    // workspace Programs folder, and returns it as a line formatted string.
+    // Pass a boolean True/False if DPI information should be included into the manifest or not.
+    Function ReadManifestTemplateAsString Boolean bIncludeDPI String sDescription String sFullTemplateName Returns String
+        Integer iCh
+        String sValue sRetval sTmp
+
+        Get Seq_Open_Input_Channel sFullTemplateName to iCh
+        If (iCh > 0) Begin
+            While (SeqEof = False)
+                Readln channel iCh sValue
+                Move (Uppercase(Trim(sValue))) to sTmp
+                If (sTmp = 'NAME="WORKSPACE NAME"') Begin
+                    Move ('                    name=' + sDescription) to sValue
+                End
+                If (bIncludeDPI = False and sTmp = '<V3:APPLICATION XMLNS:V3="URN:SCHEMAS-MICROSOFT-COM:ASM.V3">') Begin
+                    // Then ignore the DPI template rows.
+                    Readln channel iCh sTmp
+                    Readln channel iCh sTmp
+                    Readln channel iCh sTmp
+                    Readln channel iCh sTmp
+                End
+                Else Begin
+                    Move (sRetval + sValue + CR_LF) to sRetval
+                End
+            Loop
+            Send Seq_Close_Channel iCh
+        End
+        Else Begin
+            Send UserError "The template manifest file could not be read."
+        End
+
+        Function_Return sRetval
+    End_Function
+
+    // Returns the path for a COM component corresponding to the
+    // passed CLSID.
+    // It searches the registry for the full pathing to the component.
+    // A blank string is returned if the InProcServer32(Default) value
+    // is blank _or_ the component isn't registered.
+    Function RegistryComponentPathByCLSID String sCLSID Returns String
+        Boolean bExists
+        String sPath
+
+        Move (Trim(sCLSID)) to sCLSID
+        If (sCLSID = "") Begin
+            Function_Return ""
+        End
+
+        Move "" to sPath
+        Get IsCLSIDRegisteredFromCOMComponent sCLSID "" (&sPath) to bExists
+
+        Function_Return sPath
+    End_Function
+
+    // Function that extract miscStatus content from Windows registry
+    // for the passed COM component's CLSID string.
+    // For this to work, the component must be registered with Windows.
+    // Returns: A comma separated string with miscStatus'es words to be used in
+    // a manifest fragment file for a particular comClass clsid. To be more precise it returns the exact
+    // string to be inserted in a manifest fragment file, or a blank
+    // string if no miscStatus was defined for the passed COM component CLSID.
+    { Visibility=Private }
+    { MethodType=Event  NoDoc=True }
+    Function RegistryMiscStatusContent String sCLSID Returns String
+        Integer iMiscStatus
+        String sRetval sMiscStatus
+
+        Move 0 to iMiscStatus
+        Move "" to sRetval
+        Get RegistryMiscStatusContentSub sCLSID to iMiscStatus
+        If (iMiscStatus > 0) Begin
+            Get TranslateStatusContentToString iMiscStatus to sMiscStatus
+            Move (CS_miscStatusContent + '"' + sMiscStatus + '"') to sRetval
+        End
+
+        Function_Return sRetval
+    End_Function
+
+    // Helper function for RegistryMiscStatusContent.
+    // Takes a CLSID for a COM component and returns its "MiscStatus",
+    // as an integer value.
+    { Visibility=Private }
+    { MethodType=Event  NoDoc=True }
+    Function RegistryMiscStatusContentSub String sCLSID Returns Integer
+        Integer iRetval
+        Handle hoReg
+        Boolean bExists bOpened bOk
+        String sKey sRetval
+
+        Move 0 to iRetval
+        Move False to bExists
+
+        Get Create U_cRegistry to hoReg
+        Set phRootKey of hoReg to HKEY_CLASSES_ROOT
+        Set pfAccessRights of hoReg to KEY_READ
+
+        Move ("CLSID" + "\" + sCLSID + "\" + CS_MiscStatusKey + "\1") to sKey
+        Get KeyExists of hoReg sKey to bExists
+        If (bExists = True) Begin
+            Get OpenKey of hoReg sKey to bOpened
+            If (bOpened = True) Begin
+                Get ReadString of hoReg "" to sRetval
+                Get IsNumeric sRetval to bOk
+                If (bOk = True) Begin
+                    Move sRetval to iRetval
+                End
+                Send CloseKey of hoReg
+            End
+        End
+
+        Send Destroy of hoReg
+        Function_Return iRetval
+    End_Function
+
+    Procedure RegisterOrUnregister Boolean bStatex
+        String sPath sComponent sText sNote
+        Boolean bExists bState bOpen
+        Integer iRetval
+        tFileStruct COMComponent
+
+        If (num_arguments = 0) Begin
+            Move True to bState
+        End
+        Else Begin
+            Move bStatex to bState
+        End
+
+        Get_Attribute DF_FILE_OPENED of ManHdr.File_Number to bOpen
+        If (bOpen = True) Begin
+            Get_Attribute DF_FILE_OPENED of ManDet.File_Number to bOpen
+        End
+
+        // If not opened, just try to open both tables.
+        If (bOpen = False) Begin
+            Open ManHdr
+            Open ManDet
+        End
+
+        Move (Trim(ManHdr.Path)) to sPath
+        Move (Trim(ManDet.ManifestFragmentFile)) to sComponent
+        If (sPath = "" or sComponent = "") Begin
+            Send Info_Box "Please select an application manifest file and a manifest fragment file first. Then try again."
+            Procedure_Return
+        End
+
+        Get DoesCOMComponentExist sComponent to COMComponent
+        Move COMComponent.bExists to bExists
+        Move COMComponent.sFileNameSecondCol to sComponent
+        Move COMComponent.sCOMComponentPath  to sPath
+        If (bExists = False) Begin
+            Send Info_Box "The COM (OCX/DLL) component is missing from the application's Programs folder - and if a CodeJock component it is not installed - and it cannot be registered/unregistered."
+            Procedure_Return
+        End
+
+        If (bState = True) Begin
+            Move "Do you want to Register this component?\n" to sText
+        End
+        Else Begin
+            Move "Do you want to Unregister this component?\n" to sText
+        End
+        Move "\n\nNote: If you click 'Yes' and UAC - User Access Control - is active on the machine, you will be presented with a Windows dialog with the question: 'Do you want to allow the following program to make to make changes to this computer?'. Select 'Yes' again to make the changes." to sNote
+        Get YesNo_Box (sText + sPath + sComponent + sNote) to iRetval
+        If (iRetval = MBR_No) Begin
+            Procedure_Return
+        End
+
+        Get RunRegSvrProgram sPath sComponent bState to iRetval
+    End_Procedure
+
+    // Function that takes a COM components CLSID as a string parameter.
+    // Returns: A struct with all necessary info for writing a comClass clsid.. row to a manifest fragment file.
+    Function RegistrySxSInfo String sCLSID String sDescription Returns tSxSInfoOut
+        Integer iRetval
+        Handle hoReg
+        Boolean bExists bOpened bOk
+        String sTopKey sValue sKey
+        tSxSInfoOut SxSInfoOutInfo
+
+        Move 0 to iRetval
+        Move False to bExists
+
+        Get Create U_cRegistry to hoReg
+        Set phRootKey of hoReg to HKEY_CLASSES_ROOT
+        Set pfAccessRights of hoReg to KEY_READ
+
+        // Does the CLSID key exist?
+        Move ("CLSID" + "\" + sCLSID) to sTopKey
+        Get KeyExists of hoReg sTopKey to bExists
+        If (bExists = False) Begin
+            Move (CS_CLSIDKey64Machine + "\" + sCLSID) to sTopKey
+            Get KeyExists of hoReg sTopKey to bExists
+        End
+        If (bExists = True) Begin
+            Move sCLSID to SxSInfoOutInfo.sCLSID
+
+            Get OpenKey of hoReg sTopKey to bOpened
+            If (bOpened = True) Begin
+                // CLSID description E.g. "Xtreme Calendar Control"
+                Get ReadString of hoReg "" to SxSInfoOutInfo.sDescription
+                Send CloseKey of hoReg
+
+                // InprocServer32 key:
+                Move (sTopKey + "\" + CS_InprocServer32) to sKey
+                Get KeyExists of hoReg sKey to bExists
+                If (bExists = True) Begin
+                    Get OpenKey of hoReg sKey to bOpened
+                    If (bOpened = True) Begin
+                        // InprocServer32 value: E.g. "Apartment"
+                        Get ValueExists of hoReg CS_XMLThreadingKey to bExists
+                        If (bExists = True) Begin
+                            Get ReadString of hoReg CS_XMLThreadingKey to SxSInfoOutInfo.sThreadingModel
+                        End
+                        Send CloseKey of hoReg
+                    End
+                End
+
+                // MiscStatus key:
+                Move (sTopKey + "\" + CS_MiscStatusKey + "\1") to sKey
+                Get KeyExists of hoReg sKey to bExists
+                If (bExists = True) Begin
+                    Get OpenKey of hoReg sKey to bOpened
+                    If (bOpened = True) Begin
+                        // MiscStatus value: "131473"
+                        Get ReadString of hoReg "" to sValue
+                        Send CloseKey of hoReg
+                        Get IsNumeric sValue to bOk
+                        If (bOk = True) Begin
+                            Move sValue to SxSInfoOutInfo.iMiscStatus
+                        End
+                    End
+                End
+
+                // ProgID key:
+                Move (sTopKey + "\" + CS_ProgIDKey) to sKey
+                Get KeyExists of hoReg sKey to bExists
+                If (bExists = True) Begin
+                    Get OpenKey of hoReg sKey to bOpened
+                    If (bOpened = True) Begin
+                        // ProgID value: E.g. "Codejock.CalendarControl.15.3.1"
+                        Get ReadString of hoReg "" to SxSInfoOutInfo.sProgID
+                        Send CloseKey of hoReg
+                    End
+                End
+
+                // TypeLib key:
+                Move (sTopKey + "\" + CS_XMLTypeLibTag) to sKey
+                Get KeyExists of hoReg sKey to bExists
+                If (bExists = True) Begin
+                    Get OpenKey of hoReg sKey to bOpened
+                    If (bOpened = True) Begin
+                        // TypeLib value: E.g. "{79EB16A5-917F-4145-AB5F-D3AEA60612D8}"
+                        Get ReadString of hoReg "" to SxSInfoOutInfo.sTypeLib
+                        Send CloseKey of hoReg
+                    End
+                End
+
+                // Version key:
+                Move (sTopKey + "\" + CS_XMLVersion) to sKey
+                Get KeyExists of hoReg sKey to bExists
+                If (bExists = True) Begin
+                    Get OpenKey of hoReg sKey to bOpened
+                    If (bOpened = True) Begin
+                        // Version value: E.g. "15.3"
+                        Get ReadString of hoReg "" to SxSInfoOutInfo.sVersion
+                        Send CloseKey of hoReg
+                    End
+                End
+
+                Send CloseKey of hoReg
+            End
+        End
+
+        Send Destroy of hoReg
+        Function_Return SxSInfoOutInfo
+    End_Function
+
+    // Function that either register or unregister a COM component with Windows registry.
+    // Parameters:
+    //   Path - Full path to the COM component
+    //   Name - The filename of the COM component
+    //   bRegister - A boolean; True = register the component, False=Unregister the component.
+    // Returns:
+    //   > 0 if the process was successful = the Windows process ID
+    //   = 0 if the registration/unregistration failed.
+//    Function RegOrUnRegCOMComponent String sPath String sComponentName Boolean bRegister Returns Integer
+//        String sCmdParam
+//        Integer iRetval
+//
+//        If (bRegister = True) Begin
+//            Move "" to sCmdParam
+//        End
+//        Else Begin
+//            Move "/u" to sCmdParam
+//        End
+//
+//        Get vFolderFormat sPath to sPath
+//
+//        // Run the Windows RegSvr32 program with params:
+//        Get gStartProgram CS_RegSvrProgram (sCmdParam * sComponentName) sPath True True to iRetval
+//
+//        Function_Return iRetval
+//    End_Function
+
+    // Runs the Windows RegSvr32 program to register/unregister a COM component. It does so
+    // with the help by a VDF utility, the CS_VDFCmdUtilProgram. Its manifest
+    // file has been set to "Administrator rights" (not elevated rights) to make sure that
+    // the registration/deregistration process will be allowed by Windows.
+    // Returns: True if successful. False if the CS_RegSvrProgram program is missing from
+    //          this application's Programs folder.
+    Function RunRegSvrProgram String sCOMPath String sComponent Boolean bState Returns Boolean
+        Integer iRetval
+        String sPath sProgram sCmdParam sParams
+
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sPath
+        Get PathAtIndex   of (phoWorkspace(ghoApplication)) sPath 1 to sPath
+        Get vFolderFormat sPath to sPath
+        Move (sPath + CS_VDFCmdUtilProgram) to sProgram
+        Get vFilePathExists sProgram to iRetval
+        If (iRetval = False) Begin
+            Send UserError (CS_VDFCmdUtilProgram * "is missing from the Programs folder. The COM (OCX/DLL) component was not registered or unregistered.")
+            Function_Return False
+        End
+
+        If (bState = True) Begin
+            Move "" to sCmdParam
+        End
+        Else Begin
+            Move "/u" to sCmdParam
+        End
+
+        If (sCmdParam <> "") Begin
+            Move ('/c' + CS_RegSvrProgram * '"/p' + sCmdParam * "'" + sComponent + "'" + '"' * ('/d' + '"' + sCOMPath + '"') * '/v') to sParams
+        End
+        Else Begin
+            Move ('/c' + CS_RegSvrProgram * '"/p' + "'" + sComponent + "'" + '"' * ('/d' + '"' + sCOMPath + '"') * '/v') to sParams
+        End
+
+        // This version also waits for the process to finish _and_ shows all passed parameters in an output windows:
+        //Move ("/c" + CS_RegSvrProgram * '"/p' + sCmdParam * sComponent + '"' * ("/d" + '"' + sCOMPath + '"') * "/v" * "/w" * "/s") to sParams
+        // /cRegsvr32.exe /p"/u 'Visual Report Writer 2012 Developer Edition API.ocx'" /d"C:\Users\Nils G. Svedmyr\Documents\My Dropbox\Visual DataFlex Projects 17\ManifestSideBySideLocal\Common COM (OCX/DLL) Library\" /v /s
+        Runprogram Shell Background sProgram sParams
+        Function_Return True
+    End_Function
+
+    // Runs the .exe program that is associated with the selected application manifest file.
+    Procedure RunExeFile String sManifestFullFileName
+        String sPath sExeName
+        Integer iRetval
+
+        Get vFilePathExists sManifestFullFileName to iRetval
+        Get ParseFolderName sManifestFullFileName to sPath
+        Get ParseFileName   sManifestFullFileName to sExeName
+        Move (Replace('.manifest', sExeName, '')) to sExeName
+        If (iRetval = False) Begin
+            Send Info_Box ("Cannot find the application program!\n" + sPath + sExeName)
+            Procedure_Return
+        End
+        Send vShellExecute "open" sExeName "" sPath
+    End_Procedure
+
+    Procedure Runprogram String[] sSelectedFileNames
+        String sManifestFile sPath sExeName
+        Boolean bExists
+        Integer iItems
+        tFileStruct[] COMComponentsArray
+
+        Get SelectedCOMComponents (&sSelectedFileNames) to COMComponentsArray
+        Get IsCOMComponentsMissing COMComponentsArray to iItems
+        If (iItems <> 0) Begin
+            Send Info_Box "There are COM (OCX/DLL) components missing from the application folder and the application would fail if started. Please press the 'Copy COM' toolbar button and try again."
+            Procedure_Return
+        End
+
+        Get psManifestFileName to sManifestFile
+        Get psTargetPath       to sPath
+        Get vFilePathExists (sPath + sManifestFile) to bExists
+        If (bExists = False) Begin
+            Send Info_Box "Please select a manifest file, then try again."
+            Procedure_Return
+        End
+
+        Get psExeFileName to sExeName      
+        Get psExeFilePath to sPath
+        Get vFilePathExists (sPath + sExeName) to bExists
+        If (bExists = False) Begin
+            Send Info_Box ("The" * sExeName * "program is missing and cannot be run. Maybe the program isn't compiled?")
+            Procedure_Return
+        End
+
+        Send vShellExecute "open" sExeName "" sPath
+//        Send RunExeFile (sPath + sManifestFile)
+    End_Procedure
+
+    // Opens a selection dialog to select a program manifest file from.
+    // It changes the values for the two passed object handles (File name & path objects).
+    Procedure SelectAppManifestFile Handle hoFileName_fm Handle hoPath_fm
+        String sValue sManifestFile sPath
+
+        Get psTargetPath to sPath
+        Get vSelect_File "Program Manifest Files (*.manifest)|*.manifest" "Select a Program Manifest File" sPath to sValue
+        Get ParseFileName sValue to sManifestFile
+        If (sManifestFile <> "") Begin
+            Get ParseFolderName sValue to sPath
+            Send SetApplicationStrings sValue
+            Set Changed_Value of hoFileName_fm 0 to sManifestFile
+            Set Changed_Value of hoPath_fm     0 to sPath
+        End
+    End_Procedure
+
+    // Sets a series of properties for the currently selected application manifest file
+    // Pass the application manifest file with full path.
+    Procedure SetApplicationStrings String sManifestFullFileName
+        String sPath sManifestFileName sExeName
+        Integer iRetval
+
+        Get vFilePathExists sManifestFullFileName to iRetval
+        If (iRetval = False) Begin
+            Set psManifestFileName     to ""
+            Set psExeFileName          to ""
+            Set psTargetPath           to ""
+            Set pbApplicationStringsOk to False
+            Procedure_Return
+        End
+        Get ParseFolderName sManifestFullFileName to sPath
+        Get ParseFileName   sManifestFullFileName to sManifestFileName
+        Get ParseFileName   sManifestFullFileName to sExeName
+        Move (Replace(Lowercase(CS_ManifestExtension), Lowercase(sExeName), "")) to sExeName
+        Set psManifestFileName     to sManifestFileName
+        Set psTargetPath           to sPath
+        Set psExeFileName          to sExeName 
+        
+        // Far from ideal! But how to know what the name is of the "AppSrc" & "Programs" folders,
+        // when we don't know the .sws or .ws name?
+        Move (Lowercase(sPath)) to sPath
+        If (sPath contains "appsrc") Begin
+            Move (Replace("appsrc", sPath, "programs")) to sPath
+        End                                                     
+        Set psExeFilePath to sPath
+        Set pbApplicationStringsOk to True
+    End_Procedure
+
+    // Pass an array with selected fragment files.
+    // Returns a struct array with the Fragment files, COM component names and a boolean if it is missing or not
+    // from the application's Program folder.
+    Function SelectedCOMComponents String[] ByRef sSelectedFileNames Returns tFileStruct[]
+        tFileStruct COMComponent
+        tFileStruct[] sMissingCOMArray COMComponentsArray
+        String sFileName
+        Integer i iItems
+        Boolean bExists
+
+        Move (SizeOfArray(sSelectedFileNames)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Move sSelectedFileNames[i] to sFileName
+            Get IsCOMComponentProgramsFolder sFileName to COMComponent
+            Move sFileName                       to sMissingCOMArray[i].sFileNameFirstCol
+            Move COMComponent.sFileNameSecondCol to sMissingCOMArray[i].sFileNameSecondCol
+            Move COMComponent.bExists            to sMissingCOMArray[i].bExists
+        Loop
+        Function_Return sMissingCOMArray
+    End_Function
+
+    { Visibility=Private }
+    { MethodType=Event  NoDoc=True }
+    Function SetConsoleMode Handle hConsole Returns Integer
+        Integer iRetval
+        Move (Win32SetConsoleMode(hConsole, (ENABLE_LINE_INPUT ior ENABLE_WINDOW_INPUT ior ENABLE_PROCESSED_INPUT))) to iRetval
+        Function_Return iRetval
+    End_Function
+
+    // Signs an executable with a digital software certificate.
+    // It uses the CS_CredentialsProgram command line program to do the actual signing.
+    Procedure SignFileDigitally //tCertificateParams CertificateParams
+        Handle hoCryptoGrapher
+        String sYes sCredentialsPath sCredentialsFile
+        String sOurWebSite sDescription sURLTimeStamp
+        Boolean bChecked bUseCertificateStore
+        Handle hoDD
+        tCertificateParams CertificateParams CertificateParams2
+        tCertificateCredentials CertificateCredentials
+        tCertificateResult CertificateResult
+
+        Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseCertificateStore "" to sYes
+        Move (CS_BooleanYes = sYes) to bUseCertificateStore
+
+        // Query the ini-file for some values:
+        Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath
+        Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
+        Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState "" to sYes
+        Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
+
+        // Then query the cDigitalCertsDataDictionary class and see if there is data to be used in the DigitalCerts table:
+        Get Create (RefClass(cDigitalCertsDataDictionary)) to hoDD
+        Send FirstDefaultDigitalCert of hoDD (&CertificateParams2) (&CertificateCredentials)
+        Send Destroy of hoDD
+        // This value might have been changed by the FirstDefaultDigitalCert procedure.
+        // It makes sure the logic works for old program versions where the DigitalCerts table didn't exist.
+        Move CertificateParams.bUseCertificateStore to bUseCertificateStore
+        If (bUseCertificateStore = False) Begin
+            Move CertificateParams2 to CertificateParams
+            // We need to reinitialize some values that got overwritten by the line above.
+//            Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath 
+            Get psExeFilePath of ghoManifestFunctionLibrary      to CertificateParams.sProgramPath
+            Get psExeFileName of ghoManifestFunctionLibrary      to CertificateParams.sFileName
+//            Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
+            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState "" to sYes
+            Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
+        End
+
+        // Note that we don't use an "Else Begin" construct here as the bUseCertificateStore might have changed by the FirstDefaultDigitalCert message
+        If (bUseCertificateStore = True) Begin
+            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CredentialsWebTimeStamp "" to CertificateParams.sURLTimeStamp
+            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CredentialsWebTimeStampSHA256 "" to CertificateParams.sSHA256URLTimeStamp
+            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CredentialsWebSite      "" to CertificateParams.sOurWebSite
+            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CredentialsDescription  "" to CertificateParams.sDescription
+        End
+
+
+        //  We are using the cDigitalSoftwareCertificate class to do the actual signing.
+        Send SignFile of ghoDigitalSoftwareCertificate CertificateParams CertificateCredentials
+
+    End_Procedure
+
+    // This is the opposiste of the FileStructArrayAsStringArray function.
+    // See that function for explanation.
+    Function StringArrayToFileStructArray String[] sFilesArray Returns tFileStruct[]
+        Integer i iItems
+        tFileStruct[] FileStructArray
+
+        Move (SizeOfArray(sFilesArray)) to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Move sFilesArray[i] to FileStructArray[i].sFileNameFirstCol
+        Loop
+        Function_Return FileStructArray
+    End_Function
+
+    // Runs the tracer program to figure out why a program with a faulty
+    // manifest file won't start.
+    { Visibility=Private }
+    { MethodType=Event  NoDoc=True }
+    Procedure TraceExecutable
+        String sCurrProgPath sEditor sEditorParams sPath sManifestFile
+        Integer iRetval
+
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sCurrProgPath
+        Get PathAtIndex of (phoWorkspace(ghoApplication)) sCurrProgPath 1 to sCurrProgPath
+        Get vFolderFormat sCurrProgPath to sCurrProgPath
+        Get psTargetPath to sPath
+        Get vFolderFormat sPath to sPath
+        Get psFileEditor of ghoManifestIniFile to sEditor
+        Get psFileEditorParams of ghoManifestIniFile to sEditorParams
+        Get psManifestFileName to sManifestFile
+        Move (sPath + sManifestFile)     to sManifestFile
+        If (sManifestFile = "" or sPath = "") Begin
+            Send Info_Box "Please select a manifest file first, then try again."
+            Procedure_Return
+        End
+
+        // Start by deleting the trace text file.
+        Get vDeleteFile (sCurrProgPath + CS_TraceTxtFile) to iRetval
+
+        // Start tracing
+        Send vShellExecute "open" CS_TraceProgram CS_StartTrace sCurrProgPath
+        Sleep 1
+
+        // Start executable
+//        Send RunExeFile sManifestFile
+        Sleep 1
+
+        // Stop tracing
+        Send vShellExecute "open" CS_TraceProgram CS_ParseTrace sCurrProgPath
+
+        // Load trace text in editor
+        If (sEditorParams <> "") Begin
+            Runprogram Background sEditor ('"' + sEditorParams + '"' * '"' + (sCurrProgPath + CS_TraceTxtFile) + '"')
+        End
+        Else Begin
+            Runprogram Background sEditor ('"' + (sCurrProgPath + CS_TraceTxtFile) + '"')
+        End
+
+    End_Procedure
+
+    // For running sxstrace.exe, go to Visual Studio command prompt and type sxstrace.exe. Usage is as follows:
+    //
+    // Before running your application, run sxstrace in trace mode:
+    // 1.sxstrace.exe Trace -logfile:C:\tmp\MySxSTrace.log
+    // 2. Reproduce the Error by starting your application
+    // Now stop the trace by using the command:
+    // 3. sxstrace.exe Parse -logfile:C:\tmp\MySxSTrace.log -outfile:C:\tmp\MySxSTrace.txt
+    // 4. Open output file from C:\tmp\MySxSTrace.txt
+
+
+    // Translate function for MiscStatus Windows constant integers.
+    // Takes a MiscStatus integer value that consists of ior'ed Windows constant values.
+    // Returns the corresponding string values for these constants as a
+    // comma separated string.
+    // Used to add a "miscStatusContent=" row - for a particular clsid - to be
+    // output to a manifest fragment file.
+    Function TranslateStatusContentToString Integer iStatus Returns String
+        String sVal
+
+        If (iStatus iand OLEMISC_RECOMPOSEONRESIZE           ) ;
+            Move (sVal + CS_ReComposeOnResize + ",") to sVal
+        If (iStatus iand OLEMISC_ONLYICONIC                  ) ;
+            Move (sVal + CS_OnlyIconic + ",") to sVal
+        If (iStatus iand OLEMISC_INSERTNOTREPLACE            ) ;
+            Move (sVal + CS_InsertNotReplace + ",") to sVal
+        If (iStatus iand OLEMISC_STATIC                      ) ;
+            Move (sVal + CS_Static + ",") to sVal
+        If (iStatus iand OLEMISC_CANTLINKINSIDE              ) ;
+            Move (sVal + CS_CantLinkInside + ",") to sVal
+        If (iStatus iand OLEMISC_CANLINKBYOLE1               ) ;
+            Move (sVal + CS_CanLinkByOle1 + ",") to sVal
+        If (iStatus iand OLEMISC_ISLINKOBJECT                ) ;
+            Move (sVal + CS_IsLinkObject + ",") to sVal
+        If (iStatus iand OLEMISC_INSIDEOUT                   ) ;
+            Move (sVal + CS_InsideOut + ",") to sVal
+        If (iStatus iand OLEMISC_ACTIVATEWHENVISIBLE         ) ;
+            Move (sVal + CS_ActivateWhenVisible + ",") to sVal
+        If (iStatus iand OLEMISC_RENDERINGISDEVICEINDEPENDENT) ;
+            Move (sVal + CS_RenderingIsDeviceIndependent + ",") to sVal
+        If (iStatus iand OLEMISC_INVISIBLEATRUNTIME          ) ;
+            Move (sVal + CS_InvisibleAtRuntime + ",") to sVal
+        If (iStatus iand OLEMISC_ALWAYSRUN                   ) ;
+            Move (sVal + CS_AlwaysRun + ",") to sVal
+        If (iStatus iand OLEMISC_ACTSLIKEBUTTON              ) ;
+            Move (sVal + CS_ActsLikeButton + ",") to sVal
+        If (iStatus iand OLEMISC_ACTSLIKELABEL               ) ;
+            Move (sVal + CS_ActsLikeLabel + ",") to sVal
+        If (iStatus iand OLEMISC_NOUIACTIVATE                ) ;
+            Move (sVal + CS_NoUIActivate + ",") to sVal
+        If (iStatus iand OLEMISC_ALIGNABLE                   ) ;
+            Move (sVal + CS_Alignable + ",") to sVal
+        If (iStatus iand OLEMISC_SIMPLEFRAME                 ) ;
+            Move (sVal + CS_SimpleFrame + ",") to sVal
+        If (iStatus iand OLEMISC_SETCLIENTSITEFIRST          ) ;
+            Move (sVal + CS_SetClientSiteFirst + ",") to sVal
+        If (iStatus iand OLEMISC_IMEMODE                     ) ;
+            Move (sVal + CS_IeMode + ",") to sVal
+        If (iStatus iand OLEMISC_IGNOREACTIVATEWHENVISIBLE   ) ;
+            Move (sVal + CS_IgnoreActivateWhenVisible + ",") to sVal
+        If (iStatus iand OLEMISC_WANTSTOMENUMERGE            ) ;
+            Move (sVal + CS_WantStomEnumerge + ",") to sVal
+        If (iStatus iand OLEMISC_SUPPORTSMULTILEVELUNDO      ) ;
+            Move (sVal + CS_SupportsMultiLevelUndo + ",") to sVal
+
+        If (Right(sVal, 1)=",") ;
+            Move (Left(sVal,(Length(sVal)-1))) to sVal
+        Function_Return sVal
+    End_Function
+
+    // Validates the currently selected application manifest file.
+    // Returns True if successful.
+    // This is made automatically when an application manifest file is created.
+    Function ValidateManifestFile Returns Boolean
+        String sCurrProgPath sFileName sParams sEditor sEditorParams sAppManifestFile sTargetPath sValue sTmp
+        String[] sValueArray
+        Boolean bExist bOk
+        Integer iRetval iItems i
+
+        Get psTargetPath         to sTargetPath
+        Get vFolderFormat sTargetPath to sTargetPath
+        Get psManifestFileName   to sAppManifestFile
+        Get psManifestFileName   to sFileName
+        Get psProgramPath of (phoWorkspace(ghoApplication))                 to sCurrProgPath
+        Get PathAtIndex   of (phoWorkspace(ghoApplication)) sCurrProgPath 1 to sCurrProgPath
+        Get vFolderFormat sCurrProgPath to sCurrProgPath
+        Get vFilePathExists (sCurrProgPath + CS_MtExeProgram) to bExist
+        If (bExist = False) Begin
+            Send Info_Box ("The" * CS_MtExeProgram * "program is missing from this workspace Programs folder and the manifest file cannot be validated.")
+            Function_Return False
+        End
+
+        Send Cursor_Wait of Cursor_Control
+
+        // Setup parameters to be passed to the mt.exe program:
+        Move ("-nologo -manifest" * '"' + (sTargetPath + sFileName) + '"' * "-validate_manifest" ) to sParams
+
+        // Execute command:
+        Get ExternalProgramResult of ghoExternalProgramResult ('"' + sCurrProgPath + CS_MtExeProgram + '"') sParams sCurrProgPath (&sValueArray) to iRetval
+        Send Cursor_Ready of Cursor_Control
+
+        If (iRetval = -1) Begin
+            Send Info_Box "The validation check could not be performed, because the validation program could not be run."
+            Function_Return False
+        End
+
+        Else If (iRetval > 0) Begin
+            If (iRetval = 31) Begin
+                Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code =" * String(iRetval) + ", and the application manifest file could not be verified. The error could be caused by an Anti-virus program.")
+            End
+            Else Begin
+                Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code =" * String(iRetval) + ", and the application manifest file could not be verified.")
+            End
+            Function_Return False
+        End
+
+        // If this is true the validation was a success.
+        Move sValueArray[0] to sValue
+        Move (sValue = CS_ParsingSuccessful) to bOk
+
+        // If the parsing of the application manifest file didn't go according to plan,
+        // load the faulty application manifest file in the editor, and display an error message.
+        If (bOk = False) Begin
+            Get psFileEditor       of ghoManifestIniFile to sEditor
+            Get psFileEditorParams of ghoManifestIniFile to sEditorParams
+            // Load the application manifest file in the editor
+            // Note that we need to surround the pathing in single quotes in case it contains spaces.
+            Move (SizeOfArray(sValueArray)) to iItems
+            Decrement iItems
+            For i from 1 to iItems
+                Move sValueArray[i] to sTmp
+                Move (sValue + CR_LF + sTmp) to sValue
+            Loop
+            If (sEditorParams <> "") Begin
+                Runprogram Background sEditor ('"' + sEditorParams + '"' * '"' + (sTargetPath + sAppManifestFile) + '"')
+                // ...show error message:
+                Send Info_Box ("Error message:\n" + sValue)
+            End
+            Else Begin
+                Runprogram Background sEditor ('"' + (sTargetPath + sAppManifestFile) + '"')
+                // ...show error message:
+                Send Info_Box ("Error message:\n" + sValue)
+            End
+        End
+
+        Function_Return bOk
+    End_Function
+
+    // To convert a return value from the FileTimeWinApi function to a DataFlex DateTime variable.
+    // Second parameter is optional and is a boolean (True/Fale) to denote if to convert to local time or not.
+    // It is very uncommon _not_ to pass a TRUE here (if you pass the second parameter.
+    // This function code is courtesy of Vincent Oorsprong.
+    Function WinAPIFileTimeToDateTime tWinFileTimeDC WinFileTime Boolean bConvertToLocalFileTimexx Returns DateTime
+        String sFormattedTime sFormattedDate
+        Integer iSuccess iDataLength
+        tWinSystemTime WinSystemTime
+        tWinFileTimeDC WinLocalFileTime
+        DateTime dtResult
+        Boolean bConvertToLocalFileTime
+
+        Move False to bConvertToLocalFileTime
+        If (num_arguments > 1) Begin
+            Move bConvertToLocalFileTimexx to bConvertToLocalFileTime
+        End
+
+        If (bConvertToLocalFileTime) Begin
+            Move (FileTimeToLocalFileTime (AddressOf (WinFileTime), AddressOf (WinLocalFileTime))) to iSuccess
+            If (iSuccess <> 0) Begin
+                Move WinLocalFileTime to WinFileTime
+            End
+        End
+
+        Move (FileTimeToSystemTime (AddressOf (WinFileTime), AddressOf (WinSystemTime))) to iSuccess
+        If (iSuccess <> 0) Begin
+            Move (Repeat (Character (0), 255)) to sFormattedTime
+            Move (GetTimeFormat (Locale_User_Default, 0, AddressOf (WinSystemTime), 0, AddressOf (sFormattedTime), 255)) to iDataLength
+
+            Move (Repeat (Character (0), 255)) to sFormattedDate
+            Move (GetDateFormat (Locale_User_Default, 0, AddressOf (WinSystemTime), 0, AddressOf (sFormattedDate), 255)) to iDataLength
+
+            Move (Cstring (sFormattedDate) * Cstring (sFormattedTime)) to dtResult
+        End
+
+        Function_Return dtResult
+    End_Function
+
+    { Visibility=Private MethodType=Event  NoDoc=True }
+    Function _WinAPIGetFileTime Handle hFileName Returns tWinFileTimeDC
+        tWinFileTimeDC stFileTime
+        Integer iRetval
+
+        Move (fGetFileTime (hFileName, C_SimpleNullMember, C_SimpleNullMember, AddressOf(stFileTime))) to iRetval
+        Function_Return stFileTime
+    End_Function
+
+    { Visibility=Private MethodType=Event  NoDoc=True }
+    Function _WinAPISetFileTime Handle hFileName tWinFileTimeDC stFileTime Returns Integer
+        Integer iRetval
+
+        Move (fSetFileTime (hFileName, C_SimpleNullMember, C_SimpleNullMember, AddressOf(stFileTime))) to iRetval
+        Function_Return iRetval
+    End_Function
+
+    // Opens a file with the WinAPI CreateFile function for read & write.
+    // When using the WinAPI GetFileTime & SetFileTime functions, the file first needs to be opened with the
+    // WinAPI CreateFileA function (Yes, it also _opens_ a file). The returned file handle from this function is needed by
+    // the WinAPI GetFileTime & SetFileTime functions.
+    // If it fails a 0 (zero) is returned.
+    { Visibility=Private MethodType=Event  NoDoc=True }
+    Function _WinAPIOpenFileForReadAndWrite String sFilename Returns Handle
+        Pointer lpFilenamePointer
+        Integer iRetVal iErrornumber
+        String sFilenameANSI             
+        Boolean bExists
+        
+        Get vFilePathExists sFilename to bExists
+        If (bExists = False) Begin
+            Send Info_Box ("The program file doesn't exist:" + "\n" + sFilename)
+            Function_Return 0
+        End
+        Move (Utf8ToAnsi(sFilename)) to sFilenameANSI
+        Append sFilenameANSI (Character(0)) (Character(0))
+
+        Move (fCreatefile(AddressOf(sFilenameANSI), GENERIC_RANDOM, FILE_SHARE_RANDOM, FNULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, FNULL)) to iRetVal
+        If (iRetVal = INVALID_HANDLE_VALUE) Begin
+            Move (GetLastError()) to iErrornumber
+            If (iErrornumber = 32) Begin
+                Send Info_Box ("Oops!\nCould not open the file:\n" + sFilename + "\n\nIs the program perhaps running? Then it cannot be updated.")
+            End
+            Else Begin
+                Send Info_Box ("Error:" * String(iErrornumber) + "Something went wrong and it was not possible to open the file:\n" + sFilename) "Error"
+            End
+
+            Function_Return 0
+        End
+
+        Function_Return iRetVal
+    End_Function
+
+    // Closes a file that has previously been opened with WinAPIOpenFileForReadAndWrite
+    // Pass the handle that was returned from that function to close it.
+    // Returns True if successful.
+    { Visibility=Private MethodType=Event  NoDoc=True }
+    Function _WinAPICloseFile Handle hFileName Returns Boolean
+        Integer iRetval
+        Move (fCloseHandle(hFileName)) to iRetVal
+        Function_Return (iRetVal <> 0)
+    End_Function
+
+    // Function that returns the name of Windows Temp folder,
+    // without an "\" at the very end.
+    // Note: If it fails to retrieve the Temp folder,
+    //       the current folder will be returned (".")
+    Function WindowsTempDirectory Returns String
+        String sTempDir
+        Integer iRet
+
+        Move (ZeroString(250)) to sTempDir
+        Move (GetTempPathEf(250, AddressOf(sTempDir))) to iRet
+        If (iRet <> 0) Begin
+            Move (AnsiToOem(AddressOf(sTempDir), AddressOf(sTempDir))) to iRet
+            Move (cString(sTempDir)) to sTempDir
+            If (Right(sTempDir, 1) = "\") ;
+                Move (Left(sTempDir, (Length(sTempDir) - 1))) to sTempDir
+            Function_Return sTempDir
+        End
+
+        Function_Return "."
+    End_Function
+
+    // Writes to the console window (DOS-command window)
+    { Visibility=Private MethodType=Event  NoDoc=True }
+    Function WriteConsole Handle hConsole String sParam Returns Integer
+        String  sMessage
+        Handle  lpnCharsWritten
+        Integer iCharsWritten
+        Integer iRetVal
+
+        Move (sParam + "\n") to sParam
+        Move (ZeroString(Length(sParam) + 1)) to sMessage
+        Move (sParam + (Character(0)))  to sMessage
+        Move 0 to iCharsWritten
+        Move (AddressOf(iCharsWritten)) to lpnCharsWritten
+        Move (Win32WriteConsole(hConsole, AddressOf(sMessage), Length(sParam), lpnCharsWritten, 0)) to iRetval
+        Function_Return iRetVal
+    End_Function
+
+End_Class
+
+// *** Instantiation of the above declared class ***
+//
+// Creates an instance and assign its object id to the global variable ghoManifestFunctionLibrary
+
+Object oManifestFunctionLibrary is a cManifestFunctionLibrary
+    Move Self to ghoManifestFunctionLibrary
+    Procedure OnStartup
+        String sPath
+        Get ReadString of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_ManifestFolder "" to sPath
+        Set psManifestFragmentLibrary to sPath
+        Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CommonCOMFolderName CS_CommonCOMFolderPath to sPath
+        Set psCommonCOMLibrary to sPath
+    End_Procedure
+    Send OnStartup
+End_Object

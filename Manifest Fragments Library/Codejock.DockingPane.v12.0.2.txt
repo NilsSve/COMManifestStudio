@@ -1,0 +1,8 @@
+// Standard Codejock DockingPane component that is shipped with Visual Report Writer 2.1
+// http://www.codejock.com
+<file name="Codejock.DockingPane.v12.0.2.ocx">
+	<comClass clsid="{824905b1-02e3-4423-a47c-230376138ef4}" description="Xtreme Docking Pane Control" tlbid="{945E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,invisibleatruntime" progid="Codejock.DockingPane.12.0.2"></comClass>
+	<comClass clsid="{ac002936-6c9e-4cc3-905f-f3c7113d5a08}" description="Xtreme Docking Pane Frame Control" tlbid="{945E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="Codejock.DockingPaneFrame.12.0.2"></comClass>
+	<comClass clsid="{a3cf484b-aecc-4c5b-820e-29e24862a248}" description="Codejock.DockingPaneGlobalSettings.12.0.2" progid="Codejock.DockingPaneGlobalSettings.12.0.2"></comClass>
+	<typelib tlbid="{945E8FCC-830E-45CC-AF00-A012D5AE7451}" resourceid="1" version="12.0" helpdir=""></typelib>
+</file>

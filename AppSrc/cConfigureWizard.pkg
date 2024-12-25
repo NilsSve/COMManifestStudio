@@ -1,0 +1,487 @@
+// **************************************************************************** 
+// Class   : cConfigureDbModalPanel and child object classes.
+// 
+// Author  : Nils Svedmyr, RDC Tools International
+//           Classes based on work by Emil Stojanov                                        
+//
+// Top tip : Rather than use these various classes separately,
+//           it is recommended to use the ConfigWizardDialog.tpl
+//           that can be found from the Studio "New - Dialog/Lookup - Config Wizard Dialog"
+//
+// Date    : 2019-10-12
+// 
+// ****************************************************************************
+Use Windows.Pkg   
+Use DfLine.Pkg    
+Use DfBitmap.Pkg  
+Use DfClient.Pkg  
+Use Data_Set.Pkg  
+Use cCommandLinkButton.pkg
+Use cScrollingContainer.pkg
+Use cSplitterContainer.pkg
+Use dfLine.pkg  
+
+Struct tConfigureObjects
+    Handle hoConfigureButton 
+    Handle hoConfigureTabPage
+End_Struct
+
+#IFNDEF clControlGray
+    Define clControlGray for (RGB(230, 230, 230))
+#ENDIF
+
+Class cConfigureDbModalPanel is a dbModalPanel
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set Label to "Configure"
+        Set Location to 2 1
+        Set Size to 198 413
+        Set piMinSize to 160 370
+        Set Border_Style to Border_Thick
+        Set Locate_Mode to CENTER_ON_PARENT
+        
+        Property Handle phoConfigureRightHeader_tb 
+        Property Handle phoConfigureRightImage 
+        Property Handle phoConfigureLeftSideButtons
+        Property Handle phoConfigureRigthWizardPane
+        Property tConfigureObjects[] paConfigureObjects
+        Property Integer piCurrentPage -1
+    
+    End_Procedure
+    
+    Procedure End_Construct_Object                      
+        Forward Send End_Construct_Object
+        
+        // cConfigurePage class message;
+        Broadcast Recursive Send RegisterPage
+        // cConfigureButton class message;
+        Broadcast Recursive Send RegisterButton   
+    End_Procedure
+        
+    Function NumberOfPages Returns Integer
+        tConfigureObjects[] aConfigureObjects
+        Get paConfigureObjects to aConfigureObjects
+        Function_Return (SizeOfArray(aConfigureObjects))
+    End_Function
+
+End_Class
+
+// This class can only be used within a cConfigureDbModalPanel container object. 
+// It should contain a series of oConfigureCommandLinkButton objects. 
+// Note: There should always be the same number of cConfigureButton objects,
+//       as there are of the cConfigurePage class. 
+{ OverrideProperty=Sysmenu_Icon InitialValue=True }
+{ OverrideProperty=Sysmenu_Icon DesignTime=False }
+{ OverrideProperty=Visible_State InitialValue=False }
+{ OverrideProperty=Location DesignTime=False }
+{ OverrideProperty=Size DesignTime=False }
+{ OverrideProperty=Bitmap_Style DesignTime=False }
+{ OverrideProperty=Border_Style InitialValue=Border_Normal }
+{ OverrideProperty=Border_Style DesignTime=False }
+{ OverrideProperty=Color InitialValue=clControlGray }
+{ OverrideProperty=Color DesignTime=False }
+{ OverrideProperty=TextColor InitialValue=clWindowText }
+{ OverrideProperty=TextColor DesignTime=False }
+Class cConfigureLeftSideButtons is a Container3d
+    
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Set Size to 141 118
+        Set Location to 21 3
+        Set Color to clControlGray
+        Set peAnchors to anTopBottomLeft  
+        // For the Studio's designer mode only, it will be
+        // reset to no border in End_Construct_Object. 
+        Set Border_Style to Border_Normal
+
+        // Property of cConfigureDbModalPanel
+        Delegate Set phoConfigureLeftSideButtons to Self
+
+    End_Procedure
+
+    Procedure End_Construct_Object
+        Forward Send End_Construct_Object
+        Set Border_Style to Border_None
+    End_Procedure
+
+    Procedure Set Color Integer eColor
+        Forward Set Color to clControlGray
+    End_Procedure
+    
+    Function ComparePages tConfigureObjects Objects1 tConfigureObjects Objects2 Returns Integer
+        If (Objects1.hoConfigureTabPage > Objects2.hoConfigureTabPage) ;
+            Function_Return (GT)
+        If (Objects1.hoConfigureTabPage < Objects2.hoConfigureTabPage) ;
+            Function_Return (LT)
+        Function_Return (EQ)
+    End_Function
+        
+    Procedure SwitchWizardPage Handle ho
+        Integer iFromPage iToPage     
+        tConfigureObjects[] aConfigureObjects  
+        tConfigureObjects SearchObject 
+        Handle oConfigureRigthWizardPane
+        
+        // Properties of cConfigureDbModalPanel
+        Delegate Get phoConfigureRigthWizardPane to oConfigureRigthWizardPane
+        Delegate Get paConfigureObjects to aConfigureObjects
+        
+        Move ho to SearchObject.hoConfigureButton
+        Move (SearchArray(SearchObject, aConfigureObjects)) to iToPage
+
+        Delegate Get piCurrentPage to iFromPage                              
+        Send SwitchToPage of oConfigureRigthWizardPane iFromPage iToPage 1
+    End_Procedure  
+    
+End_Class
+
+// This class must be used within a cConfigureLeftSideButtons container object
+Class cConfigureButton is a cCommandLinkButton
+    
+    Procedure Construct_Object
+
+        Forward Send Construct_Object
+        // Note: The with of the button needs to be a bit smaller than the
+        // cConfigureLeftSideButtons container object to make room for a vertical scroll bar.
+        Set Size to 22 107
+//        Set Color to clControlGray
+        Set Label to "Configure Button"
+        Set psImage to "Default.ico"  
+        
+    End_Procedure
+
+    Procedure End_Construct_Object
+        Forward Send End_Construct_Object
+
+    End_Procedure
+
+    Procedure OnClick
+        Send SwitchWizardPage Self    
+    End_Procedure  
+    
+    Procedure Set TextColor Integer eColor
+        Forward Set TextColor to clBlack
+    End_Procedure
+    
+//    Procedure Set Color Integer eColor
+//        Forward Set Color to clControlGray
+//    End_Procedure
+    
+    // Register each button to the container class cConfigureDbModalPanel
+    Procedure RegisterButton  
+        tConfigureObjects[] aConfigureObjects
+        tConfigureObjects OneConfigureObject                     
+        Integer iItem
+        
+        Delegate Get paConfigureObjects to aConfigureObjects
+        Move 0 to OneConfigureObject.hoConfigureButton
+        Move (SearchArray(OneConfigureObject, aConfigureObjects)) to iItem
+        Move Self to aConfigureObjects[iItem].hoConfigureButton
+        Delegate Set paConfigureObjects to aConfigureObjects
+    End_Procedure
+
+End_Class
+
+Class cConfigureBase_tb is a TextBox
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set Auto_Size_State to False
+        Set Justification_Mode to JMode_Left
+    End_Procedure
+    
+    Procedure Set Label String sLabel
+        Set Value 0 to (Replaces ("\n", sLabel, Character(13)))
+    End_Procedure
+
+    Function Label Returns String
+        Function_Return (Replaces (Character(13), Value (Self, 0), "\n"))
+    End_Function
+End_Class
+
+Class cConfigureSmall_tb is a cConfigureBase_tb
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set FontPointHeight to 10
+    End_Procedure
+End_Class
+
+Class cConfigureMedium_tb is a cConfigureBase_tb
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set FontPointHeight to 12
+    End_Procedure
+End_Class
+
+Class cConfigureLarge_tb is a cConfigureBase_tb
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set FontPointHeight to 14
+        Set Size to 13 145
+        Set Location to 4 137
+        Set Label to "Right-Hand Side Controls"
+    End_Procedure
+End_Class
+
+{ OverrideProperty=Size InitialValue=21,25 }
+{ OverrideProperty=Location InitialValue=-2, 130 }
+{ OverrideProperty=psImage DesignTime=True }
+// Must be a child object of a cConfigureDbModalPanel container object
+Class cConfigureRightImage is a cCommandLinkButton
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set Size to 21 25
+        Set Location to -2 130
+        Set piImageSize to 24
+        Set psImage to "Default.ico"
+        Set Focus_Mode to NonFocusable
+        
+        Delegate Set phoConfigureRightImage to Self
+    End_Procedure
+    
+End_Class
+
+// Must be a child object of a cConfigureDbModalPanel container object
+{ OverrideProperty=FontPointHeight InitialValue= 14 }
+{ OverrideProperty=Label DesignTime=True InitialValue= "Right Header Text" }
+//{ InitialValue= "Right Header Text" }
+Class cConfigureRightHeader_tb is a cConfigureBase_tb
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set FontPointHeight to 14   
+        Set Size to 13 244
+        Set Location to 4 157
+        
+        Delegate Set phoConfigureRightHeader_tb to Self
+    End_Procedure  
+
+    Procedure End_Construct_Object
+        Forward Send End_Construct_Object
+        
+    End_Procedure
+    
+End_Class
+
+Class cConfigureRightTop is a Container3d
+    
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        Set Size to 142 284
+        Set Location to 0 125
+        Set Border_Style to Border_Normal
+        Set peAnchors to anAll
+    End_Procedure
+
+End_Class
+
+{ OverrideProperty=Size InitialValue=139,274 }
+{ OverrideProperty=Bitmap_Style DesignTime=False }
+{ OverrideProperty=Border_Style InitialValue=Border_Normal }
+{ OverrideProperty=Border_Style EnumList="Border_None, Border_Normal, Border_Dialog, Border_Thick, Border_ClientEdge, Border_WindowEdge, Border_StaticEdge" }
+{ OverrideProperty=Border_Style DesignTime=False }
+{ OverrideProperty=Caption_Bar InitialValue=True }
+{ OverrideProperty=Caption_Bar DesignTime=False }
+{ OverrideProperty=Color InitialValue=clLtGray }
+{ OverrideProperty=Color DesignTime=False }
+{ OverrideProperty=TextColor InitialValue=clWindowText }
+{ OverrideProperty=TextColor DesignTime=False }
+{ OverrideProperty=Label DesignTime=False }
+{ OverrideProperty=Minimize_Icon InitialValue=False }
+{ OverrideProperty=Minimize_Icon DesignTime=False }
+{ OverrideProperty=Maximize_Icon InitialValue=False }
+{ OverrideProperty=Maximize_Icon DesignTime=False }
+{ OverrideProperty=Sysmenu_Icon InitialValue=True }
+{ OverrideProperty=Sysmenu_Icon DesignTime=False }
+// The class should only be used within a cConfigureDbModalPanel object. 
+// It is a container object for instantiating wizard right-hand side cConfigurePage objects (tab-pages).
+Class cConfigureRightSidePane is a Container3d
+    Procedure Construct_Object                         
+        Forward Send Construct_Object
+
+        Set Location to 0 0
+        Set Size to 139 274
+        Set Border_Style to Border_Normal
+        Set Auto_Top_Item_State to True
+        
+        // Property of cConfigureDbModalPanel
+        Delegate Set phoConfigureRigthWizardPane to Self
+    End_Procedure
+
+    Procedure Page Integer iPageObject 
+        Integer iCurrentPage
+        Forward Send Page iPageObject
+        Get piCurrentPage to iCurrentPage  
+        // Always start on wizard tab-page one when dialog is activated.
+        Send SwitchToPage iCurrentPage 0 
+    End_Procedure
+                        
+    Procedure SwitchToPage Integer iFrom Integer iTo Integer iDirect
+        Integer iDirection
+        Handle hoFrom hoTo hoFromButton
+        tConfigureObjects[] aConfigureObjects
+        Handle oConfigureRigthWizardPane hoConfigureRightImage hoConfigureRightHeader_tb
+        String sLabel sImage
+
+        Move 0 to iDirection
+        If (num_arguments > 2) Begin
+            Move iDirect to iDirection
+        End                                  
+
+        // Properties of cConfigureDbModalPanel
+        Delegate Get phoConfigureRightImage      to hoConfigureRightImage
+        Delegate Get phoConfigureRightHeader_tb  to hoConfigureRightHeader_tb
+        Delegate Get phoConfigureRigthWizardPane to oConfigureRigthWizardPane
+        Delegate Get paConfigureObjects to aConfigureObjects
+
+        If (iTo = -1) Begin
+            Move 0 to iTo
+        End
+        Move aConfigureObjects[iTo].hoConfigureTabPage to hoTo
+        Move aConfigureObjects[iTo].hoConfigureButton  to hoFromButton
+
+        If (iFrom <> -1) Begin
+            Move aConfigureObjects[iFrom].hoConfigureTabPage to hoFrom
+            Send OnLeaving to hoFrom iTo iDirection
+            Send OnPageChange to hoFrom iFrom iTo iDirection
+            Set Visible_State of hoFrom to False
+        End
+
+        Get Label   of hoFromButton to sLabel
+        Get psImage of hoFromButton to sImage
+        Set psImage of hoConfigureRightImage to sImage
+        Set Label   of hoConfigureRightHeader_tb to sLabel  
+
+        Set Visible_State of hoTo to True
+        Delegate Set piCurrentPage to iTo
+        If (hoFrom <> 0) Begin
+            Send Deactivate of hoFrom
+        End
+        Send Activate of hoTo                            
+
+        Send OnEntering to hoTo iFrom iDirection
+    End_Procedure
+
+    Procedure OnEntering Integer iFrom Integer iDirection
+    End_Procedure
+
+    Procedure OnPageChange Integer iFrom Integer iTo Integer iDirection
+    End_Procedure
+
+    Procedure OnLeaving Integer iTo Integer iDirection
+    End_Procedure
+
+    Procedure End_Construct_Object
+        Forward Send End_Construct_Object
+        Set Border_Style to Border_None
+    End_Procedure
+                        
+End_Class
+
+{ OverrideProperty=Sysmenu_Icon InitialValue=True }
+{ OverrideProperty=Sysmenu_Icon DesignTime=False }
+{ OverrideProperty=Visible_State InitialValue=False }
+{ OverrideProperty=Location InitialValue=0,0 }
+{ OverrideProperty=Location DesignTime=False }
+{ OverrideProperty=Size InitialValue=228,362 }
+{ OverrideProperty=Size DesignTime=False }
+{ OverrideProperty=Bitmap_Style InitialValue=Bitmap_Actual }
+{ OverrideProperty=Bitmap_Style EnumList="Bitmap_Actual, Bitmap_Stretch, Bitmap_Tile, Bitmap_Center" }
+{ OverrideProperty=Bitmap_Style DesignTime=False }
+{ OverrideProperty=Border_Style InitialValue=Border_None }
+{ OverrideProperty=Border_Style EnumList="Border_None, Border_Normal, Border_Dialog, Border_Thick, Border_ClientEdge, Border_WindowEdge, Border_StaticEdge" }
+{ OverrideProperty=Border_Style DesignTime=False }
+{ OverrideProperty=Color InitialValue=clLtGray }
+{ OverrideProperty=Color DesignTime=False }
+{ OverrideProperty=TextColor InitialValue=clWindowText }
+{ OverrideProperty=TextColor DesignTime=False }
+Class cConfigurePage is a Container3d
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Set Location to 0 0
+        Set Size to 228 362
+        Set Border_Style to Border_None
+        Set Visible_State to False
+        Set Attach_Parent_State to True 
+        Set peAnchors to anAll
+    End_Procedure
+
+    Procedure RegisterPage
+        tConfigureObjects[] aConfigureObjects
+        Delegate Get paConfigureObjects to aConfigureObjects
+        Move Self to aConfigureObjects[SizeOfArray(aConfigureObjects)].hoConfigureTabPage
+        Delegate Set paConfigureObjects to aConfigureObjects
+    End_Procedure
+
+End_Class
+
+{ DesignerClass=cDTGroup }
+{ OverrideProperty=Border_style InitialValue=Border_Normal }
+{ OverrideProcedureSet=Label InitialValue="Header Text" }
+{ OverrideProcedureSet=Label_Justification_Mode InitialValue=JMode_Right }
+{ OverrideProcedureSet=Label_Col_Offset InitialValue=60 }
+{ OverrideProperty=Color InitialValue=clLtGray }
+{ OverrideProperty=Color DesignTime=False }
+Class cConfigurePageGroup is a Container3d
+    
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        Set Size to 42 260  
+        Set Border_Style to Border_Normal
+        Set pbAcceptDropFiles to True
+        Set peAnchors to anAll
+
+        { Visibility=Private }
+        Property String private.psLabel ""
+        { Category=Label }
+        Property Integer piLabelColOffset 8
+        { Category=Label }
+        Property Integer piLabelRowOffset 10
+    End_Procedure                        
+    
+    { MethodType=Property Category=Label }
+    Procedure Set psLabel String sLabel
+        Set private.psLabel to sLabel
+    End_Procedure
+
+    Function psLabel Returns String
+        Function_Return (private.psLabel(Self))
+    End_Function
+
+    { Visibility=Private }
+    // Don't display but allow to use old "Label" syntax to set the value of the oInfo_tb object (header text)
+    Procedure Set Label String sLabel
+        Set psLabel to sLabel
+    End_Procedure
+
+    { Visibility=Private }
+    Function Label Returns String
+        Function_Return (private.psLabel(Self))
+    End_Function
+
+    Procedure End_Construct_Object
+        String sLabel
+        Integer iLabelRowOffset iLabelColOffset
+
+        Forward Send End_Construct_Object
+
+        Get piLabelColOffset to iLabelColOffset
+        Get piLabelRowOffset to iLabelRowOffset
+
+        Object oConfgureGroupHeader_tb is a cConfigureMedium_tb
+            Set Size to 12 200
+            Set Location to 0 0
+            Set Label to (private.psLabel(Self))
+        End_Object
+
+        Set Border_Style to Border_None
+    End_Procedure
+
+End_Class

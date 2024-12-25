@@ -1,0 +1,6 @@
+// RTF to HTML converter. 
+// The component can be found at: www.ireksoftware.com/RTFtoHTML/sources.html
+<file name="RtfToHtmlCOM.dll">
+	<comClass clsid="{df685609-9816-45fa-8d0c-d0e314b5439c}" description="RtfToHtmlConvertor Class" tlbid="{69569665-2ACF-43E0-A799-E3CF86FA3F3C}" threadingModel="Apartment" progid="RtfToHtml_COM.RtfToHtmlConvertor.1"></comClass>
+	<typelib tlbid="{69569665-2ACF-43E0-A799-E3CF86FA3F3C}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

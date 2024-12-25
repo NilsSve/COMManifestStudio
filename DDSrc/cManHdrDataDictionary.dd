@@ -1,0 +1,105 @@
+Use cManDataDictionary.pkg
+Use Dfabout.pkg
+
+Open ManHdr
+Open ManDet
+
+Register_Object oManHdr_sl
+
+Class cManHdrDataDictionary is a cManDataDictionary
+    
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        Set Main_File to ManHdr.File_Number
+
+        Set Add_Client_File to ManDet.File_Number
+
+        Set Foreign_Field_Option DD_KEYFIELD DD_NOPUT to True
+        Set Foreign_Field_Option DD_KEYFIELD DD_FINDREQ to True
+        Set Foreign_Field_Option DD_INDEXFIELD DD_NOPUT to True
+        Set Foreign_Field_Option DD_DEFAULT DD_DISPLAYONLY to True
+
+        Set Field_Prompt_Object Field ManHdr.ID to oManHdr_sl
+        Set Field_Option Field ManHdr.ID DD_AUTOFIND to True
+        Set Key_Field_State Field ManHdr.ID to True
+        Set Status_Help Field ManHdr.ID to "Automatically generated ID (identity) Use the field to find saved records"
+
+        Set Field_Prompt_Object Field ManHdr.ManifestFileName to oManHdr_sl
+        Set Status_Help Field ManHdr.ManifestFileName to "The application manifest file. It has the same name as the executable, with an added '.manifest' word at the end. To select an application manifest file press the 'Browse...' button or press. Or press (F4) to display a selection list with previously created records."
+
+        Set Status_Help Field ManHdr.Path to "The full path to the selected application folder"
+
+        Set Field_Entry_msg Field ManHdr.CreatedBy to NetworkUserName
+        Set Status_Help Field ManHdr.CreatedBy to "The login name of the user who created the record"
+        Set Field_Entry_msg Field ManHdr.ChangedBy to NetworkUserName
+        Set Status_Help Field ManHdr.ChangedBy to "The login name of the user who last edited the record"
+        
+        Set Field_Mask_Type Field ManHdr.CreatedDateTime to Mask_DateTime_Window
+        Set Field_Mask      Field ManHdr.CreatedDateTime to "dddd, MMMM d, yyyy hh:mm"
+        Set Field_Entry_msg Field ManHdr.CreatedDateTime to TodaysDateTime
+        Set Status_Help Field ManHdr.CreatedDateTime to "The date and time the record was created"
+        Set Field_Mask_Type Field ManHdr.ChangedDateTime to Mask_DateTime_Window
+        Set Field_Mask      Field ManHdr.ChangedDateTime to "dddd, MMMM d, yyyy hh:mm"
+        Set Field_Entry_msg Field ManHdr.ChangedDateTime to TodaysDateTime
+        Set Status_Help Field ManHdr.ChangedDateTime to "The date and time the record was last edited"
+
+        Set Status_Help Field ManHdr.Comment to "Here you can enter your own comments about the current record"
+    End_Procedure
+
+    Procedure TodaysDate Integer iField Date dDate
+        Integer iChanged
+        
+        Get Field_Changed_State iField to iChanged
+        If (iChanged=0 and dDate=0) Begin
+            Sysdate dDate
+            Set Field_Changed_Value iField to dDate
+        End
+    End_Procedure     
+    
+    Procedure TodaysDateTime Integer iField DateTime dtDateTime
+        Integer iChanged
+        
+        Get Field_Changed_State iField to iChanged
+        If (iChanged = 0) Begin
+            Move (CurrentDateTime()) to dtDateTime
+            Set Field_Changed_Value iField to dtDateTime
+        End
+    End_Procedure
+
+    Procedure NetworkUserName Integer iField String sUserName
+         Integer iChanged    
+         Get Field_Changed_State iField to iChanged
+         If (iChanged=0 and sUserName="") Begin
+            Move (Network_User_Name(Self)) to sUserName
+            Set Field_Default_Value iField to sUserName
+         End
+    End_Procedure
+
+    Procedure Field_Defaults
+        Forward Send Field_Defaults
+    End_Procedure
+
+    Procedure Creating
+        String sUserName
+        Integer iID
+        Forward Send Creating
+        Get AutoCreateNewID File_Field ManHdr.ID True to iID
+        If (ManHdr.CreatedDateTime = 0) Begin
+            Move (CurrentDateTime()) to ManHdr.CreatedDateTime
+            Get Network_User_Name to ManHdr.CreatedBy
+        End
+    End_Procedure
+
+    Procedure Update
+        Forward Send Update
+        Move (CurrentDateTime()) to ManHdr.ChangedDateTime
+        Get Network_User_Name to ManHdr.ChangedBy
+    End_Procedure
+
+
+End_Class
+
+#IFDEF Is$WebApp
+#ELSE
+Use ManHdr.sl
+#ENDIF

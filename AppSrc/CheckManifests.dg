@@ -1,0 +1,264 @@
+Use cCJGridColumn.pkg
+Use cCJGridColumnRowIndicator.pkg
+Use cRDCModalPanel.pkg
+Use cRDCCheckboxCJGrid.pkg
+Use cRDCRichEditor.pkg
+Use cRDCButton.pkg
+Use cManifestFunctionLibrary.pkg
+Use cManifestIniFile.pkg
+
+Object oCheckManifests_dg is a cRDCModalPanel
+    Set Size to 258 526
+    Set Label to "Check & Merge Manifest Files"
+    Set Icon to "FragmentCheck.ico"
+
+    Object oManifestDups_grid is a cRDCCheckboxCJGrid
+        Set Location to 56 10
+        Set Size to 126 507
+        Set pbReadOnly to False
+        Set pbAllowEdit to True
+        Set pbAllowDeleteRow to False
+        Set pbFocusSubItems to False
+
+        Object oCJGridColumnRowIndicator is a cCJGridColumnRowIndicator
+            Set piWidth to 33
+        End_Object
+
+        Object oCheckbox_Col is a cCJGridColumn
+            Set piWidth to 59
+            Set psCaption to "Selected"
+            Set pbCheckbox to True
+            Set psFooterText to ("Total:" * String(0))
+            Set peHeaderAlignment to xtpAlignmentCenter
+            Set peFooterAlignment to xtpAlignmentCenter
+            Delegate Set piCheckboxCol to (piColumnId(Self)) // cWsCheckboxCJGrid property
+        End_Object
+
+        Object oFileNameFirst_Col is a cCJGridColumn
+            Set piWidth to 214
+            Set pbEditable to False
+            Set psCaption to "Conflicting Fragment Files"
+            Set pbDrawFooterDivider to False
+            Delegate Set piFileNameFirstCol to (piColumnId(Self))    // cWsCheckboxCJGrid property
+        End_Object
+
+        Object oFileNameSecond_Col is a cCJGridColumn
+            Set piWidth to 581
+            Set psCaption to "Typelib String"
+            Delegate Set piFileNameSecondCol to (piColumnId(Self))    // cWsCheckboxCJGrid property
+        End_Object
+
+        // Change comment text of the editor object with text from the manifest fragment file
+        Procedure OnRowChanged Integer iOldRow Integer iNewSelectedRow
+            Forward Send OnRowChanged iOldRow iNewSelectedRow
+
+            // When changing row, update the manifest fragment file comment object
+            Send DoShowFragmentComment iNewSelectedRow
+        End_Procedure
+
+        // This does the setting of the comment editor object text.
+        Procedure DoShowFragmentComment Integer iNewSelectedRow
+            Handle hoDataSource
+            tDataSourceRow[] TheData
+            String sFileName sComment
+            Integer iCol
+
+            If (iNewSelectedRow < 0) ;
+                Procedure_Return
+
+            Get piFileNameFirstCol           to iCol
+            Get phoDataSource                to hoDataSource
+            Get DataSource of hoDataSource   to TheData
+
+            Move TheData[iNewSelectedRow].sValue[iCol] to sFileName
+            If (sFileName contains ".txt") Begin
+                Get ExtractManifestFragmentFileComment of ghoManifestFunctionLibrary sFileName to sComment
+            End
+
+            Set Value of oComment_edt to sComment
+        End_Procedure
+
+        Procedure DoFillGrid
+            Integer i iFiles iCheckbox_Col iFileNameFirst_Col iFileNameSecond_Col
+            String sFileName
+            String[] sFilesArray
+            tFileStruct[] TypeLibsArray FilesStructArray
+            Handle hoDataSource hoCol
+            tDataSourceRow[] TheData
+
+            Forward Send DoFillGrid
+
+            Get phoDataSource                to hoDataSource
+            Get DataSource of hoDataSource   to TheData
+            Get piCheckboxCol                to iCheckbox_Col
+            Get piFileNameFirstCol           to iFileNameFirst_Col
+            Get piFileNameSecondCol          to iFileNameSecond_Col
+            Get psFilesStructArray           to FilesStructArray
+            Get FileStructArrayAsStringArray of ghoManifestFunctionLibrary FilesStructArray True to sFilesArray
+            Get DuplicateTypeLibs            of ghoManifestFunctionLibrary (&sFilesArray) to TypeLibsArray
+
+            Move (SizeOfArray(TypeLibsArray)) to iFiles
+            Decrement iFiles
+            For i from 0 to iFiles
+                Move False                               to TheData[i].sValue[iCheckbox_Col]
+                Move TypeLibsArray[i].sFileNameFirstCol  to TheData[i].sValue[iFileNameFirst_Col]
+                Move TypeLibsArray[i].sFileNameSecondCol to TheData[i].sValue[iFileNameSecond_Col]
+            Loop
+
+            // Initialize Grid with new data
+            Send InitializeData TheData
+            Send MovetoFirstRow
+
+            Get ColumnObject iCheckbox_Col to hoCol
+            Set psFooterText of hoCol to ("Total:" * String(0))
+            Get ColumnObject iFileNameFirst_Col to hoCol
+            Set psFooterText of hoCol to ("Number of Conflicting TypeLibs:" * String(iFiles + 1/2))
+        End_Procedure
+
+        // Note: We are only interested in those files
+        //       that are _not_ selected, because those type lib
+        //       strings should be stripped out of the manifest file
+        //       when it is written to.
+        //       So we override the class function here.
+        Function SelectedItems Boolean bFileNameFirstCol Returns String[]
+            Integer[] SelRows
+            Integer i iItems iSize iCheckboxCol iFileNameFirstCol iFileNameSecondCol iFileNameCol
+            String[] sFilesArray
+            Handle hoDataSource
+            tDataSourceRow[] TheData
+            Boolean bChecked
+
+            Get piCheckboxCol to iCheckboxCol
+            If (bFileNameFirstCol = True) Begin
+                Get piFileNameFirstCol to iFileNameCol
+            End
+            Else Begin
+                Get piFileNameSecondCol to iFileNameCol
+            End
+            Get phoDataSource to hoDataSource
+            Get DataSource of hoDataSource to TheData
+            Move (SizeOfArray(TheData)) to iItems
+            Decrement iItems
+
+            For i from 0 to iItems
+                Move TheData[i].sValue[iCheckboxCol] to bChecked
+                If (bChecked = False) Begin
+                    Move (SizeOfArray(sFilesArray)) to iSize
+                    Move TheData[i].sValue[iFileNameCol] to sFilesArray[iSize]
+                End
+            Loop
+
+            Function_Return sFilesArray
+        End_Function
+
+        On_Key kEnter Send KeyAction of oOK_Btn
+    End_Object
+
+    Object oComment_edt is a cRDCRichEditor
+        Set Size to 32 507
+        Set Location to 198 10
+        Set OEM_Translate_State to False
+        Set Read_Only_State to True
+        Set Status_Help to "Comment (Read-Only). Manifest Fragment Files can contain comments that describes what the component does etcetera. Each comment row must start with two forward slashes, the same as the Visual DataFlex language uses for code comments. Note: You need to open the file in the editor (double-click the file) to make changes to it."
+        Set peAnchors to anBottomLeftRight
+        Set Skip_State to True
+        Set Label to "Description"
+    End_Object
+
+    Object oOK_Btn is a cRDCButton
+        Set Label  to "&Merge Now!"
+        Set Status_Help to "Start merging manifest fragment files into your application's Manifest File. A backup copy of your application's manifest file will first be created with todays date and time appended to the file name (Ctrl+M)."
+        Set Location to 236 412
+        Set peAnchors To anBottomRight
+        Set Default_State to True
+
+        Procedure OnClick
+            String[] sFilesArray sDuplicatesArray
+            Integer iFiles
+            tFileStruct[] FilesStructArray
+
+            Get psFilesStructArray of oManifestDups_grid to FilesStructArray
+            Get FileStructArrayAsStringArray of ghoManifestFunctionLibrary FilesStructArray True to sFilesArray
+            Get SelectedItems of oManifestDups_grid True to sDuplicatesArray
+
+            Move (SizeOfArray(sDuplicatesArray)) to iFiles
+            If (iFiles = 0) Begin
+                Send Info_Box "You must select the files with the correct type libs. Cannot continue."
+                Procedure_Return
+            End
+            Send CreateAppManifestFile of ghoManifestFunctionLibrary (&sFilesArray) (&sDuplicatesArray)
+            Send Close_Panel
+        End_Procedure
+
+    End_Object
+
+    Object oCancel_Btn is a cRDCButton
+        Set Label    to "&Cancel"
+        Set Location to 236 467
+        Set peAnchors to anBottomRight
+
+        Procedure OnClick
+            Send Close_Panel
+        End_Procedure
+
+    End_Object
+
+    Object oInfo_btn is a cRDCButton
+        Set Location to 236 10
+        Set Label to "Info"
+        Set Status_Help to "Duplicate ProgID's explained"
+        Set peAnchors to anBottomLeft
+
+        Procedure OnClick
+            Send Popup of (oDuplicateTypeLibsExplained_Dialog(Client_Id(ghoCommandBars)))
+        End_Procedure
+
+    End_Object
+
+    Object oInfo_3d is a Container3d
+        Set Size to 41 507
+        Set Location to 7 10
+        Set peAnchors to anTopLeftRight
+        Set Color to clWhite
+        Set Border_Style to Border_Normal
+
+        Object oInfo_tb is a TextBox
+            Set Auto_Size_State to False
+            Set Size to 33 491
+            Set Location to 4 7
+            Set Label to "The following Manifest Fragment files have conflicting type library definitions. For Side-By-Side execution to work, typelib definitions for the same component but different versions must be unique. Select the component's typelibs to use. Tip: If in doubt, select the highest (latest) component version. All the selected components will be merged into your manifest file, but the duplicate type lib rows will be removed for those files not selected. A backup copy of the application manifest file will automatically be created."
+            Set Justification_Mode to JMode_Left
+            Set peAnchors to anTopLeftRight
+            Set Color to clWhite
+        End_Object
+
+    End_Object
+
+    Procedure Activate_Dialog tFileStruct[] FilesStructArray
+        String[] sFilesArray
+        Set psFilesStructArray of oManifestDups_grid to FilesStructArray
+        Send Popup
+    End_Procedure
+
+    On_Key kEnter         Send KeyAction of oOK_Btn
+    On_Key Key_Alt+Key_M  Send KeyAction of oOK_Btn
+    On_Key Key_Ctrl+Key_M Send KeyAction of oOK_Btn
+    On_Key Key_Alt+Key_C  Send KeyAction of oCancel_Btn
+    On_Key Key_Ctrl+Key_C Send KeyAction of oCancel_Btn
+    On_Key kCancel        Send KeyAction of oCancel_Btn
+    On_Key Key_F1         Send KeyAction of oInfo_btn
+End_Object
+
+// Public access method to this dialog
+// Pass an array with the files that should appear in the grid.
+Procedure Activate_oCheckManifests String[] sFilesArray
+    Integer iSize
+    tFileStruct[] FilesStructArray
+    Move (SizeOfArray(sFilesArray)) to iSize
+    If (iSize = 0) Begin
+        Send Info_Box "No files selected. Please try again."
+        Procedure_Return
+    End
+    Get StringArrayToFileStructArray of ghoManifestFunctionLibrary sFilesArray to FilesStructArray
+    Send Activate_Dialog of oCheckManifests_dg FilesStructArray
+End_Procedure

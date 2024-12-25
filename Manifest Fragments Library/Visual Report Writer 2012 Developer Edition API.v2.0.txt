@@ -1,0 +1,9 @@
+<file name="Visual Report Writer 2012 Developer Edition API.ocx">
+	<typelib tlbid="{20C1A10B-DB47-4D4A-AD14-C7B33132C241}" version="2.0" helpdir=""></typelib>
+	<comClass description="Visual Report Writer runtime 2.0" clsid="{309288C0-095B-4096-BE01-F5885C2275DB}" progid="VRWAPI.ViewerCtrl.2.0" threadingModel="Apartment" tlbid="{20C1A10B-DB47-4D4A-AD14-C7B33132C241}"></comClass>
+</file>
+// Data Access Worldwide's COM component for Visual Report Writer version 2.0
+// Dependecies:
+//#=df_collate.cfg
+//#=dfapi30.dll
+//#=dynapdf.dll

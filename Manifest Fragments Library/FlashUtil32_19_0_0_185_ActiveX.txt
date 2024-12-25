@@ -1,0 +1,5 @@
+// MacroMedias Flash ActiveX helper OCX component.
+<file name="FlashUtil32_19_0_0_185_ActiveX.dll">
+	<comClass clsid="{b019e3bf-e7e5-453c-a2e4-d2c18ca0866f}" description="FlashBroker" tlbid="{FAB3E735-69C7-453B-A446-B6823C6DF1C9}"></comClass>
+	<typelib tlbid="{FAB3E735-69C7-453B-A446-B6823C6DF1C9}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

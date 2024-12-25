@@ -1,0 +1,888 @@
+﻿//****************************************************************************
+// $Module type: Class Package.
+// $Module name: cDigitalSoftwareCertificate
+// $Author     : Nils Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
+// Web-site    : http://www.rdctools.com
+// Created     : 2014-07-26 @ 10:13
+//
+// Description : To automatically check if the programs digital certificate is valid
+//               when the program is started. If not valid the user will get a warning
+//               that the program has been tampered with and the program will be terminated.
+//               If the property pbWarnIfNotDigitallySigned = True (default is False)
+//               the user will be warned if program has _not_ been digitally signed
+//               and asked if the program should be run or not.
+//               Note: No warning is shown if run from the Studio.
+//
+// Main message  : ValidateProgramOnStartup
+//
+// Other messages: SignFile, ValidateFile, TimeStampFile & ValidateTimeStamp
+//
+// Sample usage: Use DFAllEnt.pkg
+//               Use cCJStandardCommandBarSystem.pkg
+//               Use cDigitalSoftwareCertificate.pkg
+//
+//               Object oDigitalSoftwareCertificate is a cDigitalSoftwareCertificate
+//
+//                   // Set pbWarnIfNotDigitallySigned = True if you like to have a warning when the
+//                   // program is started, but the program has not been digitally signed.
+//                   // Only applies when run outside the Studio.
+//                   Set pbWarnIfNotDigitallySigned to False
+//
+//                   // This message does the actual checking for a valid digital certificate.
+//                   // If the program has been tampered with e.g. it has been infected by a virus,
+//                   // the user will get a warning and the program will be aborted.
+//                   Send ValidateProgramOnStartup
+//
+//              End_Object
+//
+//
+// The code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// This is free software; you can redistribute it and/or modify it under the terms of the
+// GNU Lesser General Public License.
+// License: LGPLv3 - GNU LESSER GENERAL PUBLIC LICENSE Version 3 - http://www.gnu.org/licenses/lgpl.txt
+//
+// $Rev History:
+//    2014-07-26  Module header created
+//****************************************************************************
+Use cApplication.pkg
+Use Dfcursor.pkg
+Use vWin32fh.pkg
+Use cExternalProgramResult.pkg
+Use cDigitalSoftwareCertificate.inc
+
+#IFNDEF ghoDigitalSoftwareCertificate
+    Global_Variable Integer ghoDigitalSoftwareCertificate
+#ENDIF
+
+Class cDigitalSoftwareCertificate is a cObject
+
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        Move Self to ghoDigitalSoftwareCertificate
+
+        // If the property pbWarnIfNotDigitallySigned = True (default is False)
+        // the user will be warned if program has _not_ been digitally signed
+        // and asked if the program should be run or not.
+        // Note: No warning is shown If run from the Studio.
+        Property Boolean pbWarnIfNotDigitallySigned False
+
+    End_Procedure
+
+    // *** Main Message ***
+    // Verifies the program's digital certificate on program startup and warns user if
+    // it is not valid and then terminates the program.
+    // Note that if the pbWarnIfNotDigitallySigned = True (Default = False) the user
+    // will be warned if the program has not been digitally signed.
+    // No warning is given if run from the Studio (debug mode).
+    Procedure ValidateProgramOnStartup
+        String sPath sFileName sCurrentProgram sRetval
+        Boolean bExists bWarnIfNotDigitallySigned
+        Integer iRetval
+        tCertificateParams CertificateParams
+        tCertificateResult CertificateResult
+
+        Get pbWarnIfNotDigitallySigned to bWarnIfNotDigitallySigned
+        Get Module_Name to sCurrentProgram
+        Move (sCurrentProgram + ".exe") to sCurrentProgram
+
+        Get ApplicationPath     to sPath
+        Get vFolderFormat sPath to sPath
+        Move (sPath + CS_CredentialsProgram) to sFileName
+        Get IsSignToolProgram to bExists
+        If (bExists = False) Begin
+            Send Stop_Box "The signtool program is missing or couldn't be created in the current program folder. The current program could not be checked for a valid digital certificate and will now exit."
+            Abort
+        End
+
+        Move sPath              to CertificateParams.sProgramPath
+        Move sCurrentProgram    to CertificateParams.sFileName
+        Move False              to CertificateParams.bVerbose
+
+        Get ValidateFile CertificateParams to CertificateResult
+        Move CertificateResult.iRetval  to iRetval
+        Move CertificateResult.sText    to sRetval
+
+        // ToDo: Should not test for CS_NoSignatureFound if _not_ signed!
+        If (iRetval <> 0) Begin
+            If ( (Uppercase(Trim(sRetval)) = Uppercase(CS_ProgramtamperedWith)) or (Uppercase(Trim(sRetval)) contains Uppercase(CS_ProgramtamperedWith))) Begin
+                Get Message_Box (CS_DigitalCertificateInvalid + "\n\n" + sRetval) CS_DitigalStopHeader MB_OK MB_ICONSTOP to iRetval
+                Abort
+            End
+            // Note: We will _not_ throw a warning if run from the Studio.
+            If (not(IsDebuggerPresent()) and bWarnIfNotDigitallySigned = True) Begin
+//            If (not(IsDebuggerPresent()) and bWarnIfNotDigitallySigned = True and sRetval contains CS_ProgramNotSignedText) Begin
+                Get Message_Box CS_NotDigitallySigned CS_DitigalWarningHeader MB_YESNO (MB_ICONEXCLAMATION ior MB_DEFBUTTON2) to iRetval
+                If (iRetval <> MBR_Yes) Begin
+                    Abort
+                End
+            End
+        End
+
+    End_Procedure
+
+    // *** Function Library ***
+    //
+
+    // Returns the full path of the Application (no trailing "\")
+    Function ApplicationPath Returns String
+        String sApplicationFileName sPath
+        Integer iNumChars iRetval
+
+        Move (Repeat(Character(0), 1024))    to sApplicationFileName
+        Move (GetModuleFileName(0, AddressOf(sApplicationFileName), 1024)) to iNumChars
+        Move (CString(sApplicationFileName)) to sApplicationFileName
+        Move (PathRemoveFileSpec(AddressOf(sApplicationFileName))) to iRetval
+        Move (CString(sApplicationFileName)) to sPath
+
+        Function_Return sPath
+    End_Function
+
+    // Creates a file, that has been embedded by the compiler as a resource.
+    // Pass the memory resource file reference and the filename to be created,
+    // including full path.
+    Procedure CreateFileFromMemory String sMemFileName String sFileName
+        String sText
+        Integer iCh iSize iArgSize
+
+        Send Cursor_Wait of (Cursor_Control(Self))
+        Get Seq_Open_Input_Channel sMemFileName to iCh
+            Get_Channel_Size iCh to iSize
+#IF (!@ < 201)
+            Get_Argument_Size to iArgSize
+            If (iSize > iArgSize) Begin
+                Set_Argument_Size iSize
+            End
+#ENDIF
+            Read_Block channel iCh sText iSize
+        Send Seq_Close_Channel iCh
+
+        Get Seq_Open_Output_Channel sFileName to iCh
+            Write channel iCh sText
+        Send Seq_Close_Channel iCh
+
+#IF (!@ < 201)
+        If (iSize <> iArgSize) Begin
+            Set_Argument_Size iArgSize
+        End
+#ENDIF
+        // Wait for file to be written to disk.
+        Sleep 2
+        Send Cursor_Ready of (Cursor_Control(Self))
+    End_Procedure
+
+    // Internal usage!
+    Function SetupSignParameters Boolean b256SHA Boolean bUseCertificateStore Boolean bUseTimeStamp Boolean bVerbose String sDescription String sOurWebSite String sCredentialsPath String sCredentialsFile String sCredentialsPw String sURLTimeStamp String sFilePath String sFileName Returns String
+        String sParams
+
+        If (b256SHA = False) Begin
+            Move (CS_SignCredentials * CS_DigestAlgorithm * CS_SHA1) to sParams
+            If (bUseCertificateStore = True) Begin
+                Move (sParams * CS_VerifyFileParam) to sParams
+            End
+            If (bVerbose = True) Begin
+                Move (sParams * CS_VerboseParam)    to sParams
+            End
+            If (sDescription <> "") Begin
+                Move (sParams * CS_DescriptionParam * '"' + sDescription + '"') to sParams
+            End
+            If (sOurWebSite <> "") Begin
+                Move (sParams * CS_WebURLParam * sOurWebSite) to sParams
+            End
+            If (bUseCertificateStore = False) Begin
+                Move (sParams * CS_FileParam * '"' + (sCredentialsPath + sCredentialsFile) + '"') to sParams
+                If (sCredentialsPw <> "") Begin
+                    Move (sParams * CS_PasswordParam * sCredentialsPw) to sParams
+                End
+            End
+            If (bUseTimeStamp = True) Begin
+                Move (sParams * CS_TimeStampParam * sURLTimeStamp) to sParams
+            End
+        End
+
+        // For SHA256 parameters:
+        Else Begin
+            Move (CS_SignCredentials) to sParams
+            If (bVerbose = True) Begin
+                Move (sParams * CS_VerboseParam)                        to sParams
+            End
+            If (bUseCertificateStore = True) Begin
+                Move (sParams * CS_SignCommonNameParam * '"' + sDescription + '"')  to sParams
+            End
+            Move (sParams * CS_DigestAlgorithm * CS_SHA256)             to sParams
+            If (bUseCertificateStore = False) Begin
+                Move (sParams * CS_FileParam * '"' + (sCredentialsPath + sCredentialsFile) + '"') to sParams
+                If (sCredentialsPw <> "") Begin
+                    Move (sParams * CS_PasswordParam * sCredentialsPw) to sParams
+                End
+            End
+            If (bUseTimeStamp = True) Begin
+                Move (sParams * CS_TimeStampParamSHA256 * sURLTimeStamp) to sParams
+            End
+            Move (sParams * CS_DigestAlgorithmSHA256 * CS_SHA256)       to sParams
+            Move (sParams * CS_AppendSignature * '"' + (sFilePath + sFileName) + '"') to sParams
+        End
+
+        Function_Return sParams
+    End_Function
+
+    // Make digital certificate actions on a file. Signs, verfies, timestamps a file or queries the time stamp.
+    // Pass the full path to the file & the name of the file to take action on.
+    // iAction can be either CI_ActionSignFile, CI_ActionVerifyFile or CI_ActionTimeStampFile.
+    // It uses the signtool.exe program to do the signing/checking and returns the text output from when the signtool is run.
+    // Returns a struct with iRetval and sRetval:
+    //   0 on success, 1 on failure, and 2 on warning (signtool.exe).
+    //   and Returns -1 if the passed path+filename cannot be found, and -2 if the signtool.exe cannot be found in the current workspace Programs folder.
+    //
+    //   And a string with the output from the signtool process.
+    // Note: It is assumed that the signtool.exe is located in the same folder as the sFileName (= sPath)
+    //
+    { Visibility=Private  MethodType=Event  NoDoc=True }
+    Function DigitalCertificateAction tCertificateParams CertificateParams Integer iAction tCertificateCredentials CertificateCredentialsX Returns tCertificateResult
+        Integer iRetval iItems iCount
+        Boolean bUseTimeStamp bVerbose bUseCertificateStore
+        Boolean bExists bTimeStampFound bFirstNumbersOf bSHA256
+        String sParams sValue sProgramPath sText
+        String sPath sFileName
+        String  sCredentialsPath sCredentialsFile sCredentialsPw sOurWebSite sDescription sURLTimeStamp sSHA256URLTimeStamp
+        String[] sOutputArray
+        tCertificateCredentials CertificateCredentials
+        tCertificateResult CertificateResult
+
+        // First check that the signtool program exists in the same folder as the DF-program.
+        Get ApplicationPath to sProgramPath
+        Get vFolderFormat sProgramPath to sProgramPath
+        Get IsSignToolProgram to bExists
+        // The signtool program cannot be found.
+        If (bExists = False) Begin
+            Send Info_Box ("The signtool program is missing:\n" + (sProgramPath + CS_CredentialsProgram))
+            Move CI_SignToolMissing to CertificateResult.iRetval
+            Function_Return CertificateResult
+        End
+
+        Move (Trim(CertificateParams.sProgramPath))         to sPath
+        Move (Trim(CertificateParams.sFileName))            to sFileName
+        // We auto-adjust if a .manifest filename was passed instead of the executable file.
+        Move (Replace(Lowercase(CS_ManifestExtension), Lowercase(sFileName), "")) to sFileName
+        Move CertificateParams.bUseTimeStamp                to bUseTimeStamp
+        Move CertificateParams.bVerbose                     to bVerbose
+        If (Trim(CertificateParams.sDescription) <> "") Begin
+            Move (Trim(CertificateParams.sDescription))     to sDescription
+        End
+        Else If (ghoApplication <> 0) Begin
+            Get psCompany of ghoApplication                 to sDescription
+        End
+        If (Trim(CertificateParams.sOurWebSite) <> "") Begin
+            Move (Trim(CertificateParams.sOurWebSite))      to sOurWebSite
+        End
+        If (Trim(CertificateParams.sURLTimeStamp) <> "") Begin
+            Move (Trim(CertificateParams.sURLTimeStamp))    to sURLTimeStamp
+        End
+        Else Begin
+            Move CS_URLTimeStampDefaultSHA1                 to sURLTimeStamp
+        End
+        If (Trim(CertificateParams.sSHA256URLTimeStamp) <> "") Begin
+            Move (Trim(CertificateParams.sSHA256URLTimeStamp)) to sSHA256URLTimeStamp
+        End
+        Else Begin
+            Move CS_URLTimeStampDefaultSHA256               to sSHA256URLTimeStamp
+        End
+
+        Move True                                           to bUseCertificateStore
+        If (num_arguments > 2) Begin
+            Move CertificateCredentialsX                    to CertificateCredentials
+            If (Trim(CertificateCredentials.sCredentialsFile) <> "") Begin
+                Move False                                  to bUseCertificateStore
+            End
+        End
+
+        // If bUseCertificateStore = false the CertificateCredentialsX param _must_ be provided containing all the correct parameters, else programming error.
+        If (bUseCertificateStore = False) Begin
+            Move (Trim(CertificateCredentials.sCredentialsFile)) to sCredentialsFile
+            Move (Trim(CertificateCredentials.sCredentialsPath)) to sCredentialsPath
+            Move (Trim(CertificateCredentials.sCredentialsPw))   to sCredentialsPw
+            Get vFolderFormat sCredentialsPath to sCredentialsPath
+            Get vFilePathExists (sCredentialsPath + sCredentialsFile) to bExists
+            If (bExists = False) Begin
+                Send Info_Box ("The digital certificate file could be found:\n" * (sCredentialsPath + sCredentialsFile) * "Operation cancelled")
+                Move CI_SignFileMissing to CertificateResult.iRetval
+                Function_Return CertificateResult
+            End
+        End
+
+        Move False to bTimeStampFound
+        Get vFolderFormat sPath to sPath
+        // If no path was passed it means that the program was started from an arbitrary
+        // folder without any config.ws file - aka we need to use the current folder as path.
+        If (sPath = "\") Begin
+            Move ("." + sPath) to sPath
+        End
+
+        If (sPath <> ".\") Begin
+            Get vFilePathExists (sPath + sFileName) to bExists
+            // The passed program file cannot be found.
+            If (bExists = False) Begin
+                Send Info_Box ("The passed filename could not be found:\n" + (sPath + sFileName))
+                Move CI_PassedFileNameMissing to CertificateResult.iRetval
+                Function_Return CertificateResult
+            End
+        End
+
+        // Create the sParams string:
+        Case Begin
+            // Verify:
+            Case (iAction = CI_ActionVerifyFile)
+                If (bVerbose = True) Begin
+                    Move (CS_VerifyCredentials * CS_VerboseParam * CS_DefAuthVerPolicy) to sParams
+                End
+                Else Begin
+                    Move (CS_VerifyCredentials * CS_DefAuthVerPolicy) to sParams
+                End
+            Case Break
+
+            // Sign:
+            Case (iAction = CI_ActionSignFile)
+                Move False to bSHA256
+                Get SetupSignParameters bSHA256 bUseCertificateStore bUseTimeStamp bVerbose sDescription sOurWebSite sCredentialsPath sCredentialsFile sCredentialsPw sURLTimeStamp sPath sFileName to sParams
+
+//                Move (CS_SignCredentials * CS_DigestAlgorithm * CS_SHA1) to sParams
+//                If (bUseCertificateStore = True) Begin
+//                    Move (sParams * CS_VerifyFileParam) to sParams
+//                End
+//                If (bVerbose = True) Begin
+//                    Move (sParams * CS_VerboseParam)    to sParams
+//                End
+//                If (sDescription <> "") Begin
+//                    Move (sParams * CS_DescriptionParam * '"' + sDescription + '"') to sParams
+//                End
+//                If (sOurWebSite <> "") Begin
+//                    Move (sParams * CS_WebURLParam * sOurWebSite) to sParams
+//                End
+//                If (bUseCertificateStore = False) Begin
+//                    Move (sParams * CS_FileParam * '"' + (sCredentialsPath + sCredentialsFile) + '"') to sParams
+//                    If (sCredentialsPw <> "") Begin
+//                        Move (sParams * CS_PasswordParam * sCredentialsPw) to sParams
+//                    End
+//                End
+//                If (bUseTimeStamp = True) Begin
+//                    Move (sParams * CS_TimeStampParam * sURLTimeStamp) to sParams
+//                End
+            Case Break
+
+            // Timestamp:
+            Case (iAction = CI_ActionTimeStampFile)
+                If (bVerbose = True) Begin
+                    Move (CS_TimeStampCredentials * CS_VerboseParam * CS_TimeStampParam * sURLTimeStamp) to sParams
+                End
+                Else Begin
+                    Move (CS_TimeStampCredentials * CS_TimeStampParam * sURLTimeStamp) to sParams
+                End
+            Case Break
+
+            // Timestamp Info:
+            Case (iAction = CI_ActionTimeStampFileInfo)
+                Move (CS_VerifyCredentials * CS_VerboseParam * CS_DefAuthVerPolicy) to sParams
+            Case Break
+        Case End
+
+        // In order to support Windows XP SP3 and Windows Vista you need to dual sign and include an SHA1 file digest.
+        // Dual signing attaches both a SHA1 and a SHA256 signature to the program file.
+        // Parameters to pass to the signtool program for DUAL signing of a program file:
+        // 1. signtool.exe sign /f MyCert.pfx /p <PFX password>  /t http://timestamp.comodoca.com /v foo.exe
+        //
+        // 2. signtool.exe sign /f MyCert.pfx /p <PFX password> /fd sha256 /tr http://timestamp.comodoca.com/?td=sha256 /td sha256 /as /v foo.exe
+        // Run BOTH of those signtool.exe commands.
+        //
+        // Note that for this to work on a Windows 7 machine running 64-bits the following Windows update must be in place:
+        // "Security Update for Windows 7 for x64-based Systems (KB3033929)" (Google it)
+        //
+        Move (sParams * '"' + sPath + sFileName + '"') to sParams
+        // 1. Signing with SHA1
+        Get ExternalProgramResult of ghoExternalProgramResult CS_CredentialsProgram sParams sProgramPath (&sOutputArray) to iRetval
+        If (iRetval = 0 and iAction = CI_ActionSignFile) Begin
+            Move True to bSHA256
+            Move True to bUseTimeStamp
+            Get SetupSignParameters bSHA256 bUseCertificateStore bUseTimeStamp bVerbose sDescription sOurWebSite sCredentialsPath sCredentialsFile sCredentialsPw sSHA256URLTimeStamp sPath sFileName to sParams
+            // 2. Signing with SHA256
+            Get ExternalProgramResult of ghoExternalProgramResult CS_CredentialsProgram sParams sProgramPath (&sOutputArray) to iRetval
+        End
+
+        Move iRetval to CertificateResult.iRetval
+        Move "" to sText
+        Move True to bFirstNumbersOf
+
+        // Parse the output array & format text for info_box:
+        //
+        Move (SizeOfArray(sOutputArray)) to iItems
+        Decrement iItems
+        For iCount from 0 to iItems
+            Move sOutputArray[iCount] to sValue
+            // I see no point in displaying the hash number and it is therefore
+            // removed from the output.
+            If (Lowercase(sValue) contains CS_TimeStampSHA1Text and Lowercase(sValue) contains CS_TimeStampHashText) Begin
+                Move "\x" to sValue
+            End
+            If (bFirstNumbersOf = True and Lowercase(sValue) contains CS_VerifyNumbersOf) Begin
+                Move (sText + "\n") to sText
+                Move False to bFirstNumbersOf
+            End
+            Case Begin
+                Case (iAction = CI_ActionSignFile)
+                    If (sValue <> "") Begin
+                        Move (sText + String(sValue) + "\n") to sText
+                    End
+                    Case Break
+                Case (iAction = CI_ActionVerifyFile)
+                    If (Lowercase(sValue) contains CS_TimeStampCredentials) Begin
+                        Move True to bTimeStampFound
+                    End
+                    Else If (Lowercase(sValue) contains CS_CertificateVerified) Begin
+                        Move False to bTimeStampFound
+                    End
+                    If (bTimeStampFound = False) Begin
+                        If (sValue <> "") Begin
+                            Move (sText + String(sValue) + "\n") to sText
+                        End
+                    End
+                    If (sValue contains CS_ProgramNotSignedText) Begin
+                        Move sValue to sText
+                    End
+                    If (Trim(sValue) contains CS_ProgramtamperedWith) Begin
+                        Move sValue to sText
+                    End
+                    Case Break
+                Case (iAction = CI_ActionTimeStampFile)
+                    If (sValue <> "") Begin
+                        If (Lowercase(sValue) contains CS_FileMustBeSigned) Begin
+                            Move (sText + String(sValue)) to sText
+                        End
+                        Else If (Lowercase(sValue) contains CS_BeTimestamped) Begin
+                            Move (Ltrim(sValue)) to sValue
+                            Move (sText * String(sValue) + "\n\n") to sText
+                        End
+                        Else Begin
+                            Move (sText + String(sValue) + "\n") to sText
+                        End
+                    End
+                    Case Break
+                Case (iAction = CI_ActionTimeStampFileInfo)
+                    If (sValue <> "") Begin
+                        If (Lowercase(sValue) contains CS_SignatureIsTimeStamped or Lowercase(sValue) contains CS_TimeStampVerifiedBy) Begin
+                            Move True to bTimeStampFound
+                        End
+                        Else If (Lowercase(sValue) contains CS_NumberOfFiles) Begin
+                            Move False to bTimeStampFound
+                        End
+                        If (bVerbose = False and Lowercase(sValue) contains CS_TimeStampVerifiedBy) Begin
+                            Move False to bTimeStampFound
+                        End
+                        If (Lowercase(sValue) contains CS_TimestampSignatureText) Begin
+                            Move ("\n" + sValue) to sValue
+                        End
+                        If (bTimeStampFound = True) Begin
+                            Move (sText + String(sValue) + "\n") to sText
+                        End
+                        Else If (Lowercase(sValue) contains CS_VerifyCredentials) Begin
+                            Move (sText + String(sValue) + "\n") to sText
+                        End
+                        Else If (Lowercase(sValue) contains CS_VerifyNumbersOf) Begin
+                            Move (sText + String(sValue) + "\n") to sText
+                            Move True to bTimeStampFound
+                        End
+                    End
+                    Case Break
+            Case End
+        Loop
+
+        // Remove temporary markers
+        Move (Replaces("\x", sText, "")) to sText
+        Move sText to CertificateResult.sText
+
+        Function_Return CertificateResult
+    End_Function
+
+    // Message will perform an operation on a file with the application
+    // registered in the Windows Registry. To open a file (via its extension)
+    // the sOperation would be "open" (it could also be , "print", "edit" etc).
+    Procedure DoStartDocument String sOperation String sDocument
+        Handle hInstance hWnd
+        Get Window_Handle to hWnd
+        Move (vWin32_ShellExecute (hWnd, sOperation, (Trim (sDocument)), '', '', 1)) to hInstance
+    End_Procedure
+
+    // Please see: Function FileTimeWinApi for usage.
+    Procedure Set FileTimeWinApi String sFileName tWinFileTimeDC stFileTime
+        Handle hFileName
+        Integer iRetval
+
+        Get _WinAPIOpenFileForReadAndWrite sFileName to hFileName
+        If (hFileName <> 0) Begin
+            Get _WinAPISetFileTime hFileName stFileTime  to iRetval
+            Get _WinAPICloseFile hFileName   to iRetval
+        End
+    End_Procedure
+
+    // The return value for this function is a struct with two DWord datetime values.
+    // These values are _not_ DateTime values. The return value only makes
+    // sense if used together with the Set FileTimeWinApi function.
+    // It can be used to e.g. reset the the file date to a previous value.
+    // First do a "Get FileTimeWinApi to MyVar", then manipulate the file somehow
+    // that changes the file date & finally do a "Set FileTimeWinApi hFile to MyVar",
+    // to reset the file date value. This is used by e.g. the "SignExeFileDigitally" message.
+    // NOTE: To get the file datetime as a DataFlex DateTime value; use the
+    //       "WinAPIFileTimeToDateTime" function.
+    Function FileTimeWinApi String sFileName Returns tWinFileTimeDC
+        tWinFileTimeDC stFileTime
+        Handle hFileName
+        Integer iRetval
+
+        Get _WinAPIOpenFileForReadAndWrite sFileName to hFileName
+        If (hFileName <> 0) Begin
+            Get _WinAPIGetFileTime hFileName to stFileTime
+            Get _WinAPICloseFile hFileName   to iRetval
+            Move 0 to stFileTime.iError
+        End
+        Else Begin
+            Move 1 to stFileTime.iError
+        End
+
+        Function_Return stFileTime
+    End_Function
+
+    // Message that checks if the credentials program (signtool.exe) exists
+    // in the current programs folder (same as the running program).
+    // If it doesn't we will try to create it from memory, as it is embedded as a resource.
+    // Returns True if it exists or was successfully created.
+    Function IsSignToolProgram Returns Boolean
+        String sPath sFileName sMemFileName
+        Boolean bExists
+
+        Get ApplicationPath     to sPath
+        Get vFolderFormat sPath to sPath
+        Move (sPath + CS_CredentialsProgram) to sFileName
+        Get vFilePathExists sFileName to bExists
+        If (bExists = False) Begin
+            // Read from memory & create the file on disk.
+            Move  "Resource:res_Install_SignTool" to sMemFileName
+            Send CreateFileFromMemory sMemFileName sFileName
+        End
+        Get vFilePathExists sFileName to bExists
+        Function_Return bExists
+    End_Function
+
+    // Signs a Program/OCX/DLL-file with a digital software certificate.
+    // Pass a tCertificateParams struct with the correct parameters set & optionally also a tCertificateCredentials struct.
+    // If the best certficate available on the machine should automatically be selected you can leave out the
+    // tCertificateCredentials struct.
+    // The difference between the procedure & function with the same name is that (this) procedure has a
+    // user interface - i.e. it also shows the result in a message box to the user.
+    // Uses the CS_CredentialsProgram command line program to do the actual signing.
+    Procedure SignFile tCertificateParams CertificateParams tCertificateCredentials CertificateCredentialsX
+        String sOutput
+        Integer iRetval
+        tCertificateCredentials CertificateCredentials
+        tCertificateResult CertificateResult
+
+        Send Cursor_Wait of (Cursor_Control(Self))
+
+        If (num_arguments > 1) Begin
+            Move CertificateCredentialsX to CertificateCredentials
+        End
+        Get SignFile CertificateParams CertificateCredentials to CertificateResult
+
+        Move CertificateResult.iRetval to iRetval
+        Move CertificateResult.sText   to sOutput
+        Send Cursor_Ready of (Cursor_Control(Self))
+
+        If (iRetval = 0) Begin
+            Send Info_Box ("The executable was successfully digitally signed.\n\n" + sOutput)
+        End
+        Else Begin
+            If (sOutput contains CS_CredentialsPwError) Begin
+                Move (sOutput * "\n\nIMPORTANT: This may also suggest that the executable file already contains a digital certificate!") to sOutput
+                Send Info_Box sOutput
+            End
+            Else If (sOutput contains CS_Capicom20NotInstalled) Begin
+                Get YesNo_Box ("Is the program running that you're trying to sign? Or is specified digital certificate file is missing - or - the CAPICOM 2.0 redistributable that is required by the credentials program is not installed on your local computer. Would you like to visit the CAPICOM download page now?") to iRetval
+                If (iRetval = MBR_Yes) Begin
+                    Send DoStartDocument "open" CS_CapicomDownloadPage
+                End
+            End
+            Else Begin
+                Send Info_Box sOutput
+            End
+        End
+
+    End_Procedure
+
+    // Signs a Program/OCX/DLL-file with a digital software certificate.
+    // Send by the SignFile procedure.
+    // Pass a tCertificateParams struct with the correct parameters set & optionally also a tCertificateCredentials struct.
+    // If the best certficate available on the machine should automatically be selected you can leave out the
+    // tCertificateCredentials struct.
+    // It will reset the "Date modified" for the past filename to _not_ make
+    // the Studio want to re-compile the program.
+    // It does only return the result and does not show any info to the user.
+    Function SignFile tCertificateParams CertificateParams tCertificateCredentials CertificateCredentialsX Returns tCertificateResult
+        tCertificateCredentials CertificateCredentials
+        tCertificateResult CertificateResult
+        tWinFileTimeDC stFileTime
+        Boolean bUseCertificateStore
+        String sPath sFileName
+
+        Move True to bUseCertificateStore
+        If (num_arguments > 1) Begin
+            // We do like this to allow to optionally pass a second parameter to this message.
+            Move CertificateCredentialsX to CertificateCredentials
+            If (Trim(CertificateCredentials.sCredentialsFile) <> "") Begin
+                Move False to bUseCertificateStore
+            End
+        End
+
+        Move (Trim(CertificateParams.sProgramPath)) to sPath
+        Get vFolderFormat sPath                     to sPath
+        Move (Trim(CertificateParams.sFileName))    to sFileName
+        Move (Replace(Lowercase(CS_ManifestExtension), Lowercase(sFileName), "")) to sFileName
+        // Before doing the actual signing we will get & save the last modified datetime and restore it after signing.
+        // This way the Studio doesn't want to recompile the program.
+        Get FileTimeWinApi (sPath + sFileName) to stFileTime
+
+        Get DigitalCertificateAction CertificateParams CI_ActionSignFile CertificateCredentials to CertificateResult
+
+        // And reset the last modified datetime of the file to what it was before signing the file:
+        Set FileTimeWinApi (sPath + sFileName) to stFileTime
+
+        Function_Return CertificateResult
+    End_Function
+
+    // Time stamps the passed file's digital certificate.
+    // In many cases, an expired certificate means that the signature validation will fail and a trust warning will appear.
+    // Time-stamping was designed to alleviate this problem. The idea is that at the time, at which the code is signed,
+    // the certificate was confirmed to be valid and, therefore, the signature is valid. This is much the same as a handwritten signature.
+    // The main benefit is that it extends code trust beyond the validity period of the certificate. The code stays good as
+    // long as you can run it. Also, down the road the certificate may be revoked and the code will still be trusted.
+    //
+    // Pass a tCertificateParams struct with the correct parameters set.
+    // The difference between the procedure & function with the same name is that the procedure has a
+    // user interface - i.e. it also shows the result in a message box.
+    Procedure TimeStampFile tCertificateParams CertificateParams
+        Integer iRetval
+        String sText
+        tCertificateResult CertificateResult
+
+        Send Cursor_Wait of Cursor_Control
+
+        Get TimeStampFile CertificateParams to CertificateResult
+
+        Move CertificateResult.iRetval to iRetval
+        Move CertificateResult.sText   to sText
+        Send Cursor_Ready of Cursor_Control
+
+        If (iRetval = 0) Begin
+            Move (Message_Box(sText, C_$Information, MB_OK, MB_ICONINFORMATION)) to iRetval
+        End
+        Else If (iRetval = 1) Begin
+            Move (Message_Box(sText, "Warning", MB_OK, MB_ICONWARNING)) to iRetval
+        End
+        Else If (iRetval = 2) Begin
+            Move (Message_Box(sText, C_$Error, MB_OK, MB_ICONSTOP)) to iRetval
+        End
+
+    End_Procedure
+
+    // Time stamps the passed file's digital certificate.
+    // Pass a tCertificateParams struct with the correct parameters set.
+    // Send by the TimeStampFile procedure.
+    // It does only return the result and does not show any info to the user.
+    Function TimeStampFile tCertificateParams CertificateParams Returns tCertificateResult
+        tCertificateResult CertificateResult
+
+        Move True to CertificateParams.bUseTimeStamp
+        Get DigitalCertificateAction CertificateParams CI_ActionTimeStampFile to CertificateResult
+
+        Function_Return CertificateResult
+    End_Function
+
+    // Checks if a file with a digital certificate has been timestamped.
+    //
+    // Pass a tCertificateParams struct with the correct parameters set.
+    // The difference between the procedure & function with the same name is that the procedure has a
+    // user interface - i.e. it also shows the result in a message box.
+    Procedure ValidateTimeStamp tCertificateParams CertificateParams
+        Integer iRetval
+        String sText
+        tCertificateResult CertificateResult
+
+        Send Cursor_Wait of Cursor_Control
+
+        Get ValidateTimeStamp CertificateParams to CertificateResult
+
+        Move CertificateResult.iRetval to iRetval
+        Move CertificateResult.sText   to sText
+        Send Cursor_Ready of Cursor_Control
+
+        If (iRetval = 0) Begin
+            Move (Message_Box(sText, C_$Information, MB_OK, MB_ICONINFORMATION)) to iRetval
+        End
+        Else If (iRetval = 1) Begin
+            Move (Message_Box(sText, "Warning", MB_OK, MB_ICONWARNING)) to iRetval
+        End
+        Else If (iRetval = 2) Begin
+            Move (Message_Box(sText, C_$Error, MB_OK, MB_ICONSTOP)) to iRetval
+        End
+
+    End_Procedure
+
+    // Checks if a file with a digital certificate has been timestamped.
+    // Send by the ValidateTimeStamp procedure.
+    // Pass a tCertificateParams struct with the correct parameters set.
+    // It only returns the result and does not show any info to the user.
+    Function ValidateTimeStamp tCertificateParams CertificateParams Returns tCertificateResult
+        tCertificateResult CertificateResult
+
+        Get DigitalCertificateAction CertificateParams CI_ActionTimeStampFileInfo to CertificateResult
+
+        Function_Return CertificateResult
+    End_Function
+
+    // Verifies if a digital certificate exists or not.
+    // This message is similar to the ValidateProgramOnStartup message, but
+    // it just reports the result from the certificate validation. It does
+    // not take any actions if there is something wrong.
+    // Pass the full path, the filename and a boolean if the output should be verbose or not.
+    // An message with the result will be shown after validation.
+    //
+    // Pass a tCertificateParams struct with the correct parameters set.
+    // The difference between the procedure & function with the same name is that the procedure has a
+    // user interface - i.e. it also shows the result in a message box.
+    Procedure ValidateFile tCertificateParams CertificateParams
+        String sOutput
+        Integer iRetval
+        tCertificateResult CertificateResult
+
+        Send Cursor_Wait of Cursor_Control
+
+        Get ValidateFile CertificateParams to CertificateResult
+
+        Move CertificateResult.iRetval to iRetval
+        Move CertificateResult.sText   to sOutput
+        Send Cursor_Ready of Cursor_Control
+
+        If (iRetval = 0) Begin
+            Move (Message_Box(sOutput, C_$Information, MB_OK, MB_ICONINFORMATION)) to iRetval
+        End
+        Else If (iRetval = 1) Begin
+            Move (Message_Box(sOutput, "Warning", MB_OK, MB_ICONWARNING)) to iRetval
+        End
+        Else If (iRetval = 2) Begin
+            Move (Message_Box(sOutput, C_$Error, MB_OK, MB_ICONSTOP)) to iRetval
+        End
+
+    End_Procedure
+
+    // Verifies if a digital certificate exists or not.
+    // Pass a tCertificateParams struct with the correct parameters set.
+    // Send by the ValidateFile procedure.
+    // It only returns the result and does not show any info to the user.
+    Function ValidateFile tCertificateParams CertificateParams Returns tCertificateResult
+        tCertificateResult CertificateResult
+
+        Get DigitalCertificateAction CertificateParams CI_ActionVerifyFile to CertificateResult
+        Function_Return CertificateResult
+    End_Function
+
+    // To convert a return value from the FileTimeWinApi function to a DataFlex DateTime variable.
+    // Second parameter is optional and is a boolean (True/Fale) to denote if to convert to local time or not.
+    // It is very uncommon _not_ to pass a TRUE here (if you pass the second parameter.
+    // This function code is courtesy of Vincent Oorsprong.
+    Function WinAPIFileTimeToDateTime tWinFileTimeDC iFileTime Boolean bConvertToLocalFileTimexx Returns DateTime
+        String sFormattedTime sFormattedDate
+        Integer iSuccess iDataLength
+        tSystemTime iSystemTime
+        tWinFileTimeDC iLocalFileTime
+        DateTime dtResult
+        Boolean bConvertToLocalFileTime
+
+        Move False to bConvertToLocalFileTime
+        If (num_arguments > 1) Begin
+            Move bConvertToLocalFileTimexx to bConvertToLocalFileTime
+        End
+
+        If (bConvertToLocalFileTime) Begin
+            Move (FileTimeToLocalFileTime(AddressOf(iFileTime), AddressOf(iLocalFileTime))) to iSuccess
+            If (iSuccess <> 0) Begin
+                Move iLocalFileTime to iFileTime
+            End
+        End
+
+        Move (FileTimeToSystemTime(AddressOf(iFileTime), AddressOf(iSystemTime) )) to iSuccess
+        If (iSuccess <> 0) Begin
+            Move (Repeat(Character(0), 255)) to sFormattedTime
+            Move (GetTimeFormat(Locale_User_Default, 0, AddressOf(iSystemTime), 0, AddressOf(sFormattedTime), 255)) to iDataLength
+
+            Move (Repeat(Character(0), 255)) to sFormattedDate
+            Move (GetDateFormat(Locale_User_Default, 0, AddressOf(iSystemTime), 0, AddressOf(sFormattedDate), 255)) to iDataLength
+
+            Move (Cstring(sFormattedDate) * Cstring(sFormattedTime) ) to dtResult
+        End
+
+        Function_Return dtResult
+    End_Function
+
+    { Visibility=Private MethodType=Event  NoDoc=True }
+    Function _WinAPIGetFileTime Handle hFileName Returns tWinFileTimeDC
+        tWinFileTimeDC stFileTime
+        Integer iRetval
+
+        Move (fGetFileTime(hFileName, CI_SimpleNullMember, CI_SimpleNullMember, AddressOf(stFileTime))) to iRetval
+        Function_Return stFileTime
+    End_Function
+
+    { Visibility=Private MethodType=Event  NoDoc=True }
+    Function _WinAPISetFileTime Handle hFileName tWinFileTimeDC stFileTime Returns Integer
+        Integer iRetval
+
+        Move (fSetFileTime(hFileName, CI_SimpleNullMember, CI_SimpleNullMember, AddressOf(stFileTime))) to iRetval
+        Function_Return iRetval
+    End_Function
+
+    // Opens a file with the WinAPI CreateFile function for read & write.
+    // When using the WinAPI GetFileTime & SetFileTime functions, the file first needs to be opened with the
+    // WinAPI CreateFileA function (Yes, it also _opens_ a file). The returned file handle from this function is needed by
+    // the WinAPI GetFileTime & SetFileTime functions.
+    // If it fails a 0 (zero) is returned.
+    { Visibility=Private MethodType=Event  NoDoc=True }
+    Function _WinAPIOpenFileForReadAndWrite String sFilename Returns Handle
+        Integer iRetVal iErrornumber
+        String sFilenameANSI
+
+        Move (Utf8ToAnsi(sFilename)) to sFilenameANSI
+        Append sFilenameANSI (Character(0)) (Character(0))
+
+        Move (fCreatefile(AddressOf(sFilenameANSI), CI_Generic_Random, CI_File_Share_Random, CI_FNull, CI_Open_Existing, CI_File_Attribute_Normal, CI_FNull)) to iRetVal
+        If (iRetVal = INVALID_HANDLE_VALUE) Begin
+            Move (GetLastError()) to iErrornumber
+            Send Info_Box (C_$Error + ":" * String(iErrornumber) * "Could not open file:\n" + sFilename)
+            Function_Return 0
+        End
+
+        Function_Return iRetVal
+    End_Function
+
+    // Closes a file that has previously been opened with WinAPIOpenFileForReadAndWrite
+    // Pass the handle that was returned from that function to close it.
+    // Returns True if successful.
+    { Visibility=Private MethodType=Event  NoDoc=True }
+    Function _WinAPICloseFile Handle hFileName Returns Boolean
+        Integer iRetval
+        Move (fCloseHandle(hFileName)) to iRetVal
+        Function_Return (iRetVal <> 0)
+    End_Function
+
+    // Dummy message. It is here for the compiler to embed the signtool.exe in the program.
+    { Visibility=Private  MethodType=Event  NoDoc=True }
+    Procedure _DummyEmbedSignTool
+        Include_Resource ..\Programs\signtool.exe as res_Install_SignTool Type DF_RESOURCE_TYPE_BINARY
+    End_Procedure
+
+End_Class

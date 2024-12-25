@@ -1,0 +1,34 @@
+Use Windows.pkg
+Use dfBitmap.pkg
+Use cRDCModalPanel.pkg
+Use cRDCButton.pkg
+
+Object oImageViewer is a cRDCModalPanel
+    Set Size to 237 390
+    Set Label to "Image Viewer"
+
+    Object oCancel_Btn is a cRDCButton
+        Set Label    to "Close"
+        Set Status_Help to "Close Panel"
+        Set Location to 214 336
+        Set peAnchors to anBottomRight
+
+        Procedure OnClick
+            Send Close_Panel
+        End_Procedure
+
+        On_Key kCancel Send Close_Panel
+    End_Object
+
+    Object oImageContainer_bc is a BitmapContainer
+        Set Location to 0 0
+        Set Size to 208 390
+        Set peAnchors to anAll
+        Set Bitmap to CS_AssembliesImage
+        Set Skip_State to True
+        Set Color to clwhite
+        Set Border_Style to Border_ClientEdge
+        On_Key kCancel Send Close_Panel
+    End_Object
+
+End_Object

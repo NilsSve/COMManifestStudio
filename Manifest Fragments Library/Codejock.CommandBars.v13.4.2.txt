@@ -1,0 +1,11 @@
+// This is a standard CodeJock component that comes with Visual DataFlex 16.0, 16,1 and 17.0
+// Comprehensive, fully customizable menus and toolbars.
+// http://www.codejock.com/products/commandbars/?2yn6s14z=p1z
+<file name="Codejock.CommandBars.v13.4.2.ocx">
+	<comClass clsid="{49529f28-4246-43e8-ae29-e386aa899ab2}" description="Xtreme CommandBars Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,invisibleatruntime,nouiactivate" progid="Codejock.CommandBars.13.4.2"></comClass>
+	<comClass clsid="{060e8592-a2bf-432a-a8d7-329ed015ba56}" description="Xtreme CommandBars Frame Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="Codejock.CommandBarsFrame.13.4.2"></comClass>
+	<comClass clsid="{b2f3aaf2-6669-49c0-a3e9-329a842a37b7}" description="Xtreme ImageManager Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,invisibleatruntime,setclientsitefirst" progid="Codejock.ImageManager.13.4.2"></comClass>
+	<comClass clsid="{cf36476e-736f-4198-a4aa-89c486c42b19}" description="Xtreme PrintPreview Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.PrintPreview.13.4.2"></comClass>
+	<comClass clsid="{8f88ecab-3ffc-4488-ab2c-3d3c0987a7ad}" description="Codejock.CommandBarsGlobalSettings.13.4.2" progid="Codejock.CommandBarsGlobalSettings.13.4.2"></comClass>
+	<typelib tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" resourceid="1" version="13.4" helpdir=""></typelib>
+</file>

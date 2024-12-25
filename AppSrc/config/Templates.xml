@@ -1,0 +1,10 @@
+<Templates>
+	<Template>
+		<ComponentType>4</ComponentType>
+		<Name>Config WizardDialog</Name>
+		<FileName>ConfigWizardDialog.tpl</FileName>
+		<ImageLarge/>
+		<BriefDescription>Config Wizard Template</BriefDescription>
+		<LongDescription>Creates a wizard dialog for program configuration.</LongDescription>
+	</Template>
+</Templates>

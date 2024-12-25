@@ -1,0 +1,6 @@
+Use VdfBase.pkg
+
+Struct tTypeFace
+    String sFaceName
+    Integer iHeight
+End_Struct

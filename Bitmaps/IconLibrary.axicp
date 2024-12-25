@@ -1,0 +1,796 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AxialisIconCollection>
+  <Name>IconLibrary</Name>
+  <Icon>
+    <Name>component-filled-folder</Name>
+    <StockIconName>component-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>folder.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>101</ResourceIDValue>
+    <ResourceID>ID_COMPONENT-FILLED-FOLDER</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>component-filled-remove</Name>
+    <StockIconName>component-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>remove.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>102</ResourceIDValue>
+    <ResourceID>ID_COMPONENT-FILLED-REMOVE</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>component-filled-ok</Name>
+    <StockIconName>component-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>ok.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>103</ResourceIDValue>
+    <ResourceID>ID_COMPONENT-FILLED-OK</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>component-filled-help</Name>
+    <StockIconName>component-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>help.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>104</ResourceIDValue>
+    <ResourceID>ID_COMPONENT-FILLED-HELP</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>dll-filled-remove</Name>
+    <StockIconName>dll-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>remove.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>105</ResourceIDValue>
+    <ResourceID>ID_DLL-FILLED-REMOVE</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>dll-filled-ok</Name>
+    <StockIconName>dll-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>ok.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>106</ResourceIDValue>
+    <ResourceID>ID_DLL-FILLED-OK</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>dll-filled-help</Name>
+    <StockIconName>dll-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>help.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>107</ResourceIDValue>
+    <ResourceID>ID_DLL-FILLED-HELP</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>form-wizard</Name>
+    <StockIconName>form-wizard.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Database</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>108</ResourceIDValue>
+    <ResourceID>ID_FORM-WIZARD</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>movie-reel-filled</Name>
+    <StockIconName>movie-reel-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Multimedia</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>109</ResourceIDValue>
+    <ResourceID>ID_MOVIE-REEL-FILLED</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>application-empty</Name>
+    <StockIconName>application-empty.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>110</ResourceIDValue>
+    <ResourceID>ID_APPLICATION-EMPTY</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>internet-download</Name>
+    <StockIconName>internet-download.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Web and Email</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>111</ResourceIDValue>
+    <ResourceID>ID_INTERNET-DOWNLOAD</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>internet-browser</Name>
+    <StockIconName>internet-browser.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Web and Email</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>112</ResourceIDValue>
+    <ResourceID>ID_INTERNET-BROWSER</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>internet-document</Name>
+    <StockIconName>internet-document.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Web and Email</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>113</ResourceIDValue>
+    <ResourceID>ID_INTERNET-DOCUMENT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>class-filled-help</Name>
+    <StockIconName>class-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>help.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>114</ResourceIDValue>
+    <ResourceID>ID_CLASS-FILLED-HELP</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>xml-tag-filled-ok</Name>
+    <StockIconName>xml-tag-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>ok.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>115</ResourceIDValue>
+    <ResourceID>ID_XML-TAG-FILLED-OK</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-circle-edit</Name>
+    <StockIconName>button-circle-edit.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Database</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>116</ResourceIDValue>
+    <ResourceID>ID_BUTTON-CIRCLE-EDIT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-circle-copy</Name>
+    <StockIconName>button-circle-copy.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Database</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>117</ResourceIDValue>
+    <ResourceID>ID_BUTTON-CIRCLE-COPY</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>build</Name>
+    <StockIconName>build.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>118</ResourceIDValue>
+    <ResourceID>ID_BUILD</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>xml-tag-filled-new</Name>
+    <StockIconName>xml-tag-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>new.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>119</ResourceIDValue>
+    <ResourceID>ID_XML-TAG-FILLED-NEW</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>xml-tag-filled-edit</Name>
+    <StockIconName>xml-tag-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>edit.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>120</ResourceIDValue>
+    <ResourceID>ID_XML-TAG-FILLED-EDIT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>xml-tag-filled-download</Name>
+    <StockIconName>xml-tag-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>download.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>121</ResourceIDValue>
+    <ResourceID>ID_XML-TAG-FILLED-DOWNLOAD</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>xml-tag-filled-share</Name>
+    <StockIconName>xml-tag-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>share.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>122</ResourceIDValue>
+    <ResourceID>ID_XML-TAG-FILLED-SHARE</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>certificate-business-filled</Name>
+    <StockIconName>certificate-business-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Business</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>123</ResourceIDValue>
+    <ResourceID>ID_CERTIFICATE-BUSINESS-FILLED</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>certificate-business-filled-info</Name>
+    <StockIconName>certificate-business-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Business</StockIconSet>
+    <StockOverlayName>info.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>124</ResourceIDValue>
+    <ResourceID>ID_CERTIFICATE-BUSINESS-FILLED-INFO</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>folder-open-filled</Name>
+    <StockIconName>folder-open-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>125</ResourceIDValue>
+    <ResourceID>ID_FOLDER-OPEN-FILLED</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>certificate-business-filled-add</Name>
+    <StockIconName>certificate-business-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Business</StockIconSet>
+    <StockOverlayName>add.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>126</ResourceIDValue>
+    <ResourceID>ID_CERTIFICATE-BUSINESS-FILLED-ADD</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>certificate-business-filled-database</Name>
+    <StockIconName>certificate-business-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Business</StockIconSet>
+    <StockOverlayName>database.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>127</ResourceIDValue>
+    <ResourceID>ID_CERTIFICATE-BUSINESS-FILLED-DATABASE</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>certificate-business-filled-find</Name>
+    <StockIconName>certificate-business-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Business</StockIconSet>
+    <StockOverlayName>find.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>128</ResourceIDValue>
+    <ResourceID>ID_CERTIFICATE-BUSINESS-FILLED-FIND</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>addin-filled-help</Name>
+    <StockIconName>addin-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>help.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>129</ResourceIDValue>
+    <ResourceID>ID_ADDIN-FILLED-HELP</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>addin-filled-ok</Name>
+    <StockIconName>addin-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>ok.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>130</ResourceIDValue>
+    <ResourceID>ID_ADDIN-FILLED-OK</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>addin-filled-remove</Name>
+    <StockIconName>addin-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>remove.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>131</ResourceIDValue>
+    <ResourceID>ID_ADDIN-FILLED-REMOVE</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>data-import</Name>
+    <StockIconName>data-import.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Database</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>132</ResourceIDValue>
+    <ResourceID>ID_DATA-IMPORT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>component-filled-add</Name>
+    <StockIconName>component-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>add.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>179</ResourceIDValue>
+    <ResourceID>ID_COMPONENT-FILLED-ADD</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>addin-filled-add</Name>
+    <StockIconName>addin-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>add.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>133</ResourceIDValue>
+    <ResourceID>ID_ADDIN-FILLED-ADD</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>file-source-folder</Name>
+    <StockIconName>file-source.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>folder.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>134</ResourceIDValue>
+    <ResourceID>ID_FILE-SOURCE-FOLDER</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-remove</Name>
+    <StockIconName>button-remove.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>135</ResourceIDValue>
+    <ResourceID>ID_BUTTON-REMOVE</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>command-undo-1</Name>
+    <StockIconName>command-undo-1.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>136</ResourceIDValue>
+    <ResourceID>ID_COMMAND-UNDO-1</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>project-find</Name>
+    <StockIconName>project.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>find.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>137</ResourceIDValue>
+    <ResourceID>ID_PROJECT-FIND</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>project-folder</Name>
+    <StockIconName>project.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>folder.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>138</ResourceIDValue>
+    <ResourceID>ID_PROJECT-FOLDER</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>project-add</Name>
+    <StockIconName>project.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>add.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>139</ResourceIDValue>
+    <ResourceID>ID_PROJECT-ADD</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>clear</Name>
+    <StockIconName>clear.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Spreadsheet</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>140</ResourceIDValue>
+    <ResourceID>ID_CLEAR</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-refresh</Name>
+    <StockIconName>button-refresh.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>141</ResourceIDValue>
+    <ResourceID>ID_BUTTON-REFRESH</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>select-none</Name>
+    <StockIconName>select-none.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>142</ResourceIDValue>
+    <ResourceID>ID_SELECT-NONE</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>select-inverse</Name>
+    <StockIconName>select-inverse.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>143</ResourceIDValue>
+    <ResourceID>ID_SELECT-INVERSE</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-circle-find</Name>
+    <StockIconName>button-circle-find.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Database</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>144</ResourceIDValue>
+    <ResourceID>ID_BUTTON-CIRCLE-FIND</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>paragraph-indent-right</Name>
+    <StockIconName>paragraph-indent-right.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Word Processing</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>145</ResourceIDValue>
+    <ResourceID>ID_PARAGRAPH-INDENT-RIGHT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>paragraph-indent-left</Name>
+    <StockIconName>paragraph-indent-left.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Word Processing</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>146</ResourceIDValue>
+    <ResourceID>ID_PARAGRAPH-INDENT-LEFT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>align-center</Name>
+    <StockIconName>align-center.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Word Processing</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>147</ResourceIDValue>
+    <ResourceID>ID_ALIGN-CENTER</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>align-right</Name>
+    <StockIconName>align-right.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Word Processing</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>148</ResourceIDValue>
+    <ResourceID>ID_ALIGN-RIGHT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>align-left</Name>
+    <StockIconName>align-left.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Word Processing</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>149</ResourceIDValue>
+    <ResourceID>ID_ALIGN-LEFT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>list-numbers</Name>
+    <StockIconName>list-numbers.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Word Processing</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>150</ResourceIDValue>
+    <ResourceID>ID_LIST-NUMBERS</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>list-bullets</Name>
+    <StockIconName>list-bullets.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Word Processing</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>151</ResourceIDValue>
+    <ResourceID>ID_LIST-BULLETS</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>text-box-adjust</Name>
+    <StockIconName>text-box-adjust.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Word Processing</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>152</ResourceIDValue>
+    <ResourceID>ID_TEXT-BOX-ADJUST</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>replace-find</Name>
+    <StockIconName>replace.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName>find.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>153</ResourceIDValue>
+    <ResourceID>ID_REPLACE-FIND</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>character-fonts</Name>
+    <StockIconName>character-fonts.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Spreadsheet</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>154</ResourceIDValue>
+    <ResourceID>ID_CHARACTER-FONTS</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>character-color-highlight</Name>
+    <StockIconName>character-color-highlight.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Word Processing</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>155</ResourceIDValue>
+    <ResourceID>ID_CHARACTER-COLOR-HIGHLIGHT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>command-redo-1</Name>
+    <StockIconName>command-redo-1.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>156</ResourceIDValue>
+    <ResourceID>ID_COMMAND-REDO-1</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>toggle-off</Name>
+    <StockIconName>toggle-off.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>157</ResourceIDValue>
+    <ResourceID>ID_TOGGLE-OFF</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>toggle-on</Name>
+    <StockIconName>toggle-on.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>158</ResourceIDValue>
+    <ResourceID>ID_TOGGLE-ON</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>select-all</Name>
+    <StockIconName>select-all.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>159</ResourceIDValue>
+    <ResourceID>ID_SELECT-ALL</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>save-filled</Name>
+    <StockIconName>save-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>160</ResourceIDValue>
+    <ResourceID>ID_SAVE-FILLED</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>settings-options</Name>
+    <StockIconName>settings-options.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>161</ResourceIDValue>
+    <ResourceID>ID_SETTINGS-OPTIONS</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-circle-browse-down</Name>
+    <StockIconName>button-circle-browse-down.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Database</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>162</ResourceIDValue>
+    <ResourceID>ID_BUTTON-CIRCLE-BROWSE-DOWN</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-circle-browse-page-next</Name>
+    <StockIconName>button-circle-browse-page-next.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Database</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>163</ResourceIDValue>
+    <ResourceID>ID_BUTTON-CIRCLE-BROWSE-PAGE-NEXT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-circle-browse-previous</Name>
+    <StockIconName>button-circle-browse-previous.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Database</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>164</ResourceIDValue>
+    <ResourceID>ID_BUTTON-CIRCLE-BROWSE-PREVIOUS</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-circle-browse-page-previous</Name>
+    <StockIconName>button-circle-browse-page-previous.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Database</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>165</ResourceIDValue>
+    <ResourceID>ID_BUTTON-CIRCLE-BROWSE-PAGE-PREVIOUS</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-circle-browse-next</Name>
+    <StockIconName>button-circle-browse-next.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Database</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>166</ResourceIDValue>
+    <ResourceID>ID_BUTTON-CIRCLE-BROWSE-NEXT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-circle-browse-down</Name>
+    <StockIconName>button-circle-browse-down.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Database</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>167</ResourceIDValue>
+    <ResourceID>ID_BUTTON-CIRCLE-BROWSE-DOWN_2</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>directions-run</Name>
+    <StockIconName>directions-run.axvi</StockIconName>
+    <StockIconFamily>Google Material Design</StockIconFamily>
+    <StockIconSet>Maps</StockIconSet>
+    <ColorizeOverlay>#ED1C24</ColorizeOverlay>
+    <Colorize>#ED1C24</Colorize>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>168</ResourceIDValue>
+    <ResourceID>ID_DIRECTIONS-RUN</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>zip</Name>
+    <StockIconName>zip.axvi</StockIconName>
+    <StockIconFamily>Axialis Flat Pro 2017</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>169</ResourceIDValue>
+    <ResourceID>ID_ZIP</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-help</Name>
+    <StockIconName>button-help.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>170</ResourceIDValue>
+    <ResourceID>ID_BUTTON-HELP</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>button-info</Name>
+    <StockIconName>button-info.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>171</ResourceIDValue>
+    <ResourceID>ID_BUTTON-INFO</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>clipboard-copy</Name>
+    <StockIconName>clipboard-copy.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>172</ResourceIDValue>
+    <ResourceID>ID_CLIPBOARD-COPY</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>clipboard-cut</Name>
+    <StockIconName>clipboard-cut.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>173</ResourceIDValue>
+    <ResourceID>ID_CLIPBOARD-CUT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>clipboard-paste</Name>
+    <StockIconName>clipboard-paste.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>174</ResourceIDValue>
+    <ResourceID>ID_CLIPBOARD-PASTE</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>exit</Name>
+    <StockIconName>exit.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>175</ResourceIDValue>
+    <ResourceID>ID_EXIT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>application-folder</Name>
+    <StockIconName>application.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName>folder.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>176</ResourceIDValue>
+    <ResourceID>ID_APPLICATION-FOLDER</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>xml-filled-folder</Name>
+    <StockIconName>xml-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>folder.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>177</ResourceIDValue>
+    <ResourceID>ID_XML-FILLED-FOLDER</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>addin-filled-folder</Name>
+    <StockIconName>addin-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Development</StockIconSet>
+    <StockOverlayName>folder.axvi</StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>178</ResourceIDValue>
+    <ResourceID>ID_ADDIN-FILLED-FOLDER</ResourceID>
+  </Icon>
+</AxialisIconCollection>

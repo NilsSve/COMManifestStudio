@@ -1,0 +1,8 @@
+// Sophisticated application skinning framework technology.
+// This is a one of three standard CodeJock components that comes with Visual DataFlex 18.0;
+// CodeJock.CommandBars.v16.3.1, Codejock.ReportControl.v16.3.1 & CodeJock.SkinFramework.v16.3.1
+<file name="Codejock.SkinFramework.v16.3.1.ocx">
+	<comClass clsid="{99467b6d-0b79-42cf-8e5a-72a16f213699}" description="Xtreme SkinFramework Control" tlbid="{BD0C1912-66C3-49CC-8B12-7B347BF6C846}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,nouiactivate,setclientsitefirst" progid="Codejock.SkinFramework.16.3.1"></comClass>
+	<comClass clsid="{74186e88-5551-4c00-8600-b617d22cf621}" description="Codejock.SkinFrameworkGlobalSettings.16.3.1" progid="Codejock.SkinFrameworkGlobalSettings.16.3.1"></comClass>
+	<typelib tlbid="{BD0C1912-66C3-49CC-8B12-7B347BF6C846}" resourceid="1" version="16.3" helpdir=""></typelib>
+</file>

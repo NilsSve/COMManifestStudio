@@ -1,0 +1,65 @@
+Use seq_chnl.pkg    // Sequential channel functions
+Use cRDCDbModalPanel.pkg
+Use cRDCDbRichEditor.pkg
+Use cRDCButton.pkg
+Use cManifestIniFile.pkg
+Use Symdef.pkg
+Use vWin32fh.pkg
+
+Object oDuplicateTypeLibsExplained_Dialog is a cRDCDbModalPanel
+    Set Label to "Duplicate TypeLibs/ProgID's Explained"
+    Set Size to 217 367
+    Set Icon to "ActionHelp.ico"
+
+    Object oInfo_Editor is a cRDCDbRichEditor
+        Set Size to 185 358
+        Set Location to 4 5
+        Set peAnchors to anAll
+        Set Read_Only_State to True
+        Set peAnchors to anAll
+        Set Border_Style to Border_None
+        Set TextBackColor to clHighlight
+        Set TextColor to clHighlightText
+
+        // Dummy message. It is here for the compiler to embed the help file
+        // into the program.
+        // The compiler will pick up the include_resource and read the file from
+        // the _Help_ folder.
+        Procedure _DummyEmbedFile
+            Include_Resource ..\Help\DuplicateTypeLibsExplained.rtf as res_DuplicateTypeLibsExplained Type DF_RESOURCE_TYPE_BINARY
+        End_Procedure
+
+        Procedure DoReadFile String sFileName Boolean bEmbedFile
+            If (bEmbedFile = True) Begin
+                Move  "Resource:res_DuplicateTypeLibsExplained" to sFileName
+            End
+
+            Forward Send DoReadFile sFileName bEmbedFile
+        End_Procedure
+
+        On_Key kCancel Send Close_Panel
+        On_Key kEnter  send Close_Panel
+    End_Object
+
+    Object oClose_btn is a cRDCButton
+        Set Size to 14 50
+        Set Label    to "Close"
+        Set Status_Help to "Close Panel"
+        Set Location to 196 313
+        Set peAnchors to anBottomRight
+        Set Default_State to True
+
+        Procedure OnClick
+           Send Close_Panel
+        End_Procedure
+
+    End_Object
+
+    Procedure Activating
+        Set TextFile of oInfo_Editor to CS_StartUpInfo True
+        Forward Send Activating
+    End_Procedure
+
+//    On_Key Key_Alt+Key_O Send KeyAction of oOk_btn
+    On_Key Key_Alt+Key_C Send KeyAction of oCancel_btn
+End_Object

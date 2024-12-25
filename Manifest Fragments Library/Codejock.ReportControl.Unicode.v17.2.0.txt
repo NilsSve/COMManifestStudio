@@ -1,0 +1,9 @@
+// Report Control version=17.2
+<file name="Codejock.ReportControl.Unicode.v17.2.0.ocx">
+	<comClass clsid="{fda14e54-e3f4-441c-b2c7-44e2fb9ac942}" description="Codejock.ReportRecord.17.2.0" progid="Codejock.ReportRecord.17.2.0"></comClass>
+	<comClass clsid="{a43143c7-09f9-47b4-bbb7-e674e682524d}" description="Xtreme Report Control" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.ReportControl.17.2.0"></comClass>
+	<comClass clsid="{995227e2-46b5-4e95-b3e8-f744b8b4523e}" description="Xtreme Track Control" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.TrackControl.17.2.0"></comClass>
+	<comClass clsid="{afa3e455-ca75-4550-93dc-79c8a46fdd94}" description="Xtreme Report FieldChooser" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.FieldChooser.17.2.0"></comClass>
+	<comClass clsid="{13e0271c-de37-424f-b52b-27e81cec31ea}" description="Codejock.ReportControlGlobalSettings.17.2.0" progid="Codejock.ReportControlGlobalSettings.17.2.0"></comClass>
+	<typelib tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" resourceid="1" version="17.2" helpdir=""></typelib>
+</file>

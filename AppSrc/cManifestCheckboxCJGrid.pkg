@@ -1,0 +1,499 @@
+﻿Use cCJCommandBarSystem.pkg
+Use cRDCCJGrid.pkg
+Use cCJGridColumn.pkg
+Use cCJGridColumnRowIndicator.pkg
+Use cManifestFunctionLibrary.pkg
+Use cManifestIniFile.pkg
+
+Register_Procedure Activate_Setup_Dialog
+Register_Procedure RefreshGrid
+Register_Procedure ToggleCurrentItem
+Register_Procedure SelectAll
+Register_Procedure SelectNone
+Register_Procedure SelectInvert
+
+Define clAlternateRowBgColor    for (RGB(216, 217, 227))    // HTML #D8D9E3
+Define clActiveRow              for (RGB(1, 82, 119))       // HTML #015277 
+Define clProgramIconBg          for (RGB(43, 59, 83))       // HTML #2B3B53
+
+#IFNDEF U_cManifestCJCheckBoxGridMenuItem
+    Class cManifestCJCheckBoxGridMenuItem is a cCJMenuItem
+        Procedure Construct_Object
+            Forward Send Construct_Object
+
+            Property Handle phoDestination (Parent(Parent(Self)))
+            Property Handle phmMessage
+            Property Handle phoMenuItem
+        End_Procedure
+
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoDest hmMessage hoMenuItem
+
+            Get phoDestination to hoDest
+            Get phmMessage to hmMessage
+
+            If (hmMessage <> 0) Begin
+                If (hoDest = 0) Begin
+                    Get Focus of Desktop to hoDest
+                End
+
+                Get phoMenuItem to hoMenuItem
+                If (hoMenuItem <> 0) Begin
+                    Send hmMessage of hoDest hoMenuItem
+                End
+                Else Begin
+                    Send hmMessage of hoDest
+                End
+            End
+        End_Procedure
+
+        // Will return true/false depending on if the current row is checked or not.
+        Function IsChecked Returns Boolean
+            Boolean bState
+            Handle hoDest hoCol
+            Integer iCol
+
+            Move False to bState
+            Get Focus of Desktop to hoDest
+            If (hoDest > 0) Begin
+                Get piCheckboxCol to iCol
+                If (iCol < 0) Begin
+                    Function_Return bState
+                End
+
+                Get ItemToColumnObject iCol to hoCol
+                If (hoCol <> 0) Begin
+                    Get SelectedRowValue of hoCol to bState
+                End
+            End
+            Function_Return bState
+        End_Function
+
+    End_Class
+#ENDIF
+
+Class cManifestCheckBoxContextMenu is a cCJContextMenu
+
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Object oOpenCurrentGridItem_MenuItem is a cManifestCJCheckBoxGridMenuItem
+            Set psCaption to "Edit File Under Cursor"
+            Set psDescription to "Opens the file under the cursor in the Editor"
+            Set psImage to "EditDocument.ico"
+            Set psShortcut to "Double-Click"
+            Set phmMessage to msg_DoOpenCurrentGridItem
+        End_Object
+
+        Object oToggleGridItem_MenuItem is a cManifestCJCheckBoxGridMenuItem
+            Set psCaption to "Toggle Current Item"
+            Set psDescription to "Toggles the item under the cursor on/off"
+            Set psShortcut to "Spacebar"
+            Set psImage        to "ToggleOff.ico"
+            Set psImageChecked to "ToggleOn.ico"
+            Set phmMessage to msg_ToggleCurrentItem
+        End_Object
+
+        Object oSelectAllGridItem_MenuItem is a cManifestCJCheckBoxGridMenuItem
+            Set psCaption to "Select &All"
+            Set psDescription to "Selects all items in the list"
+            Set psImage to "SelectAll.ico"
+            Set psShortcut to "Ctrl+A"
+            Set pbControlBeginGroup to True
+            Set phmMessage to msg_SelectAll
+        End_Object
+
+        Object oSelectNoneGridItem_MenuItem is a cManifestCJCheckBoxGridMenuItem
+            Set psCaption to "Select &None"
+            Set psDescription to "De-selects all items in the list"
+            Set psImage to "SelectNone.ico"
+            Set psShortcut to "Ctrl+N"
+            Set phmMessage to msg_SelectNone
+        End_Object
+
+        Object oSelectInvertGridItem_MenuItem is a cManifestCJCheckBoxGridMenuItem
+            Set psCaption to "&Invert Selections"
+            Set psDescription to "Inverts the selections"
+            Set psImage to "SelectInvert.ico"
+            Set psShortcut to "Ctrl+I"
+            Set phmMessage to msg_SelectInvert
+        End_Object
+
+        Object oOpenProgramsFolder_MenuItem is a cManifestCJCheckBoxGridMenuItem
+            Set psCaption to "&Open Programs Folder"
+            Set psDescription to "Open the manifest file's Programs folder in Windows Explorer"
+            Set psImage to "OpenProgramsFolder.ico"
+            Set psShortcut to "Ctrl+O"
+            Set pbControlBeginGroup to True
+            Set phmMessage to msg_DoOpenProgramsFolder
+        End_Object
+
+        Object oOpenFragmentLibrary_MenuItem is a cManifestCJCheckBoxGridMenuItem
+            Set psCaption to "Open Manifest Fragment &Library"
+            Set psDescription to "Open the local Manifest Fragment Library in Windows Explorer"
+            Set psImage to "FragmentLibrary.ico"
+            Set psShortcut to "Ctrl+L"
+            Set phmMessage to msg_DoOpenFragmentLibrary
+        End_Object
+
+        Object oOpenCOMLibrary_MenuItem is a cManifestCJCheckBoxGridMenuItem
+            Set psCaption to "Open Common COM Li&brary"
+            Set psDescription to "Open the local Common COM Library in Windows Explorer"
+            Set psImage to "COMLibrary.ico"
+            Set psShortcut to "Ctrl+B"
+            Set phmMessage to msg_DoOpenCOMFolder
+        End_Object
+
+        Object oRefreshGrid_MenuItem is a cManifestCJCheckBoxGridMenuItem
+            Set psCaption to "Refresh Grid"
+            Set psImage to "Refresh.ico"
+            Set psDescription to "Refresh the grid with Manifest Fragment files"
+            Set psShortcut to "F5"
+            Set pbControlBeginGroup to True
+            Set phmMessage to msg_RefreshGrid
+        End_Object
+
+    End_Procedure
+
+    Procedure OnCreate
+        Handle hoOptions
+        Integer iSize
+        
+        Forward Send OnCreate
+        
+        get piDesiredIconSize of ghoCommandBars to iSize
+        Get OptionsObject of ghoCommandBars to hoOptions
+        Send ComSetPopupIconSize of hoOptions iSize iSize
+        
+    End_Procedure
+
+End_Class
+
+Class cManifestCheckboxCJGrid is a cRDCCJGrid
+
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        // This must be set manually in the grid column object for the 'data' column (or one of them):
+        Property Handle phoData_Col 0
+        { Visibility=Private }
+        Property Handle phoCheckbox_Col 0
+
+        Property Handle piCheckboxCol       -1 // -1 means undefined 
+        
+        Property Handle piFileNameFirstCol  -1
+        Property Handle piFileNameSecondCol -1
+        Property Integer piCurrentRow -1
+        Property Boolean pbAutoCreateContextMenu True
+        Property Boolean pbHideFileNameSecondCol False
+        Property tFileStruct[] psFilesStructArray
+
+//        Set pbReadOnly to True 
+        
+//        Set pbShowRowFocus to True
+//        Set pbAllowInsertRow to False
+//        Set peAnchors to anAll
+//        Set pbRestoreLayout to True
+//        Set psLayoutSection to (Name(Self) + "_grid")
+//        Set pbHeaderPrompts to False
+//        Set pbSelectionEnable to True
+//        Set piTooltipMaxWidth to 400
+//        Set pbShowFooter to True
+//        Set pbAllowAppendRow to False
+//#IF (!@ > 210)
+//        Set peVisualTheme to xtpGridThemeVisualStudio2012Light
+//#ELSE
+//        Set peVisualTheme to xtpReportThemeVisualStudio2012Light
+//#ENDIF
+        On_Key Key_Ctrl+Key_A Send SelectAll
+        On_Key Key_Ctrl+Key_N Send SelectNone
+        On_Key Key_Ctrl+Key_I Send SelectInvert
+        On_Key Key_Ctrl+Key_L Send DoOpenFragmentLibrary
+        On_Key Key_Ctrl+Key_O Send DoOpenProgramsFolder
+        On_Key Key_Ctrl+Key_B Send DoOpenCOMFolder
+//        On_Key Key_F5         Send RefreshGrid
+        On_Key Key_Space Send ToggleCurrentItem
+    End_Procedure
+
+    Procedure End_Construct_Object
+        Handle hoContextMenu
+        Forward Send End_Construct_Object
+
+        If (pbAutoCreateContextMenu(Self)) Begin
+            Get Create (RefClass(cManifestCheckBoxContextMenu)) to hoContextMenu
+            If (hoContextMenu <> 0) Begin
+                Set phoContextMenu to hoContextMenu
+            End
+        End
+    End_Procedure
+
+    Procedure OnRowChanged Integer iOldRow Integer iNewSelectedRow
+        Forward Send OnRowChanged iOldRow iNewSelectedRow
+        Set piCurrentRow to iNewSelectedRow
+         // When changing to new row, update 'No of Rows'
+        Send DoSetCurrentRow
+    End_Procedure
+
+    // Returns the checked state for the checkbox column
+    // and the passed row number.
+    Function FindCheckedState Integer iRow Returns Boolean
+        Integer iCol
+        Handle hoDataSource
+        tDataSourceRow[] TheData
+        Boolean bChecked
+
+        Get piCheckboxCol to iCol
+        If (iCol < 0) Begin
+            Send UserError "No piCheckboxCol has been set. Cannot return value"
+            Procedure_Return
+        End
+        Get phoDataSource               to hoDataSource
+        Get DataSource of hoDataSource  to TheData
+        Move TheData[iRow].sValue[iCol] to bChecked
+
+        Function_Return bChecked
+    End_Function
+
+    // Returns the file name for the passed row and column ID number (zero based)
+    Function FindGridFileName Integer iRow Integer iColID Returns String
+        Integer iCol
+        Handle hoDataSource
+        tDataSourceRow[] TheData
+        String sRetval
+
+        // -1 denotes that the property has not been set.
+        If (iColID < 0) Begin
+            Send UserError "The column id cannot be < 0. Cannot return value"
+            Procedure_Return
+        End
+        If (iRow < 0) Begin
+            Procedure_Return
+        End
+
+        Get phoDataSource                 to hoDataSource
+        Get DataSource of hoDataSource    to TheData
+        Move TheData[iRow].sValue[iColID] to sRetval
+        Function_Return sRetval
+    End_Function
+
+    { EnumList="cx_Select_All, cx_Select_None, cx_Select_Invert" }
+    // Set checkboxes of the first column as selected.
+    // iState can be one of the following:
+    // cx_Select_All, cx_Select_None or cx_Select_Invert
+    Procedure Set SelectItems Integer iState
+        Integer i iItems
+        Integer iCheckbox_Col
+        Boolean bChecked
+        Handle hoDataSource
+        tDataSourceRow[] TheData
+        String[] sFilesArray
+
+        Get piCheckboxCol              to iCheckbox_Col
+        Get phoDataSource              to hoDataSource
+        Get DataSource of hoDataSource to TheData
+        Move (SizeOfArray(TheData))    to iItems
+        Decrement iItems
+        For i from 0 to iItems
+            Case Begin
+                Case (iState = cx_Select_All)
+                    Move True to TheData[i].sValue[iCheckbox_Col]
+                    Break
+                Case (iState = cx_Select_None)
+                    Move False to TheData[i].sValue[iCheckbox_Col]
+                    Break
+                Case (iState = cx_Select_Invert)
+                    Move TheData[i].sValue[iCheckbox_Col] to bChecked
+                    Move (not(bChecked)) to  TheData[i].sValue[iCheckbox_Col]
+                    Break
+            Case End
+        Loop
+        Send ReInitializeData TheData False
+        Send DoSetCheckboxFooterText
+
+    End_Procedure
+
+    // Selects all items
+    Procedure SelectAll
+        Set SelectItems to cx_Select_All
+    End_Procedure
+
+    // Deselects all items
+    Procedure SelectNone
+        Set SelectItems to cx_Select_None
+    End_Procedure
+
+    // Inverts the current selections
+    Procedure SelectInvert
+        Set SelectItems to cx_Select_Invert
+    End_Procedure
+
+    // Returns a string array with the selected file names.
+    Function SelectedItems Boolean bFileNameFirstCol Returns String[]
+        Integer[] SelRows
+        Integer i iItems iSize iCheckboxCol iFileNameFirstCol iFileNameSecondCol iFileNameCol iPos
+        String sFileName
+        String[] sFilesArray
+        Handle hoDataSource
+        tDataSourceRow[] TheData
+        Boolean bChecked
+
+        Get piCheckboxCol to iCheckboxCol
+        If (bFileNameFirstCol = True) Begin
+            Get piFileNameFirstCol to iFileNameCol
+        End
+        Else Begin
+            Get piFileNameSecondCol to iFileNameCol
+        End
+        Get phoDataSource to hoDataSource
+        Get DataSource of hoDataSource to TheData
+        Move (SizeOfArray(TheData)) to iItems
+        Decrement iItems
+
+        For i from 0 to iItems
+            Move TheData[i].sValue[iCheckboxCol] to bChecked
+            If (bChecked = True) Begin
+                Move (SizeOfArray(sFilesArray)) to iSize
+                Move TheData[i].sValue[iFileNameCol] to sFileName
+                // If this is a dependency file - remove the manifest fragment filename:
+                If (sFileName contains "(" and sFileName contains ")") Begin
+                    Move (Pos("(", sFileName)) to iPos
+                    Move (Left(sFileName, (iPos -2))) to sFileName
+                End
+                Move sFileName to sFilesArray[iSize]
+            End
+        Loop
+
+        Function_Return sFilesArray
+    End_Function
+
+    // Returns the number of items that has been selected.
+    // It is a bit confusing with the SelectedItems function above,
+    // but it is how it was designed from the beginning. The
+    // SelectedItems function returns an array of all selected files,
+    // while this function just returns the number of selected items only.
+    // The purpose is to use it in e.g. a checkbox grid column object
+    // to show the current no of selected items.
+    Function CheckedItems Returns Integer
+        Integer i iItems iCheckboxCol iRetval
+        Handle hoDataSource
+        tDataSourceRow[] TheData
+        Boolean bChecked
+
+        Get piCheckboxCol to iCheckboxCol
+        Get phoDataSource to hoDataSource
+        Get DataSource of hoDataSource to TheData
+        Move (SizeOfArray(TheData)) to iItems
+        Decrement iItems
+
+        For i from 0 to iItems
+            Move TheData[i].sValue[iCheckboxCol] to bChecked
+            If (bChecked = True) Begin
+                Increment iRetval
+            End
+        Loop
+
+        Function_Return iRetval
+    End_Function
+
+    // Toggles the current row on/off (the checkbox)
+    Procedure ToggleCurrentItem
+        Boolean bChecked
+        Integer iCol
+        Handle hoCol
+
+        If (pbReadOnly(Self)) Begin
+            Procedure_Return
+        End
+
+        Get piCheckboxCol       to iCol
+        Get ColumnObject iCol   to hoCol
+        Get SelectedRowValue    of hoCol to bChecked
+        Send UpdateCurrentValue of hoCol (not(bChecked))
+        Send Request_Save
+        Send DoSetCheckboxFooterText
+    End_Procedure
+
+    Procedure OnComMouseUp Short llButton Short llShift Integer llx Integer lly
+        Forward Send OnComMouseUp llButton llShift llx lly
+        Send Request_Save
+        Send DoSetCheckboxFooterText
+    End_Procedure
+
+    Procedure DoSetCheckboxFooterText
+        Integer iCol iSelected
+        Handle hoCol
+        Get piCheckboxCol to iCol
+        Get ColumnObject iCol to hoCol
+        Get CheckedItems to iSelected
+        Set psFooterText of hoCol to ("Selected:" * String(iSelected))
+    End_Procedure
+
+    // Hook-procedure to be used for filling the grid with data.
+    Procedure DoFillGrid
+    End_Procedure
+
+    Procedure Activating
+        Forward Send Activating
+        Send Cursor_Wait of Cursor_Control
+        Send DoFillGrid
+        // We need this for setting default row colors.
+        Send DoSetCurrentRow
+        Send Cursor_Ready of Cursor_Control
+    End_Procedure
+
+    // Opens the current pointed to file name in the editor
+    Procedure DoOpenCurrentGridItem
+        Integer iRow iCol
+        String  sFileName sEditor sEditorParams sPath
+
+        Get piCurrentRow       to iRow
+        // The first filename column should always be the one to open; i.e. the manifest fragment file.
+        Get piFileNameFirstCol to iCol
+        Get FindGridFileName iRow iCol to sFileName
+        If (sFileName contains ".txt") Begin
+            Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sPath
+            Get vFolderFormat of ghoManifestFunctionLibrary sPath to sPath
+            Get psFileEditor of ghoManifestIniFile to sEditor
+            Get psFileEditorParams of ghoManifestIniFile to sEditorParams
+            If (sEditorParams <> "") Begin
+                Runprogram Background sEditor ('"' + sEditorParams + '"' * '"' + sPath + sFileName + '"')
+            End
+            Else Begin
+                Runprogram Background sEditor ('"' + sPath + sFileName + '"')
+            End
+        End
+    End_Procedure
+
+    // Opens the current pointed to file name in an editor,
+    // when row is double-clicked.
+    Procedure OnRowDoubleClick Integer iRow Integer iCol
+        Forward Send OnRowDoubleClick iRow iCol
+        Send DoOpenCurrentGridItem
+    End_Procedure
+
+    // Opens the 'Manifest Fragment Library' with Windows Explorer
+    Procedure DoOpenFragmentLibrary
+        String sPath sManifestFragmentLibrary
+        Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sManifestFragmentLibrary
+        Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_ManifestFolder sManifestFragmentLibrary to sPath
+        Send vShellExecute "open" "Explorer.exe" sPath ""
+    End_Procedure
+
+    Procedure DoOpenProgramsFolder
+        String sPath
+        Get psTargetPath of ghoManifestFunctionLibrary to sPath
+        Send vShellExecute "open" "Explorer.exe" sPath ""
+    End_Procedure
+
+    Procedure DoOpenCOMFolder
+        String sPath
+        Get psCommonCOMLibrary of ghoManifestFunctionLibrary to sPath
+        Send vShellExecute "open" "Explorer.exe" sPath ""
+    End_Procedure
+
+    // Deletes all grid data and refills it.
+    Procedure RefreshGrid
+        Send DoFillGrid
+    End_Procedure
+
+End_Class

@@ -1,0 +1,233 @@
+Use Windows.pkg
+Use cCJStandardMenuItemClasses.pkg
+Use cCJDeoMenuItemClasses.pkg
+Use cManifestFunctionLibrary.pkg
+Use cDigitalSoftwareCertificate.pkg
+
+Object oDEOEditContextMenuManifest is a cCJContextMenu
+
+    Procedure OnCreate
+        Forward Send OnCreate
+        Send ComSetIconSize 24 24
+    End_Procedure
+
+    Object oBrowseForManifestFileMenuItem is a cCJMenuItem
+        Set psCaption to "&Browse for Manifest File"
+        Set psShortcut to "Ctrl+O"
+        Set psToolTip to "Browse for Manifest (Ctrl+O)"
+        Set psDescription to "Browse for an application manifest file. It should have the same name as the application with an added '.manifest' at the end. It is an XML file with information about how to run the executable for the operating system."
+        Set psImage to "FolderOpen.ico"
+        Procedure OnExecute Variant vCommandBarControl
+            Handle ho hoPath
+            Get phoMainPromptObject    of ghoApplication to ho
+            Get phoManifestPathObject  of ghoApplication to hoPath
+            Send SelectAppManifestFile of ghoManifestFunctionLibrary ho hoPath
+        End_Procedure
+    End_Object
+
+    Object oCheckAndMerge_MenuItem is a cCJMenuItem
+        Set psCaption to "&Build App Manifest File!"
+        Set psDescription to "Checks for duplicate TypeLibs and merges selected fragment files with the application manifest file."
+        Set psImage to "Build.ico"
+        Set psShortcut to "Alt+B"
+        Procedure OnExecute Variant vCommandBarControl
+            String sFileName
+            String[] sFilesArray
+
+            Forward Send OnExecute vCommandBarControl
+            Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFileName
+            Get SelectedItems of (phoManifest_grid(ghoApplication)) to sFilesArray
+            Send BuildManifestFile of ghoManifestFunctionLibrary sFileName sFilesArray
+        End_Procedure
+        Function IsEnabled Returns Boolean
+            String sManifestFile
+            Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+            Function_Return (sManifestFile <> "")
+        End_Function
+    End_Object
+
+    Object oCopyComponents_MenuItem is a cCJMenuItem
+        Set psCaption to "Co&py COM Components"
+        Set psDescription to "Copy COM (OCX/DLL) components to the application folder"
+        Set psImage to "CopyComponents.ico"
+        Set psShortcut to "Ctrl+P"
+        Procedure OnExecute Variant vCommandBarControl
+            String[] sSelectedFileNames
+
+            Forward Send OnExecute vCommandBarControl
+            Get SelectedItems of (phoManifest_grid(ghoApplication)) to sSelectedFileNames
+            Send CopyCOMComponents of ghoManifestFunctionLibrary sSelectedFileNames
+        End_Procedure
+        Function IsEnabled Returns Boolean
+            String sManifestFile
+            Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+            Function_Return (sManifestFile <> "")
+        End_Function
+    End_Object
+
+    Object oTestRunExeProgram_MenuItem is a cCJMenuItem
+        Set psCaption to "&Run Program"
+        Set psDescription to "Starts the executable to make sure the application manifest file is correct."
+        Set psImage to "RunProgram.ico"
+        Set psShortcut to "Ctrl+R"
+
+        Procedure OnExecute Variant vCommandBarControl
+            String sPath sProgramName
+            Forward Send OnExecute vCommandBarControl
+            Get psExeFilePath of ghoManifestFunctionLibrary to sPath
+            Get psExeFileName of ghoManifestFunctionLibrary to sProgramName
+            Runprogram Background (sPath + sProgramName)
+        End_Procedure
+
+        Function IsEnabled Returns Boolean
+            String sProgramName
+            Get psExeFileName of ghoManifestFunctionLibrary to sProgramName
+            Function_Return (sProgramName <> "")
+        End_Function
+
+    End_Object
+
+    Object oViewManifestFile_MenuItem is a cCJMenuItem
+        Set psCaption to "Edit Application Manifest &File"
+        Set psDescription to "Opens the application manifest file in the editor"
+        Set psImage to "EditDocument.ico"
+        Set psShortcut to "Alt+E"
+        Procedure OnExecute Variant vCommandBarControl
+            Forward Send OnExecute vCommandBarControl
+            Send EditAppManifestFile of ghoManifestFunctionLibrary
+        End_Procedure
+        Function IsEnabled Returns Boolean
+            String sManifestFile
+            Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+            Function_Return (sManifestFile <> "")
+        End_Function
+    End_Object
+
+    Object oEmbedManifestIntoApp_MenuItem is a cCJMenuItem
+        Set psCaption to "&Embed Manifest in Program"
+        Set psDescription to "Embeds the manifest file in the application (.exe) file"
+        Set psImage to "EmbedCode.ico"
+        Set psShortcut to "Ctrl+E"
+        Set pbControlBeginGroup to True
+        Procedure OnExecute Variant vCommandBarControl
+            Forward Send OnExecute vCommandBarControl
+            Send EmbedManifestInProgram of ghoManifestFunctionLibrary
+        End_Procedure
+        Function IsEnabled Returns Boolean
+            String sManifestFile
+            Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+            Function_Return (sManifestFile <> "")
+        End_Function
+    End_Object
+
+    Object oCompressApp_MenuItem is a cCJMenuItem
+        Set psCaption to "&Compress Exe File"
+        Set psDescription to "Compresses the application (.exe) file"
+        Set psImage to "Compress.ico"
+        Set psShortcut to "Ctrl+Z"
+        Procedure OnExecute Variant vCommandBarControl
+            Forward Send OnExecute vCommandBarControl
+            Send CompressExeFile of ghoManifestFunctionLibrary
+        End_Procedure
+        Function IsEnabled Returns Boolean
+            String sManifestFile
+            Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+            Function_Return (sManifestFile <> "")
+        End_Function
+    End_Object
+
+    Object oValidateFile_MenuItem is a cCJMenuItem
+        Set psCaption to "Check if signed"
+        Set psToolTip to "Check if file signed"
+        Set psDescription to "Checks if the file contains a valid digital certificate"
+        Set psImage to "DigitalVerification.ico"
+        Set psShortcut to "Ctrl+Y"
+        Procedure OnExecute Variant vCommandBarControl
+            String sYes
+            tCertificateParams CertificateParams
+
+            Forward Send OnExecute vCommandBarControl
+            Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath
+            Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
+            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState   "" to sYes
+            Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
+
+            Send ValidateFile of ghoDigitalSoftwareCertificate CertificateParams
+        End_Procedure
+
+        Function IsEnabled Returns Boolean
+            String sManifestFile
+            Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+            Function_Return (sManifestFile <> "")
+        End_Function
+    End_Object
+
+    Object oSignFile_MenuItem is a cCJMenuItem
+        Set psCaption to "Sign Digitally"
+        Set psToolTip to "Sign file with a digital certificate"
+        Set psDescription to "Sign the file with a digital certificate. The best digital certificate available on the machine will be automatically selected."
+        Set psImage to "DigitallySign.ico"
+        Set psShortcut to "Ctrl+G"
+        
+        Procedure OnExecute Variant vCommandBarControl
+            String sYes
+            tCertificateParams CertificateParams
+
+            Forward Send OnExecute vCommandBarControl
+
+            // We send the message to the ghoManifestFunctionLibrary object because we need to setup
+            // the tCertificateCredentials struct first.
+            Send SignFileDigitally of ghoManifestFunctionLibrary
+        End_Procedure
+
+        Function IsEnabled Returns Boolean
+            String sManifestFile
+            Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
+            Function_Return (sManifestFile <> "")
+        End_Function
+    
+    End_Object
+
+    Object oCutMenuItem is a cCJCutMenuItem
+        Set pbControlBeginGroup to True
+    End_Object
+
+    Object oCopyMenuItem is a cCJCopyMenuItem
+    End_Object
+
+    Object oPasteMenuItem is a cCJPasteMenuItem
+    End_Object
+
+//    Object oDeleteItem is a cCJDeleteEditMenuItem
+//    End_Object
+
+//    Object oSelectAllMenuItem is a cCJSelectAllMenuItem
+//        Set pbControlBeginGroup to True
+//        Set psImage to "SelectAll.ico"
+//    End_Object
+
+    Object oPromptMenuItem is a cCJPromptMenuItem
+        Set pbControlBeginGroup to True
+        Set psCaption to "Open Project"
+    End_Object
+
+    Object oFindNextMenu is a cCJFindNextMenuItem
+    End_Object
+
+    Object oFindPreviousMenu is a cCJFindPreviousMenuItem
+    End_Object
+
+    Object oClearMenuItem is a cCJClearMenuItem
+        Set pbControlBeginGroup to True
+    End_Object
+
+//    Object oClearAllMenu is a cCJClearAllMenuItem
+//    End_Object
+
+    Object oSaveMenu is a cCJSaveMenuItem
+    End_Object
+
+    Object oDeleteMenu is a cCJDeleteMenuItem
+    End_Object
+
+End_Object

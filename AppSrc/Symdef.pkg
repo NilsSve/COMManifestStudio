@@ -1,0 +1,315 @@
+Use cDigitalSoftwareCertificate.pkg
+
+Define CR_LF                   for (Character(13) + Character(10))
+Define CS_DQ                   for (Character(34) + Character(34)) // Double-quotation mark (")
+Define CS_VDFComment           for (Character(47) + Character(47)) // VDF standard comment (two forward slash'es)
+Define CS_DependencyStart      for (CS_VDFComment + "#=")          // Start string in fragment files for dependency files.
+Define CS_AppManifestFile      for "Manifest File"
+Define CS_ManifestFolder       for "Manifest Fragments Library"
+Define CS_IniFileFolder        for (psHome(phoWorkspace(ghoApplication)))
+Define CS_ManifestTextFolder   for (CS_IniFileFolder + CS_ManifestFolder)
+Define CS_CommonCOMFolderName  for "Common COM Library"
+Define CS_CommonCOMFolderPath  for (CS_IniFileFolder + CS_CommonCOMFolderName)
+Define CS_MtExeProgram         for "Mt.exe"
+Define CS_MtOutputSource       for "-outputresource:"
+Define CS_MtManifest           for "-manifest"
+Define CS_CompressExeProgram   for "UpxCompress.exe"
+Define CS_CompressionLines     for "-----"
+Define CS_CompressCopyRight    for "Copyright (C) 1996"
+
+Define CS_CLSExportExe         for "CLSExport.exe"
+Define CS_CLSExportFileMask    for "CLSExport.*"
+Define CS_PADUpdaterProgram    for "PADUpdater.exe"
+Define CS_PADFileName          for "PAD.xml"
+Define CS_HelpFile             for "ManifestSideBySideManagerHelp.rtf"
+Define CS_StartUpInfo          for "StartUpInfo.rtf"
+Define CS_TopInfoHelp          for "TopInfoBox.rtf"
+Define CS_FirstTimeUsageText   for "First Time Usage"
+Define CS_ShowMainInfoBoxText  for "Show Main Info Box"
+Define CS_UseHighlightstateText for "Use Highlight Row State"
+Define CS_HighlightColorText   for "Highlight Row Color"
+Define CS_pbAlternateRowColor  for "pbUseAlternateRowBackgroundColor"
+
+Define CS_piToolbarIconSize        for "piToolbarIconSize"
+// These three constants are used as an enum list:
+//Enum_List
+    Define CS_piToolbarSize16x16   for "Small Size - 16x16 px"
+    Define CS_piToolbarSize24x24   for "Medium Size - 24x24 px"
+    Define CS_piToolbarSize32x32   for "Large Size - 32x32 px"
+//End_Enum_List
+
+Define CS_ToolbarIconText          for "Toolbar Icon Text Setting"
+// These three constants are used as an enum list:
+//Enum_List
+    Define CS_ShowIconOnly         for "Show icons only"
+    Define CS_ShowTextRightOfIcon  for "Show icons and text to the right"
+    Define CS_ShowTextBelowIcon    for "Show text below toolbar icons"
+//End_Enum_List
+
+Define CS_BooleanYes           for "Yes"
+Define CS_BooleanNo            for "No"
+Define CS_XMLTypeLibStart      for "<typelib tlbid"
+Define CS_XMLComClassDescription for "<comClass description"
+Define CS_XMLComClassCLSID     for "<comClass clsid"
+Define CS_XMLThreadingModel    for "threadingModel="
+Define CS_XMLThreadingKey      for "ThreadingModel"
+Define CS_XMLMiscStatusContent for "miscStatusContent="
+Define CS_XMLProgID            for "progid="
+//Define CS_XMLHelpDir           for "helpdir="
+Define CS_ProgIDKey            for "ProgID"
+Define CS_XMLComClassEnd       for "</comClass>"
+Define CS_XMLTypeLibEnd        for "</typelib>"
+Define CS_TempFilename         for "tmp.txt"
+Define CS_XMLClosingBrace      for '}"'
+Define CS_XMLBackupName        for ".Backup"
+Define CS_XMLAssembly          for "</assembly>"
+Define CS_XMLCOMFileName       for "<file name="
+Define CS_XMLActaveXFileEnd    for "</file>"
+Define CS_XMLManifestNameSpace for "urn:schemas-microsoft-com:asm.v1"
+Define CS_NameSpacePrefix      for "COM"
+Define CS_XMLFileTag           for "file"
+Define CS_XMLNameTag           for "name"
+Define CS_XMLTypeLibTag        for "typelib"
+Define CS_XMLtlbidTag          for "tlbid"
+Define CS_XMLComClassTag       for "comClass"
+Define CS_XMLclsidTag          for "clsid"
+Define CS_XMLDescription       for "description"
+Define CS_XMLResourceid        for "resourceid"
+Define CS_XMLVersion           for "version"
+Define CS_XMLHelpdir           for "helpdir"
+Define CI_TabCharacter         for 9
+Define CS_StudioPath           for "Software\Data Access Worldwide\Visual DataFlex Tools\"
+Define CS_StudioTools          for "\Studio\Tools"
+//Define CS_RootKey              for "HKEY_CURRENT_USER"
+//Define CS_ClassesRootKey       for "HKEY_CLASSES_ROOT"
+Define CS_CLSIDKeyStandard     for "\SOFTWARE\Classes\CLSID"
+Define CS_CLSIDKey64Machine    for "\SOFTWARE\Classes\Wow6432Node\CLSID"
+Define CS_InprocServer32       for "InprocServer32"
+Define CS_Command              for "Command"
+Define CS_CommandLine          for "CommandLine"
+Define CS_RegApplication       for "<application>"
+Define CS_Name                 for "Name"
+Define CS_Separator            for "Separator"
+
+// Swedish:
+//Define CS_VisitUsOnLine        for "Bes”k oss p† Internet"
+
+//Define CS_ExportCertificateHelp for "http://blog.ksoftware.net/2011/07/exporting-your-code-signing-certificate-to-a-pfx-file/"
+Define CS_ExportCertificateHelp for "https://support.ksoftware.net/support/solutions/articles/17153-what-is-a-code-signing-certificate-"
+Define CS_DonatePage           for "https://www.rdctools.com/donate/"
+Define CS_VideoStdCodeJockComp for "https://www.youtube.com/watch?v=dTHBTAsINFI"  //"http://www.screencast.com/t/lL99WLdXzh"
+Define CS_VideoCodeJockDemo    for "http://www.screencast.com/t/a3n3zxHdoxIY"
+Define CS_VideoClip            for "http://youtu.be/-8MV10WpK2c"
+Define CS_MicrosoftArticle     for "http://msdn.microsoft.com/en-us/library/dd408052(v=VS.85).aspx"
+Define CS_DuplicateProgIDs     for "http://www.mazecomputer.com/sxs/help/progids.htm"
+Define CS_NewFragmentFileEmail for "support@rdctools.com"
+Define CS_VdfGuidanceSVN       for "svn.VDF-Guidance.com"
+Define CS_VdfGuidanceLibrary   for "/ManifestSideBySide/trunk/ManifestSideBySide/Manifest%20Fragments%20Library/"
+Define CS_AutoGeneratedHeader  for "I want to share the attached Manifest Fragment File(s)"
+Define CS_AutoGeneratedBody    for  ("This is an autogenerated message from the" * psProduct(ghoApplication) * "program. The attachments are new Manifest Fragment File(s) for the global 'Manifest Fragment Library' at VDF-Guidance.")
+
+// Digital signing constants:
+Define CS_CredentialsProgram              for "Signtool.exe"
+Define CS_SignCredentials                 for "sign"
+Define CS_VerifyCredentials               for "verify"
+Define CS_UseCertificateStore             for "Use Certificate Store"
+Define CS_UseVerboseState                 for "Use Verbose State"
+Define CS_VerifyFileParam                 for "/a"
+Define CS_AppendSignature                 for "/as"
+Define CS_VerboseParam                    for "/v"
+Define CS_FileParam                       for "/f"
+Define CS_TimeStampParam                  for "/t"
+Define CS_DescriptionParam                for "/d"
+Define CS_WebURLParam                     for "/du"
+Define CS_PasswordParam                   for "/p"
+Define CS_DefAuthVerPolicy                for "/pa"
+Define CS_SHA256TimeServerURLSwitch       for "/tr"
+Define CS_DigestAlgorithm                 for "/fd"
+Define CS_DigestAlgorithmSHA256           for "/td"
+Define CS_CredentialsFile                 for "Software Credentials File"
+Define CS_CredentialsFilePw               for "Pw"
+Define CS_CredentialsHashSetup            for "iD9dsK3SldF0a"
+Define CS_CredentialsDescription          for "Credentials Description"
+Define CS_CredentialsWebSite              for "Credentials URL"
+Define CS_CredentialUseTimeStamp          for "Use Timestamp Service"
+Define CS_CredentialsWebTimeStamp         for "Timestamp Service URL"
+Define CS_CredentialsWebTimeStampDefault  for "http://timestamp.comodoca.com"
+Define CS_CredentialsWebTimeStampSHA256   for "Timestamp Service SHA256 URL"
+Define CS_CredentialsWebTimeStampSHA256Default  for "http://timestamp.comodoca.com/rfc3161"
+Define CS_CredentialsVerifyReturnStringOk for "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider."
+Define CS_VerifyNumbersOfErrors           for "Number of errors:"
+Define CS_CredentialsPwError              for "SignTool Error: The specified PFX password is not correct."
+Define CS_CredentialsValidateError        for "WinVerifyTrust returned error:"
+Define CS_Capicom20NotInstalled           for "Error: Store IsDiskFile() failed."
+Define CS_CapicomDownloadPage             for "http://www.microsoft.com/en-us/download/details.aspx?id=25281"
+Define CS_CredentialsComment              for "Done Adding Additional Store"
+
+Define CS_ManifestExtension    for ".manifest"
+Define CS_AhRef                for "<a href="
+Define CS_HTMLTextExt          for '.txt">'
+Define CS_TextFileWildCards    for "*.txt"
+Define CS_TempHTHMLPage        for "\temp.htm"
+Define CS_HTMLSpace            for "%20"
+Define CS_CodeJockBaseFolder   for "Codejock Software\ActiveX\Xtreme SuitePro ActiveX"
+Define CS_CodeJockBinFolder    for "\Bin\"
+Define CS_WorkspacePaths       for "WorkspacePaths"
+Define CS_ConfigFile           for "ConfigFile"
+Define CS_ConfigFileDefault    for ".\Programs\Config.ws"
+Define CS_WorkspaceKey         for "Workspace"
+Define CS_ProgramPathKey       for "ProgramPath"
+Define CS_ProgramPathFolder    for ".\Programs"
+Define CS_ManifestDebugFile    for "Manifest.debug.txt"
+Define CS_CheckManifestBatFile for "CheckManifest.bat"
+Define CS_CreateManifestBatFile for "CreateManifest.bat"
+Define CS_RegSvrProgram        for "Regsvr32.exe"
+//Define CS_VDFRegSvrProgram     for "RegSvr.exe"
+Define CS_VDFCmdUtilProgram    for "VDFCmdUtil.exe"
+Define CS_TemplateManifest     for "template.manifest"
+Define CS_ParsingSuccessful    for "Parsing of manifest successful."
+Define CS_TraceProgram         for "sxstrace.exe"
+Define CS_TraceIntFile         for "sxstrace.etl"
+Define CS_TraceTxtFile         for "sxstrace.txt"
+Define CS_StartTrace           for ("trace -logfile:" + CS_TraceIntFile)
+Define CS_ParseTrace           for ("parse  -logfile:sxstrace.etl -outfile:" + CS_TraceTxtFile)
+Define CS_AssembliesImage      for "SxS Assemblies and Manifests.bmp"
+
+// A little compiler/Studio woodoo. The following "Get" line will never be compiled, but
+// the Studio parser will pick up the bitmap file name when auto-scanning
+// for images to be included in the project:
+#IF (1=0)
+    Get ADDIMAGE "SxS Assemblies and Manifests.bmp" to WindowIndex
+#ENDIF
+
+Define PROCESS_ALL_ACCESS_EF   for (|CI$000F0000 ior |CI$00100000 ior |CI$FFF)
+Define STD_INPUT_HANDLE        for -10  // STD_INPUT_HANDLE (DWord)-10
+Define STD_OUTPUT_HANDLE       for -11  // STD_OUTPUT_HANDLE (DWord)-11
+Define STD_ERROR_HANDLE        for -12  // STD_ERROR_HANDLE (DWord)-12
+Define INVALID_HANDLE_VALUE    for -1
+Define ATTACH_PARENT_PROCESS   for -1   // ATTACH_PARENT_PROCESS (DWord)-1
+Define ENABLE_LINE_INPUT       for 1
+Define ENABLE_WINDOW_INPUT     for 8
+Define ENABLE_PROCESSED_INPUT  for 1
+
+#IFNDEF C_SimpleNullMember
+    Define C_SimpleNullMember for 0
+#ENDIF
+
+// Structure to store the WinAPI file time.
+#IFNDEF _struct_tWinFileTime
+    Struct tWinFileTime
+       Integer dwLowDateTime
+       Integer dwHighDateTime
+       Integer iError
+    End_Struct
+#ENDIF
+
+// Structure to store the WinAPI system time.
+#IFNDEF _struct_tWinSystemTime
+    Struct tWinSystemTime
+       UShort wYear
+       UShort wMonth
+       UShort wDayOfWeek
+       UShort wDay
+       UShort wHour
+       UShort wMinute
+       UShort wSecond
+       UShort wMilliseconds
+    End_Struct
+#ENDIF
+
+#IFNDEF _struct_tFileStruct
+    Struct tFileStruct
+        String  sFileNameFirstCol
+        String  sFileNameSecondCol
+        Boolean bExists
+        String sCOMComponentPath
+        Boolean bDependencyFile
+    End_Struct
+#ENDIF
+
+#IFNDEF _struct_tSxSInfo
+    Struct tSxSInfo
+        String sCLSID
+        String sDescription
+    End_Struct
+#ENDIF
+
+#IFNDEF _struct_tSxSInfoOut
+    Struct tSxSInfoOut
+        String sCLSID
+        String sDescription
+        String sTypeLib
+        Integer iMiscStatus
+        String sThreadingModel
+        String sProgID
+        String sVersion
+    End_Struct
+#ENDIF
+
+Enum_List
+    Define cx_Select_All
+    Define cx_Select_None
+    Define cx_Select_Invert
+End_Enum_List
+
+Enum_List
+    Define cx_RegKeyAlreadyExist
+    Define cx_RegKeyCreated
+    Define cx_RegkeyFailed
+    Define cx_RegKeyVDFKeyDoesNotExist
+    Define CX_InstalledOkVdfUnder16
+End_Enum_List
+
+Define CS_MiscStatusKey                for "MiscStatus"
+Define CS_DefaultRegValue              for "(Default)"
+Define CS_miscStatusContent            for "miscStatusContent="
+Define CS_ReComposeOnResize            for "recomposeonresize"
+Define CS_OnlyIconic                   for "onlyiconic"
+Define CS_InsertNotReplace             for "insertnotreplace"
+Define CS_Static                       for "static"
+Define CS_CantLinkInside               for "cantlinkinside"
+Define CS_CanLinkByOle1                for "canlinkbyole1"
+Define CS_IsLinkObject                 for "islinkobject"
+Define CS_InsideOut                    for "insideout"
+Define CS_ActivateWhenVisible          for "activatewhenvisible"
+Define CS_RenderingIsDeviceIndependent for "renderingisdeviceindependent"
+Define CS_InvisibleAtRuntime           for "invisibleatruntime"
+Define CS_AlwaysRun                    for "alwaysrun"
+Define CS_ActsLikeButton               for "actslikebutton"
+Define CS_ActsLikeLabel                for "actslikelabel"
+Define CS_NoUIActivate                 for "nouiactivate"
+Define CS_Alignable                    for "alignable"
+Define CS_SimpleFrame                  for "simpleframe"
+Define CS_SetClientSiteFirst           for "setclientsitefirst"
+Define CS_IeMode                       for "imemode"
+Define CS_IgnoreActivateWhenVisible    for "ignoreactivatewhenvisible"
+Define CS_WantStomEnumerge             for "wantstomenumerge"
+Define CS_SupportsMultiLevelUndo       for "supportsmultilevelundo"
+
+Define KEY_WOW64_32KEY                 for |CI$0200
+Define KEY_WOW64_64KEY                 for |CI$0100
+
+Enum_List
+    Define OLEMISC_RECOMPOSEONRESIZE             for |CI$01
+    Define OLEMISC_ONLYICONIC                    for |CI$02
+    Define OLEMISC_INSERTNOTREPLACE              for |CI$04
+    Define OLEMISC_STATIC                        for |CI$08
+    Define OLEMISC_CANTLINKINSIDE                for |CI$010
+    Define OLEMISC_CANLINKBYOLE1                 for |CI$020
+    Define OLEMISC_ISLINKOBJECT                  for |CI$040
+    Define OLEMISC_INSIDEOUT                     for |CI$080
+    Define OLEMISC_ACTIVATEWHENVISIBLE           for |CI$0100
+    Define OLEMISC_RENDERINGISDEVICEINDEPENDENT  for |CI$0200
+    Define OLEMISC_INVISIBLEATRUNTIME            for |CI$0400
+    Define OLEMISC_ALWAYSRUN                     for |CI$0800
+    Define OLEMISC_ACTSLIKEBUTTON                for |CI$01000
+    Define OLEMISC_ACTSLIKELABEL                 for |CI$02000
+    Define OLEMISC_NOUIACTIVATE                  for |CI$04000
+    Define OLEMISC_ALIGNABLE                     for |CI$08000
+    Define OLEMISC_SIMPLEFRAME                   for |CI$010000
+    Define OLEMISC_SETCLIENTSITEFIRST            for |CI$020000
+    Define OLEMISC_IMEMODE                       for |CI$040000
+    Define OLEMISC_IGNOREACTIVATEWHENVISIBLE     for |CI$080000
+    Define OLEMISC_WANTSTOMENUMERGE              for |CI$0100000
+    Define OLEMISC_SUPPORTSMULTILEVELUNDO        for |CI$0200000
+End_Enum_List

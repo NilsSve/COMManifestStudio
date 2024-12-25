@@ -1,0 +1,14 @@
+// This is a one of three standard CodeJock components that comes with Visual DataFlex 17.
+// CodeJock.CommandBars.v15.3.1, Codejock.ReportControl.v15.3.1 & CodeJock.SkinFramework.v15.3.1
+// Comprehensive, fully customizable menus and toolbars.
+<file name="Codejock.CommandBars.v15.3.1.ocx">
+	<typelib tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" version="15.3" helpdir=""></typelib>
+	<comClass description="Xtreme CommandBars Control" clsid="{D7DA998C-CE45-41D4-A098-7EA140743CCA}" progid="Codejock.CommandBars.15.3.1" threadingModel="Apartment" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}"></comClass>
+	<comClass description="Xtreme CommandBars Frame Control" clsid="{8357D4D0-2195-456B-88CE-E2C30D8F7B46}" progid="Codejock.CommandBarsFrame.15.3.1" threadingModel="Apartment" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}"></comClass>
+	<comClass description="Xtreme ImageManager Control" clsid="{1552834C-D001-4596-9DEA-747121626FD4}" progid="Codejock.ImageManager.15.3.1" threadingModel="Apartment" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}"></comClass>
+	<comClass description="Xtreme PrintPreview Control" clsid="{37E785E4-5F6B-42E1-8FF3-58FAD9C7E1B6}" progid="Codejock.PrintPreview.15.3.1" threadingModel="Apartment" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}"></comClass>
+	<comClass description="Xtreme Backstage Button Control" clsid="{963E0AE9-7691-4D3D-A1AC-F3B0418EF18E}" progid="Codejock.BackstageButton.15.3.1" threadingModel="Apartment" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}"></comClass>
+	<comClass description="Xtreme Backstage Separator Control" clsid="{D7B7E278-5162-46B1-8330-1B946236FE00}" progid="Codejock.BackstageSeparator.15.3.1" threadingModel="Apartment" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}"></comClass>
+	<comClass description="Xtreme Backstage ListBox Control" clsid="{2241BD7C-EDBF-4B8D-A83F-965946604D46}" progid="Codejock.BackstageListBox.15.3.1" threadingModel="Apartment" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}"></comClass>
+	<comClass description="Codejock.CommandBarsGlobalSettings.15.3.1" clsid="{55F8727D-9252-45FF-9900-FC84CA2D7C72}" progid="Codejock.CommandBarsGlobalSettings.15.3.1"></comClass>
+</file>

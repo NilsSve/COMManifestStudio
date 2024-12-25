@@ -1,0 +1,39 @@
+Object
+    Set Size to 141 116
+    Set Location to 21 3
+    Set Border_Style to Border_Normal
+    Set Color to clLtGray   
+    Set peAnchors to anTopBottomLeft
+
+// Button tab-page enumeration:
+Enum_List
+    Define btp_1
+    Define btp_2
+    Define btp_3
+    Define btp_4
+    Define btp_5  
+    Define btp_6
+End_Enum_List
+
+    Object oScrollingContainerLeft is a cScrollingContainer
+        
+        Object oScrollingClientAreaLeft is a cScrollingClientArea
+            Set pbAutoScrollFocus to False
+            Set piAutoScrollMarginX to 0
+            Set piAutoScrollMarginY to 0  
+            Set pbShowDisabledScrollBar to False
+                
+                           
+        End_Object
+        
+    End_Object
+
+End_Object
+
+//Object oLeftButtonLineControl is a LineControl
+//    Set Size to 171 3
+//    Set Location to 20 122
+//    Set Horizontal_State to False
+//    Set peAnchors to anTopBottomLeft
+//    Set Bottom_Line_Color to clGray
+//End_Object

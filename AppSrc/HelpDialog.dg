@@ -1,0 +1,104 @@
+Use seq_chnl.pkg    // Sequential channel functions
+Use cWorkspace.pkg
+Use cRDCDbModalPanel.pkg
+Use cRDCDbRichEditor.pkg
+Use cManifestIniFile.pkg
+Use ImageViewer.dg
+Use Symdef.pkg
+Use vWin32fh.pkg
+
+Object oHelp_Dialog is a cRDCDbModalPanel
+    Set Label to "Side-By-Side Manifest Studio Help"
+    Set Size to 217 367
+    Set Icon to "ActionHelp.ico"
+
+    Object oInfo_Editor is a cRDCDbRichEditor
+        Set Size to 185 358
+        Set Location to 4 5
+        Set peAnchors to anAll
+        Set Read_Only_State to True
+        Set peAnchors to anAll
+        Set TextBackColor to clHighlight
+        Set TextColor to clHighlightText
+        Set Border_Style to Border_StaticEdge
+        Set ReadOnlyColor to clWhite
+
+        // Dummy message. It is here for the compiler to embed the help file
+        // into the program.
+        // The compiler will pick up the include_resource and read the file from
+        // the _Help_ folder.
+        Procedure _DummyEmbedFile
+            Include_Resource ..\Help\ManifestSideBySideManagerHelp.rtf as res_ManifestSideBySideManagerHelp Type DF_RESOURCE_TYPE_BINARY
+        End_Procedure
+
+        // If True is passed as the second param; the help file will be read from memory,
+        // i.e. the help file is compiled into the program and that version of the help
+        // file will be used. This is to make it easier when installing the program at
+        // customer site - no nead to bring the help file!
+        // If a False is passed the sFileName parameter will be used. It is assumed that
+        // it exists in the Help folder.
+        Procedure DoReadFile String sFileName Boolean bEmbedFile
+            String sHelpPath
+            Boolean bExists
+
+            // Read from memory
+            If (bEmbedFile = True) Begin
+                Move  "Resource:res_ManifestSideBySideManagerHelp" to sFileName
+            End
+
+            // Read from disk.
+            Else Begin
+                Get psHelpPath of (phoWorkspace(ghoApplication)) to sHelpPath
+                Get vFolderFormat sHelpPath to sHelpPath
+                Move (sHelpPath + sFileName) to sFileName
+                Get vFilePathExists sFileName to bExists
+                If (bExists = False) Begin
+                    Send Info_Box ("The help file doesn't exist:\n" + sFileName + "\n\nThe embedded help file will be used instead.")
+                    Procedure_Return
+                End
+                Set Value to ""
+            End
+
+            Forward Send DoReadFile sFileName bEmbedFile
+        End_Procedure
+
+        On_Key kCancel Send Close_Panel
+        On_Key kEnter  send Close_Panel
+    End_Object
+
+    Object oImage_btn is a cRDCButton
+        Set Location to 194 257
+        Set Label to "View Image"
+        Set Status_Help to "View Side-By-Side Assemblies and Manifests schema (F1)"
+        Set peAnchors to anBottomRight
+        Procedure OnClick
+            Send Popup of (oImageViewer(Self))
+        End_Procedure
+
+        On_Key kCancel Send Close_Panel
+    End_Object
+
+    Object oClose_btn is a cRDCButton
+        Set Size to 14 50
+        Set Label    to "Close"
+        Set Status_Help to "Close Panel"
+        Set Location to 194 313
+        Set peAnchors to anBottomRight
+        Set Default_State to True
+
+        Procedure OnClick
+           Send Close_Panel
+        End_Procedure
+
+        On_Key kCancel Send Close_Panel
+    End_Object
+
+    Procedure Activating
+        Set TextFile of oInfo_Editor to CS_StartUpInfo True
+        Forward Send Activating
+    End_Procedure
+
+//    On_Key Key_Alt+Key_O Send KeyAction of oOk_btn
+    On_Key Key_Alt+Key_C Send KeyAction of oClose_btn
+    On_Key Key_F1        Send KeyAction of oImage_btn
+End_Object

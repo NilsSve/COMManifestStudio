@@ -1,0 +1,8 @@
+// Chilkat Software. http://www.chilkatsoft.com/dh-features.asp
+// Diffie-Hellman key exchange (D-H) is a cryptographic protocol that allows two parties that have no prior 
+// knowledge of each other to jointly establish a shared secret key over an insecure communications channel. 
+// This key can then be used to encrypt subsequent communications using a symmetric key cipher.
+<file name="ChilkatDh.dll">
+	<comClass clsid="{5fb8dbc2-7442-4fe3-9f57-b246dd008af4}" description="ChilkatDh Class" tlbid="{C23C51E9-BFC8-4D30-9DB3-74B27C57B1D2}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="Chilkat.Dh.1"></comClass>
+	<typelib tlbid="{C23C51E9-BFC8-4D30-9DB3-74B27C57B1D2}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

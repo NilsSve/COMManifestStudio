@@ -1,0 +1,450 @@
+Use DFClient.pkg
+Use cScrollingContainer.pkg
+Use cSplitterContainer.pkg
+Use Windows.pkg
+Use cCommandLinkButton.pkg
+Use cWizard.pkg
+Use dfLine.pkg
+
+Use cRDCIniFileForm.pkg
+Use cRDCComboForm.pkg
+Use cRDCButton.pkg                    
+Use cRDCSliderOffOn.pkg
+Use cConfigureLeftSideButtons.pkg
+Use cConfigureCommandLinkButton.pkg
+
+Object oTest is a dbModalPanel
+    Set Label to "Test"
+    Set Location to 2 1
+    Set Size to 198 413
+    Set Border_Style to Border_Thick
+    Set piMinSize to 178 370
+
+    Property Handle phoWizardPanelHandle (Self)
+    Property Boolean pbRestart False
+
+    { OverrideProperty=Color InitialValue=clLtGray }
+    Object oButtonsHeader_tb is a TextBox
+        Set Auto_Size_State to False
+        Set Size to 11 64
+        Set Location to 5 5
+        Set Label to "Configure"
+        Set FontPointHeight to 10
+        Set FontWeight to fw_Bold
+    End_Object  
+
+    Object oRigthHeader_tb is a cWizardLarge_tb
+        Set Size to 13 111
+        Set Location to 4 137
+        Set Label to "Right-Hand Side Controls"
+    End_Object
+    
+    Object oRightTop_grp is a Container3d
+        Set Size to 144 280
+        Set Location to 20 125
+        Set Border_Style to Border_Normal
+        Set peAnchors to anAll
+
+            Object oScrollingContainerRight is a cScrollingContainer
+                
+                Object oScrollingClientAreaRight is a cScrollingClientArea
+//                    Set pbAutoScrollFocus to False
+                    
+                    Object oWizard_Pane is a Container3d  
+                        Set Location to 2 2
+                        Set Size to 139 265
+                        Set Border_Style to Border_Normal
+                        Set Auto_Top_Item_State to True
+//                        Set peAnchors to anAll
+                        
+                        Property String private.psLabel
+                        Property Integer piCurrentPage 0
+                        Property Handle[] phoWizardPages  
+                        Property Handle private.phoFromButton
+                        Property Handle phoRightHeaderText (oRigthHeader_tb(Self))
+                        
+                        Procedure Set phoFromButton Handle ho
+                            String sLabel
+                            Set private.phoFromButton to ho  
+                            Get Label of ho to sLabel
+                            Set Label of (phoRightHeaderText(Self)) to sLabel
+                        End_Procedure
+                        
+                        Object o1_tp is a cWizardPage
+                            Set Location to -1 0
+                            Set Label to "Page 1"
+
+                        End_Object
+
+                        Object o2_tp is a cWizardPage
+                            Set Location to 0 1
+                            Set Label to "Page 2"
+                        End_Object
+
+                        Object o3_tp is a cWizardPage
+                            Set Label to "Page 3"
+
+                        End_Object
+
+                        Object o4_tp is a cWizardPage
+                            Set Label to "Page 4"
+
+                        End_Object              
+
+                        Object o5_tp is a cWizardPage
+                            Set Label to "Page 5"
+                        End_Object
+
+                        Object o6_tp is a cWizardPage
+                            Set Label to "Page 6"
+
+                        End_Object
+
+                        Procedure Set psLabel String sLabel
+                            Set private.psLabel to sLabel
+                            Set Label to sLabel
+                        End_Procedure
+                    
+                        Function psLabel Returns String
+                            String sLabel
+                            Get private.psLabel to sLabel
+                            Function_Return sLabel
+                        End_Function
+                    
+                        Function NumberOfPages Returns Integer
+                            Handle[] hoWizardPages
+                            Get phoWizardPages to hoWizardPages
+                            Function_Return (SizeOfArray(hoWizardPages))
+                        End_Function
+                    
+                        Procedure AddPage Handle hoObject
+                            Handle[] hoWizardPages
+                            Get phoWizardPages to hoWizardPages
+                            Move hoObject to hoWizardPages[SizeOfArray(hoWizardPages)]  
+                            Set phoWizardPages to hoWizardPages
+                        End_Procedure
+                 
+                        Procedure Activating
+                            Integer iWelComePage
+                            Handle[] hoWizardPages
+                            Set phoWizardPages to hoWizardPages
+                            Broadcast Send RegisterPage   
+                        End_Procedure
+
+                        Procedure Page Integer iPageObject
+                            Forward Send Page iPageObject
+                            Send SwitchToPage 0 0 
+                        End_Procedure
+                        
+                        Procedure SwitchToPage Integer iFrom Integer iTo Integer iDirect
+                            Integer iDirection
+                            Handle hoFrom hoTo 
+                            Handle[] hoWizardPages
+                            
+                            Move 0 to iDirection
+                            If (num_arguments > 2) Begin
+                                Move iDirect to iDirection
+                            End   
+                            Else Begin
+                                If (iTo > iFrom) Begin
+                                    Move Wizard_Forward_Navigate to iDirection
+                                End                                        
+                                Else Begin
+                                    Move Wizard_Backward_Navigate to iDirection
+                                End
+                            End
+                            Get phoWizardPages to hoWizardPages
+                            Move hoWizardPages[iTo] to hoTo
+                    
+                            If (iFrom <> -1) Begin
+                                Move hoWizardPages[iFrom] to hoFrom
+                                Send OnLeaving to hoFrom iTo iDirection
+                                Send OnPageChange to hoFrom iFrom iTo iDirection
+                                Set Visible_State of hoFrom to False
+                            End
+                    
+                            Set piCurrentPage to iTo
+                            Set Visible_State of hoTo to True                    
+//                            Send Page of hoTo
+                            Send Activate of hoTo                            
+                            Send OnEntering to hoTo iFrom iDirection
+                        End_Procedure
+                    
+                        Procedure SwitchPage Integer iDirection
+                            Integer iFrom iTo 
+                            Handle hoFrom hoTo 
+                            Boolean bOk
+                            Handle[] hoWizardPages
+                    
+                            Get phoWizardPages to hoWizardPages
+                            Get piCurrentPage to iFrom
+                            Move hoWizardPages[iFrom] to hoFrom
+                            If (iDirection = WIZARD_BACKWARD_NAVIGATE) Begin
+                                Get piPreviousPage of hoFrom to iTo
+                            End
+                            Else Begin
+                                Get piNextPage of hoFrom to iTo
+                            End
+                            If (iTo >= 0) Begin
+                                Move hoWizardPages[iTo] to hoTo
+                                Get ConfirmPageChange of hoFrom iDirection to bOk
+                                If (bOk) Begin
+                                    Send SwitchToPage iFrom iTo iDirection
+                                End
+                            End
+                        End_Procedure
+                    
+                        Procedure FinishWizard
+                            Send Close_Panel
+                        End_Procedure
+                    
+                        Procedure CancelWizard
+                            Integer iResult
+                    
+                            Get YesNo_Box "Are you sure you want to close the wizard?" (psLabel(Self)) to iResult
+                            If (iResult = MBR_NO) Begin
+                                Procedure_Return
+                            End
+                    
+                            Send Close_Panel
+                        End_Procedure
+                    
+                        Procedure OnEntering Integer iFrom Integer iDirection
+                        End_Procedure
+                    
+                        Procedure OnPageChange Integer iFrom Integer iTo Integer iDirection
+                        End_Procedure
+                    
+                        Procedure OnLeaving Integer iTo Integer iDirection
+                        End_Procedure
+
+                        Procedure End_Construct_Object
+                            Forward Send End_Construct_Object
+                            Set Border_Style to Border_None
+                        End_Procedure
+                        
+                    End_Object
+                    
+                End_Object
+                
+            End_Object
+
+        Procedure End_Construct_Object
+            Forward Send End_Construct_Object
+            Set Border_Style to Border_None
+        End_Procedure
+        
+    End_Object    
+
+//    Object oLineControl is a LineControl
+//        Set Size to 171 3
+//        Set Location to 20 122
+//        Set Horizontal_State to False
+//        Set peAnchors to anTopBottomLeft
+//        Set Bottom_Line_Color to clGray
+//    End_Object
+    
+    Object oOK_Btn is a cRDCButton
+        Set Size to 14 50
+        Set Label    to "&OK"
+        Set Location to 177 302
+        Set peAnchors to anBottomRight
+        Set Default_State to True
+
+        Procedure OnClick
+            String sProgram
+            Boolean bRestart
+            Integer iRetval
+
+            // This will make all values to be written to the ini-file:
+            Broadcast Recursive Send WriteIniValue of (phoWizardPanelHandle(Self))
+
+            Delegate Get pbRestart to bRestart
+            If (bRestart = True) Begin
+                Send DoChangeToolbars of ghoCommandBars
+                Get YesNo_Box "The program needs to be restarted. Restart now?" to iRetval
+                If (iRetval = MBR_Yes) Begin
+                    // First save skin settings
+                    If (ghoSkinFramework <> 0) Begin
+                        Send SaveSkinPreference of ghoSkinFramework
+                    End
+                    // then sizes & locations of the ghoApplication object etc.
+                    // We pass the object id of the oMain object and True to actually save changes.
+                    Send DoSaveEnvironment of ghoApplication (Parent(Client_Id(ghoCommandBars))) True
+                    Move (Module_Name(Desktop)) to sProgram
+                    // and restart the program.
+                    Runprogram (sProgram + ".exe")
+                End
+            End
+
+            Send Close_Panel
+        End_Procedure
+    End_Object  
+    
+    Object oCancel_Btn is a cRDCButton
+        Set Size to 14 50
+        Set Label    to "&Cancel"
+        Set Status_Help to "Close Panel"
+        Set Location to 177 358
+        Set peAnchors to anBottomRight
+        Procedure OnClick
+            Send Close_Panel
+        End_Procedure
+    End_Object
+
+    Object oConfigureLeftSideButtons is a cConfigureLeftSideButtons
+        Set Size to 141 116
+        Set Location to 21 3
+        Set Border_Style to Border_Normal
+        Set Color to clLtGray   
+        Set peAnchors to anTopBottomLeft
+    
+        // Button tab-page enumeration:
+        Enum_List
+            #IFNDEF tp_1
+            Define tp_1 
+            #ENDIF
+            #IFNDEF tp_2
+            Define tp_2
+            #ENDIF
+            #IFNDEF tp_3
+            Define tp_3
+            #ENDIF
+            #IFNDEF tp_4
+            Define tp_4
+            #ENDIF
+            #IFNDEF tp_5
+            Define tp_5  
+            #ENDIF
+            #IFNDEF tp_6
+            Define tp_6
+            #ENDIF
+        End_Enum_List
+    
+        Object oScrollingContainerLeft is a cScrollingContainer
+            
+            Object oScrollingClientAreaLeft is a cScrollingClientArea
+                Set pbAutoScrollFocus to False
+                Set piAutoScrollMarginX to 0
+                Set piAutoScrollMarginY to 0  
+                Set pbShowDisabledScrollBar to False
+
+                Object o1_btn is a cConfigureCommandLinkButton
+                    Set Location to 2 1
+                    Set Size to 22 104
+                    Set Label to "Button 1"
+                    Set psImage to "Default.ico" 
+                    Set Color to clLtGray
+                
+                    Procedure OnClick
+                        Send SwitchWizardPage tp_1 Self    
+                    End_Procedure                                        
+                        
+                End_Object
+
+                Object o2_btn is a cConfigureCommandLinkButton
+                    Set Location to 25 1
+                    Set Size to 22 104
+                    Set Label to "Button 2"
+                    Set psImage to "Default.ico" 
+                    Set Color to clLtGray
+                
+                    Procedure OnClick
+                        Send SwitchWizardPage tp_2 Self    
+                    End_Procedure                                        
+                        
+                End_Object
+
+                Object o3_btn is a cConfigureCommandLinkButton
+                    Set Location to 47 1
+                    Set Size to 22 104
+                    Set Label to "Button 3"
+                    Set psImage to "Default.ico" 
+                    Set Color to clLtGray
+                
+                    Procedure OnClick
+                        Send SwitchWizardPage tp_3 Self    
+                    End_Procedure                                        
+                        
+                End_Object
+
+                Object o4_btn is a cConfigureCommandLinkButton
+                    Set Location to 70 1
+                    Set Size to 22 104
+                    Set Label to "Button 4"
+                    Set psImage to "Default.ico" 
+                    Set Color to clLtGray
+                
+                    Procedure OnClick
+                        Send SwitchWizardPage tp_4 Self    
+                    End_Procedure                                        
+                        
+                End_Object
+
+                Object o5_btn is a cConfigureCommandLinkButton
+                    Set Location to 93 1
+                    Set Size to 22 104
+                    Set Label to "Button 5"
+                    Set psImage to "Default.ico" 
+                    Set Color to clLtGray
+                
+                    Procedure OnClick
+                        Send SwitchWizardPage tp_5 Self    
+                    End_Procedure                                        
+                        
+                End_Object
+
+                Object o6_btn is a cConfigureCommandLinkButton
+                    Set Location to 116 1
+                    Set Size to 22 104
+                    Set Label to "Button 6"
+                    Set psImage to "Default.ico" 
+                    Set Color to clLtGray
+                
+                    Procedure OnClick
+                        Send SwitchWizardPage tp_6 Self    
+                    End_Procedure                                        
+                        
+                End_Object
+                    
+                               
+            End_Object
+            
+        End_Object
+    
+    End_Object
+    
+    Object oLeftButtonLineControl is a LineControl
+        Set Size to 171 3
+        Set Location to 20 122
+        Set Horizontal_State to False
+        Set peAnchors to anTopBottomLeft
+        Set Bottom_Line_Color to clGray
+    End_Object
+        
+    Procedure SwitchWizardPage Integer iToTabPage Handle ho
+        Integer iFromTabPage                          
+        Handle hoWizardPane
+        Move (oWizard_Pane(Self)) to hoWizardPane
+        Set phoFromButton of hoWizardPane to ho 
+        Get piCurrentPage of hoWizardPane to iFromTabPage
+        Send SwitchToPage of hoWizardPane 1 iToTabPage
+    End_Procedure  
+    
+    Procedure Page Integer iPageObject
+        Set Icon to "Settings.ico"
+        Forward Send Page iPageObject
+    End_Procedure  
+    
+    Procedure Activating
+        Forward Send Activating
+        Set pbRestart to False
+    End_Procedure
+
+    Procedure Deactivating
+        Forward Send Deactivating
+        Set pbRestart to False
+    End_Procedure
+
+    On_Key kCancel Send Close_Panel
+End_Object

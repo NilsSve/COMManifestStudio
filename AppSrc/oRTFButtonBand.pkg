@@ -1,0 +1,1252 @@
+Use cCJStandardMenuItemClasses.pkg
+Use Colr_Dlg.Pkg
+Use cCJRTFToolbar.pkg
+Use cCJRTFMenuItem.Pkg
+Use cCJRTFToolBarButton.Pkg
+Use cRDCFontDialog.pkg
+Use cRDCCJChangeColorMenuItem.pkg
+Use cRDCDbRichEditor.pkg
+Use cRichEdit.pkg
+// This dialog must be USEd at the Client_Area level!
+//Use HyperLinkEdit.dg
+
+Register_Procedure DoIndent
+Register_Procedure DoOutdent
+Register_Procedure DoPopupHyperLinkDialog
+
+Object oRTFButtonBand is a cCJRTFToolbar
+    Set psTitle to "RTF Functions"
+    Set pbDockNextTo to False
+    Set pbCloseable to False
+    Set pbCustomizable to False
+    Set pbGripper to False
+    Set pbShowExpandButton to False
+    Set pbEnableDocking to False
+
+    Object oUndoButton is a cCJRTFToolBarButton
+        Set pbControlBeginGroup to True
+        Set psCaption to "Undo Typing"
+        Set psDescription to "Undoes Typing Operation(s) (Ctrl+Z)"
+        Set psImage to "ActionUndo.ico"
+
+        //****************************************************************************
+        //  Send a message to undo the last typing
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bCanUndo bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbCanUndo of hoFocus to bCanUndo
+                If (bCanUndo) Begin
+                    Send Undo of hoFocus
+                End
+            End
+        End_Procedure
+
+        Function IsChecked Returns Boolean
+            Boolean bIsRichEdit bUndo
+            Handle hoFocus
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbCanUndo of hoFocus to bUndo
+            End
+
+            Function_Return bUndo
+        End_Function
+    End_Object
+
+    Object oRedoButton is a cCJRTFToolBarButton
+        Set psCaption to "Redo Typing"
+        Set psDescription to "Redoes Typing Operation(s) (Ctrl+Y)"
+        Set psImage to "ActionRedo.ico"
+
+        //****************************************************************************
+        //  Send a message to redo the last undoes
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bCanRedo bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbCanRedo of hoFocus to bCanRedo
+                If (bCanRedo) Begin
+                    Send Redo of hoFocus
+                End
+            End
+        End_Procedure
+
+        Function IsChecked Returns Boolean
+            Boolean bIsRichEdit bRedo
+            Handle hoFocus
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbCanRedo of hoFocus to bRedo
+            End
+
+            Function_Return bRedo
+        End_Function
+    End_Object
+
+    Object oBoldButton is a cCJRTFToolBarButton
+        Set psCaption to "Bold"
+        Set psDescription to "Change to heavier text. (Ctrl+B)"
+        Set psImage to "Bold.ico"
+
+        //****************************************************************************
+        //  Send a message to change the current text selection to bold
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bIsRichEdit bBold
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbBold of hoFocus to bBold
+                Set pbBold of hoFocus to (not (bBold))
+            End
+        End_Procedure
+
+        Function IsChecked Returns Boolean
+            Boolean bIsRichEdit bBold
+            Handle hoFocus
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbBold of hoFocus to bBold
+            End
+
+            Function_Return bBold
+        End_Function
+    End_Object
+
+    //****************************************************************************
+    //  This object shows a bitmap to indicate that the user can change the
+    //  current selection in a RTF editor to italics
+    //****************************************************************************
+    Object oItalicsButton is a cCJRTFToolBarButton
+        Set psCaption to "Italics"
+        Set psDescription to "Change to an italic font. (Ctrl+I)"
+        Set psImage to "Italic.ico"
+
+        //****************************************************************************
+        //  Send a message to change the current text selection to italics
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bItalics bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbItalics of hoFocus to bItalics
+                Set pbItalics of hoFocus to (not (bItalics))
+            End
+        End_Procedure
+
+        Function IsChecked Returns Boolean
+            Boolean bIsRichEdit bItalics
+            Handle hoFocus
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbItalics of hoFocus to bItalics
+            End
+
+            Function_Return bItalics
+        End_Function
+    End_Object
+
+    //****************************************************************************
+    //  This object shows a bitmap to indicate that the user can change the
+    //  current selection in a RTF editor to underline
+    //****************************************************************************
+    Object oUnderlineButton is a cCJRTFToolBarButton
+        Set psCaption to "Underline"
+        Set psDescription to "Draw a line below the text. (Ctrl+U)"
+        Set psImage to "Underline.ico"
+
+        //****************************************************************************
+        //  Send a message to change the current text selection to bold
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bUnderline bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbUnderline of hoFocus to bUnderline
+                Set pbUnderline of hoFocus to (not (bUnderline))
+            End
+        End_Procedure
+
+        Function IsChecked Returns Boolean
+            Boolean bIsRichEdit bUnderline
+            Handle hoFocus
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbUnderline of hoFocus to bUnderline
+            End
+
+            Function_Return bUnderline
+        End_Function
+    End_Object
+
+    Object oStrikeOutButton is a cCJRTFToolBarButton
+        Set psCaption to "Strike Out"
+        Set psDescription to "Draw a line through the text"
+        Set psImage to "StrikeOut.ico"
+
+        //****************************************************************************
+        //  If the text is striked out send a message to change the striked out text
+        //  to normal or from normal to strike out
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bStrikeOut bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbStrikeOut of hoFocus to bStrikeOut
+                Move (not (bStrikeOut)) to bStrikeOut
+                Set pbStrikeOut of hoFocus to bStrikeOut
+            End
+        End_Procedure
+
+        Function IsChecked Returns Boolean
+            Boolean bIsRichEdit bStrikeOut
+            Handle hoFocus
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbStrikeOut of hoFocus to bStrikeOut
+            End
+
+            Function_Return bStrikeOut
+        End_Function
+    End_Object
+
+    Object oSubScriptButton is a cCJRTFToolBarButton
+        Set psCaption to "SubScript"
+        Set psDescription to "Draw the text smaller and lower than regular text"
+        Set psImage to "SubScript.ico"
+
+        //****************************************************************************
+        //  If the text is subscripted send a message to change the subscript to
+        //  normal or from normal to subscripted
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bSubScript bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbSubScript of hoFocus to bSubScript
+                Move (not (bSubScript)) to bSubScript
+                Set pbSubScript of hoFocus to bSubScript
+            End
+        End_Procedure
+
+        Function IsChecked Returns Boolean
+            Boolean bIsRichEdit bSubScript
+            Handle hoFocus
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbSubScript of hoFocus to bSubScript
+            End
+
+            Function_Return bSubScript
+        End_Function
+    End_Object
+
+    Object oSuperScriptButton is a cCJRTFToolBarButton
+        Set psCaption to "SuperScript"
+        Set psDescription to "Draw the text smaller and higher than regular text"
+        Set psImage to "SuperScript.ico"
+
+        //****************************************************************************
+        //  If the text is superscripted send a message to change the superscript to
+        //  normal or from normal to superscripted
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bSuperScript bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbSuperScript of hoFocus to bSuperScript
+                Move (not (bSuperScript)) to bSuperScript
+                Set pbSuperScript of hoFocus to bSuperScript
+            End
+        End_Procedure
+
+        Function IsChecked Returns Boolean
+            Boolean bIsRichEdit bSuperScript
+            Handle hoFocus
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get pbSuperScript of hoFocus to bSuperScript
+            End
+
+            Function_Return bSuperScript
+        End_Function
+    End_Object
+
+    Object oColorButton is a cCJRTFMenuItem
+        Set pbControlBeginGroup to True
+        Set psCaption to "Text color"
+        Set psDescription to "Change the text color"
+        Set psImage to "FontColor.ico"
+        Set peControlType to xtpControlSplitButtonPopup
+
+        Object oBlackMenuItem is a cRDCCJChangeColorMenuItem
+            Set psImage to "Black40x12.ico"
+            Set psCaption to "Black"
+            Set psDescription to "Change the Color to Black"
+            Set peColor to clBlack
+        End_Object
+
+        Object oMaroonMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clMaroon
+            Set psImage to "Maroon40x12.ico"
+            Set psCaption to "Maroon"
+            Set psDescription to "Change the Color to Maroon"
+        End_Object
+
+        Object oGreenMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clGreen
+            Set psImage to "Green40x12.ico"
+            Set psCaption to "Green"
+            Set psDescription to "Change the Color to Green"
+        End_Object
+
+        Object oOliveMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clOlive
+            Set psImage to "Olive40x12.ico"
+            Set psCaption to "Olive"
+            Set psDescription to "Change the Color to Olive"
+        End_Object
+
+        Object oNavyMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clNavy
+            Set psImage to "Navy40x12.ico"
+            Set psCaption to "Navy"
+            Set psDescription to "Change the Color to Navy"
+        End_Object
+
+        Object oPurpleMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clPurple
+            Set psImage to "Purple40x12.ico"
+            Set psCaption to "Purple"
+            Set psDescription to "Change the Color to Purple"
+        End_Object
+
+        Object oTealMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clTeal
+            Set psImage to "Teal40x12.ico"
+            Set psCaption to "Teal"
+            Set psDescription to "Change the Color to Teal"
+        End_Object
+
+        Object oGrayMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clGray
+            Set psImage to "Gray40x12.ico"
+            Set psCaption to "Gray"
+            Set psDescription to "Change the Color to Gray"
+        End_Object
+
+        Object oSilverMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clSilver
+            Set psImage to "Silver40x12.ico"
+            Set psCaption to "Silver"
+            Set psDescription to "Change the Color to Silver"
+        End_Object
+
+        Object oRedMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clRed
+            Set psImage to "Red40x12.ico"
+            Set psCaption to "Red"
+            Set psDescription to "Change the Color to Red"
+        End_Object
+
+        Object oLimeMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clLime
+            Set psImage to "Lime40x12.ico"
+            Set psCaption to "Lime"
+            Set psDescription to "Change the Color to Lime"
+        End_Object
+
+        Object oYellowMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clYellow
+            Set psImage to "Yellow40x12.ico"
+            Set psCaption to "Yellow"
+            Set psDescription to "Change the Color to Yellow"
+        End_Object
+
+        Object oBlueMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clBlue
+            Set psImage to "Blue40x12.ico"
+            Set psCaption to "Blue"
+            Set psDescription to "Change the Color to Blue"
+        End_Object
+
+        Object oFuchsiaMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clFuchsia
+            Set psImage to "Fuchsia40x12.ico"
+            Set psCaption to "Fuchsia"
+            Set psDescription to "Change the Color to Fuchsia"
+        End_Object
+
+        Object oAquaMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clAqua
+            Set psImage to "Aqua40x12.ico"
+            Set psCaption to "Aqua"
+            Set psDescription to "Change the Color to Aqua"
+        End_Object
+
+        Object oWhiteMenuItem is a cRDCCJChangeColorMenuItem
+            Set peColor to clWhite
+            Set psImage to "White40x12.ico"
+            Set psCaption to "White"
+            Set psDescription to "Change the Color to White"
+        End_Object
+
+        //****************************************************************************
+        //  Send a message to open the color selector dialog
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus hoColorSelector
+            Integer rgbTextColor
+            Boolean bColorSelected bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get TextColor of hoFocus to rgbTextColor
+
+                Get Create U_ColorDialog to hoColorSelector
+                If (hoColorSelector > 0) Begin
+                    Set SelectedColor of hoColorSelector to rgbTextColor
+
+                    Get Show_Dialog of hoColorSelector to bColorSelected
+                    If (bColorSelected) Begin
+                        Get SelectedColor of hoColorSelector to rgbTextColor
+                        Set TextColor of hoFocus to rgbTextColor
+                    End
+
+                    Send Destroy of hoColorSelector
+                End
+            End
+        End_Procedure
+    End_Object
+
+    Object oFontSelectorButton is a cCJRTFToolBarButton
+        Set psCaption to "Select Font"
+        Set psDescription to "Select Font for Text"
+        Set psImage to "FontSelector.ico"
+
+        //****************************************************************************
+        //  Send a message to open the font dialog and select font and size
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFontDialog hoFocus
+            Integer iLastErrorCode iFontSize iFontWeight rgbTextColor ePitchAndFamily
+            Integer iFontType iFontFamily iFontPitch
+            Boolean bFontSelected bFontItalics bFontUnderline bFontStrikeOut bFontBold bIsRichEdit
+            String sTypeFace
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get Create U_cRDCFontDialog to hoFontDialog
+
+                Get psTypeFace of hoFocus to sTypeFace
+                Get LastErrorCode of hoFocus to iLastErrorCode
+                If (iLastErrorCode = ERR_RE_ATTR_INCONSISTENT_THROUGH_SELECTION) Begin
+                    Move "MS Sans Serif" to sTypeFace
+                End
+
+                Get piFontSize of hoFocus to iFontSize
+                Get LastErrorCode of hoFocus to iLastErrorCode
+                If (iLastErrorCode = ERR_RE_ATTR_INCONSISTENT_THROUGH_SELECTION) Begin
+                    Move 180 to iFontSize
+                End
+
+                // This line usually gets a weird high number back. 4100 and higher. If
+                // the value is lower than 0 or higher than 1000 (the max) it is
+                // corrected in cFontDialog.Pkg to FW_REGULAR (best guess)
+                Get piFontWeight of hoFocus to iFontWeight
+                Get LastErrorCode of hoFocus to iLastErrorCode
+                If (iLastErrorCode = ERR_RE_ATTR_INCONSISTENT_THROUGH_SELECTION) Begin
+                    Move FW_REGULAR to iFontWeight
+                End
+
+                Get pbItalics of hoFocus to bFontItalics
+                Get LastErrorCode of hoFocus to iLastErrorCode
+                If (iLastErrorCode = ERR_RE_ATTR_INCONSISTENT_THROUGH_SELECTION) Begin
+                    Move False to bFontItalics
+                End
+
+                Get pbUnderline of hoFocus to bFontUnderline
+                Get LastErrorCode of hoFocus to iLastErrorCode
+                If (iLastErrorCode = ERR_RE_ATTR_INCONSISTENT_THROUGH_SELECTION) Begin
+                    Move False to bFontUnderline
+                End
+
+                Get pbStrikeOut of hoFocus to bFontStrikeOut
+                Get LastErrorCode of hoFocus to iLastErrorCode
+                If (iLastErrorCode = ERR_RE_ATTR_INCONSISTENT_THROUGH_SELECTION) Begin
+                    Move False to bFontStrikeOut
+                End
+
+                Get TextColor of hoFocus to rgbTextColor
+                Get LastErrorCode of hoFocus to iLastErrorCode
+                If (iLastErrorCode = ERR_RE_ATTR_INCONSISTENT_THROUGH_SELECTION) Begin
+                    Move clBlack to rgbTextColor
+                End
+
+                Get pbBold of hoFocus to bFontBold
+                Get LastErrorCode of hoFocus to iLastErrorCode
+                If (iLastErrorCode = ERR_RE_ATTR_INCONSISTENT_THROUGH_SELECTION) Begin
+                    Move False to bFontBold
+                End
+
+                Get pePitchAndFamily of hoFocus to ePitchAndFamily
+                Get LastErrorCode of hoFocus to iLastErrorCode
+                If (iLastErrorCode = ERR_RE_ATTR_INCONSISTENT_THROUGH_SELECTION) Begin
+                    Move (VARIABLE_PITCH ior FF_SWISS) to ePitchAndFamily
+                End
+
+                Get piFontType of hoFontDialog to iFontType
+
+                // When the FontType contains SIMULATED_FONTTYPE the list only shows
+                // "REGULAR", so we remove the bit.
+                If (IsFlagIn (SIMULATED_FONTTYPE, iFontType)) Begin
+                    Move (RemoveBitValue (SIMULATED_FONTTYPE, iFontType)) to iFontType
+                End
+
+                // Bold information is kept in the fonttype and in the fontweight so
+                // we need to synchronize that.
+                If (bFontBold) Begin
+                    Move (iFontType ior BOLD_FONTTYPE) to iFontType
+                    Move FW_BOLD to iFontWeight
+                End
+
+                Set psFaceName of hoFontDialog to sTypeFace
+                Set piHeight of hoFontDialog to (iFontSize / 20)
+                Set piWeight of hoFontDialog to iFontWeight
+                Set pbItalic of hoFontDialog to bFontItalics
+                Set pbUnderline of hoFontDialog to bFontUnderline
+                Set pbStrikeOut of hoFontDialog to bFontStrikeOut
+                Set piRgbColors of hoFontDialog to rgbTextColor
+                Set piFontType of hoFontDialog to iFontType
+                Set piPitch of hoFontDialog to (ePitchAndFamily iand |CI$3)
+                Set piFamily of hoFontDialog to (ePitchAndFamily iand |CI$FC)
+
+                Set pbNoScriptSel of hoFontDialog to True
+
+                Get FontDialog of hoFontDialog to bFontSelected
+                If (bFontSelected) Begin
+                    Get psFaceName of hoFontDialog to sTypeFace
+                    Get piHeight of hoFontDialog to iFontSize
+                    Get piWeight of hoFontDialog to iFontWeight
+                    Get pbItalic of hoFontDialog to bFontItalics
+                    Get pbUnderline of hoFontDialog to bFontUnderline
+                    Get pbStrikeOut of hoFontDialog to bFontStrikeOut
+                    Get piRgbColors of hoFontDialog to rgbTextColor
+                    Get piFontType of hoFontDialog to iFontType
+                    Get piPitch of hoFontDialog to iFontPitch
+                    Get piFamily of hoFontDialog to iFontFamily
+
+                    Set pbBold of hoFocus to (IsFlagIn (BOLD_FONTTYPE, iFontType))
+                    Set psTypeFace of hoFocus to sTypeFace
+                    Set piFontSize of hoFocus to (iFontSize * 20)
+                    // The next line is needed to avoid that the fontweight value does weird things
+                    Send Activate of hoFocus
+                    Set piFontWeight of hoFocus to iFontWeight
+                    Set pbItalics of hoFocus to bFontItalics
+                    Set pbUnderline of hoFocus to bFontUnderline
+                    Set pbStrikeOut of hoFocus to bFontStrikeOut
+                    Set TextColor of hoFocus to rgbTextColor
+                    Set pePitchAndFamily of hoFocus to (iFontFamily ior iFontPitch)
+                End
+
+                Send Destroy of hoFontDialog
+            End
+        End_Procedure
+    End_Object
+
+    Object oOutdentButton is a cCJRTFToolBarButton
+        Set pbControlBeginGroup to True
+        Set psCaption to "Decrease Indent"
+        Set psDescription to "Decreases Indentation of Selected Text"
+        Set psImage to "Outdent.ico"
+
+        //****************************************************************************
+        //  Send a message to outdent the current selected text
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bIsRichEdit
+            Integer eDelegationMode
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get Delegation_Mode of hoFocus to eDelegationMode
+                Set Delegation_Mode of hoFocus to No_Delegate_Or_Error
+                Send DoOutdent of hoFocus
+                Set Delegation_Mode of hoFocus to eDelegationMode
+            End
+        End_Procedure 
+        
+    End_Object
+
+    Object oIndentButton is a cCJRTFToolBarButton
+        Set psCaption to "Increase Indent"
+        Set psDescription to "Increases Indentation of Selected Text"
+        Set psImage to "Indent.ico"
+
+        //****************************************************************************
+        //  Send a message to indent the current selected text
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bIsRichEdit
+            Integer eDelegationMode
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get Delegation_Mode of hoFocus to eDelegationMode
+                Set Delegation_Mode of hoFocus to No_Delegate_Or_Error
+                Send DoIndent of hoFocus
+                Set Delegation_Mode of hoFocus to eDelegationMode
+            End
+        End_Procedure
+    End_Object
+
+    //****************************************************************************
+    //  This object shows a bitmap to indicate that the user can change the
+    //  alignment of the current selection in a RTF editor to left
+    //****************************************************************************
+    Object oAlignLeftButton is a cCJRTFToolBarButton
+        Set pbControlBeginGroup to True
+        Set psCaption to "Align Left"
+        Set psDescription to "Change Alignment of Current Text Selection to Left Align"
+        Set psImage to "AlignLeft.ico"
+
+        //****************************************************************************
+        //  Send a message to change the alignment of the current text selection to
+        //  left align
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Set peAlignment of hoFocus to alLeft
+            End
+        End_Procedure
+
+        Function IsChecked Returns Boolean
+            Boolean bIsRichEdit
+            Integer eAlignment
+            Handle hoFocus
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get peAlignment of hoFocus to eAlignment
+            End
+
+            Function_Return (eAlignment = alLeft)
+        End_Function
+    End_Object
+
+    //****************************************************************************
+    //  This object shows a bitmap to indicate that the user can change the
+    //  alignment of the current selection in a RTF editor to centered
+    //****************************************************************************
+    Object oAlignCenterButton is a cCJRTFToolBarButton
+        Set psCaption to "Align Center"
+        Set psDescription to "Centers Current Paragraph"
+        Set psImage to "AlignCenter.ico"
+
+        //****************************************************************************
+        //  Send a message to change the alignment of the current text selection to
+        //  centered aligned
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Set peAlignment of hoFocus to alCenter
+            End
+        End_Procedure
+
+        Function IsChecked Returns Boolean
+            Boolean bIsRichEdit
+            Integer eAlignment
+            Handle hoFocus
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get peAlignment of hoFocus to eAlignment
+            End
+
+            Function_Return (eAlignment = alCenter)
+        End_Function
+    End_Object
+
+    //****************************************************************************
+    //  This object shows a bitmap to indicate that the user can change the
+    //  alignment of the current selection in a RTF editor to right
+    //****************************************************************************
+    Object oAlignRightButton is a cCJRTFToolBarButton
+        Set psCaption to "Align Right"
+        Set psDescription to "Change Alignment of Current Text Selection to Right Align"
+        Set psImage to "AlignRight.ico"
+
+        //****************************************************************************
+        //  Send a message to change the alignment of the current text selection to
+        //  right align
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Set peAlignment of hoFocus to alRight
+            End
+        End_Procedure
+
+        Function IsChecked Returns Boolean
+            Boolean bIsRichEdit
+            Integer eAlignment
+            Handle hoFocus
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get peAlignment of hoFocus to eAlignment
+            End
+
+            Function_Return (eAlignment = alRight)
+        End_Function
+    End_Object
+
+    //****************************************************************************
+    //  This object shows a bitmap to indicate that the user can use numbering
+    //  in the editor
+    //****************************************************************************
+    Object oNumberingButton is a cCJRTFMenuItem
+        Set pbControlBeginGroup to True
+        Set psCaption to "Numbering"
+        Set psDescription to "Use / Cancel the Use of Numbering"
+        Set psImage to "Numbering.ico"
+        Set peControlType to xtpControlSplitButtonPopup
+
+        Object oNoBulletsMenuItem is a cCJRTFMenuItem
+            //****************************************************************************
+            //  Change the Bullets of the focus object to buNone
+            //****************************************************************************
+            Procedure OnExecute Variant vCommandBarControl
+                Handle hoFocus
+                Boolean bIsRichEdit
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Set peBullets of hoFocus to buNone
+                End
+            End_Procedure
+
+            Set psImageChecked to "Check.ico"
+            Set psCaption to "None"
+            Set psDescription to "Apply No Bullets Or Numbering"
+
+            Function IsChecked Returns Boolean
+                Handle hoFocus
+                Boolean bIsRichEdit
+                Integer eBullets
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Get peBullets of hoFocus to eBullets
+                End
+
+                Function_Return (eBullets = buNone)
+            End_Function
+        End_Object
+
+        Object oArabicNumbersMenuItem is a cCJRTFMenuItem
+            //****************************************************************************
+            //  Change the Bullets of the focus object to buArabicNumbers
+            //****************************************************************************
+            Procedure OnExecute Variant vCommandBarControl
+                Handle hoFocus
+                Boolean bIsRichEdit
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Set peBullets of hoFocus to buArabicNumbers
+                End
+            End_Procedure
+
+            Set psImageChecked to "Check.ico"
+            Set psCaption to "Arabic Numbers"
+            Set psDescription to "Apply Numbering With Arabic Numbers"
+
+            Function IsChecked Returns Boolean
+                Handle hoFocus
+                Boolean bIsRichEdit
+                Integer eBullets
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Get peBullets of hoFocus to eBullets
+                End
+
+                Function_Return (eBullets = buArabicNumbers)
+            End_Function
+        End_Object
+
+        Object oLowercaseLettersMenuItem is a cCJRTFMenuItem
+            //****************************************************************************
+            //  Change the Bullets of the focus object to buLowerLetters
+            //****************************************************************************
+            Procedure OnExecute Variant vCommandBarControl
+                Handle hoFocus
+                Boolean bIsRichEdit
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Set peBullets of hoFocus to buLowerLetters
+                End
+            End_Procedure
+
+            Set psImageChecked to "Check.ico"
+            Set psCaption to "Lowercase Letters"
+            Set psDescription to "Apply Numbering With Lowercase Letters"
+
+            Function IsChecked Returns Boolean
+                Handle hoFocus
+                Boolean bIsRichEdit
+                Integer eBullets
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Get peBullets of hoFocus to eBullets
+                End
+
+                Function_Return (eBullets = buLowerLetters)
+            End_Function
+        End_Object
+
+        Object oUppercaseLettersMenuItem is a cCJRTFMenuItem
+            //****************************************************************************
+            //  Change the Bullets of the focus object to buUpperLetters
+            //****************************************************************************
+            Procedure OnExecute Variant vCommandBarControl
+                Handle hoFocus
+                Boolean bIsRichEdit
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Set peBullets of hoFocus to buUpperLetters
+                End
+            End_Procedure
+
+            Set psImageChecked to "Check.ico"
+            Set psCaption to "Uppercase Letters"
+            Set psDescription to "Apply Numbering With Uppercase Letters"
+
+            Function IsChecked Returns Boolean
+                Handle hoFocus
+                Boolean bIsRichEdit
+                Integer eBullets
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Get peBullets of hoFocus to eBullets
+                End
+
+                Function_Return (eBullets = buUpperLetters)
+            End_Function
+        End_Object
+
+        Object oLowerRomanNumeralsMenuItem is a cCJRTFMenuItem
+            //****************************************************************************
+            //  Change the Bullets of the focus object to buLowerRomans
+            //****************************************************************************
+            Procedure OnExecute Variant vCommandBarControl
+                Handle hoFocus
+                Boolean bIsRichEdit
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Set peBullets of hoFocus to buLowerRomans
+                End
+            End_Procedure
+
+            Set psImageChecked to "Check.ico"
+            Set psCaption to "Lowercase Roman Numerals"
+            Set psDescription to "Apply Numbering With Lowercase Roman Numerals"
+
+            Function IsChecked Returns Boolean
+                Handle hoFocus
+                Boolean bIsRichEdit
+                Integer eBullets
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Get peBullets of hoFocus to eBullets
+                End
+
+                Function_Return (eBullets = buLowerRomans)
+            End_Function
+        End_Object
+
+        Object oUpperRomanNumeralsMenuItem is a cCJRTFMenuItem
+            //****************************************************************************
+            //  Change the Bullets of the focus object to buUpperRomans
+            //****************************************************************************
+            Procedure OnExecute Variant vCommandBarControl
+                Handle hoFocus
+                Boolean bIsRichEdit
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Set peBullets of hoFocus to buUpperRomans
+                End
+            End_Procedure
+
+            Set psImageChecked to "Check.ico"
+            Set psCaption to "Uppercase Roman Numerals"
+            Set psDescription to "Apply Numbering With Uppercase Roman Numerals"
+
+            Function IsChecked Returns Boolean
+                Handle hoFocus
+                Boolean bIsRichEdit
+                Integer eBullets
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Get peBullets of hoFocus to eBullets
+                End
+
+                Function_Return (eBullets = buUpperRomans)
+            End_Function
+        End_Object
+
+        //****************************************************************************
+        //  If no bullets turn bullets on. Else turn off
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Integer eBullets
+            Boolean bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get peBullets of hoFocus to eBullets
+                If (eBullets = buNone or eBullets = buBullets) Begin
+                    Set peBullets of hoFocus to buArabicNumbers
+                End
+                Else Begin
+                    Set peBullets of hoFocus to buNone
+                End
+            End
+        End_Procedure
+    End_Object
+
+    //****************************************************************************
+    //  This object shows a bitmap to indicate that the user can use bullets
+    //  in the editor
+    //****************************************************************************
+    Object oBulletsButton is a cCJRTFMenuItem
+        Set psCaption to "Bullets"
+        Set psDescription to "Use / Cancel the Use of bullets"
+        Set psImage to "Bullets.ico"
+        Set peControlType to xtpControlSplitButtonPopup
+
+        Object oRightParenthesisMenuItem is a cCJRTFMenuItem
+            //****************************************************************************
+            //  Change the BulletStyle of the focus object to busRightParen
+            //****************************************************************************
+            Procedure OnExecute Variant vCommandBarControl
+                Handle hoFocus
+                Boolean bIsRichEdit
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Set peBulletStyle of hoFocus to busRightParen
+                End
+            End_Procedure
+
+            Set psImageChecked to "Check.ico"
+            Set psCaption to "Right Parenthesis"
+            Set psDescription to "The Paragraph Number is Followed by a Closing (Right) Parenthesis"
+
+            Function IsChecked Returns Boolean
+                Handle hoFocus
+                Boolean bIsRichEdit
+                Integer eBulletStyle
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Get peBulletStyle of hoFocus to eBulletStyle
+                End
+
+                Function_Return (eBulletStyle = busRightParen)
+            End_Function
+        End_Object
+
+        Object oEncloseParenthesisMenuItem is a cCJRTFMenuItem
+            //****************************************************************************
+            //  Change the BulletStyle of the focus object to busEncloseParen
+            //****************************************************************************
+            Procedure OnExecute Variant vCommandBarControl
+                Handle hoFocus
+                Boolean bIsRichEdit
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Set peBulletStyle of hoFocus to busEncloseParen
+                End
+            End_Procedure
+
+            Set psImageChecked to "Check.ico"
+            Set psCaption to "Enclose Parenthesis"
+            Set psDescription to "The Paragraph Number is Enclosed in Parentheses"
+
+            Function IsChecked Returns Boolean
+                Handle hoFocus
+                Boolean bIsRichEdit
+                Integer eBulletStyle
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Get peBulletStyle of hoFocus to eBulletStyle
+                End
+
+                Function_Return (eBulletStyle = busEncloseParen)
+            End_Function
+        End_Object
+
+        Object oPeriodMenuItem is a cCJRTFMenuItem
+            //****************************************************************************
+            //  Change the BulletStyle of the focus object to busPeriod
+            //****************************************************************************
+            Procedure OnExecute Variant vCommandBarControl
+                Handle hoFocus
+                Boolean bIsRichEdit
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Set peBulletStyle of hoFocus to busPeriod
+                End
+            End_Procedure
+
+            Set psImageChecked to "Check.ico"
+            Set psCaption to "Period"
+            Set psDescription to "The Paragraph Number is Followed by a Period (.)"
+
+            Function IsChecked Returns Boolean
+                Handle hoFocus
+                Boolean bIsRichEdit
+                Integer eBulletStyle
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Get peBulletStyle of hoFocus to eBulletStyle
+                End
+
+                Function_Return (eBulletStyle = busPeriod)
+            End_Function
+        End_Object
+
+        Object oNumberOnlyMenuItem is a cCJRTFMenuItem
+            //****************************************************************************
+            //  Change the BulletStyle of the focus object to busNumberOnly
+            //****************************************************************************
+            Procedure OnExecute Variant vCommandBarControl
+                Handle hoFocus
+                Boolean bIsRichEdit
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Set peBulletStyle of hoFocus to busNumberOnly
+                End
+            End_Procedure
+
+            Set psImageChecked to "Check.ico"
+            Set psCaption to "Number Only"
+            Set psDescription to "The Paragraph Number is Displayed without Surrounding or Following Characters"
+
+            Function IsChecked Returns Boolean
+                Handle hoFocus
+                Boolean bIsRichEdit
+                Integer eBulletStyle
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Get peBulletStyle of hoFocus to eBulletStyle
+                End
+
+                Function_Return (eBulletStyle = busNumberOnly)
+            End_Function
+        End_Object
+
+        Object oNoDisplayMenuItem is a cCJRTFMenuItem
+            //****************************************************************************
+            //  Change the BulletStyle of the focus object to busNoDisplay
+            //****************************************************************************
+            Procedure OnExecute Variant vCommandBarControl
+                Handle hoFocus
+                Boolean bIsRichEdit
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Set peBulletStyle of hoFocus to busNoDisplay
+                End
+            End_Procedure
+
+            Set psImageChecked to "Check.ico"
+            Set psCaption to "No Display"
+            Set psDescription to "The paragraph Number is Applied, But not Displayed"
+
+            Function IsChecked Returns Boolean
+                Handle hoFocus
+                Boolean bIsRichEdit
+                Integer eBulletStyle
+
+                Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                If (bIsRichEdit) Begin
+                    Get peBulletStyle of hoFocus to eBulletStyle
+                End
+
+                Function_Return (eBulletStyle = busNoDisplay)
+            End_Function
+        End_Object
+
+        //****************************************************************************
+        //  If no bullets turn bullets on. Else turn off
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Integer eBullets
+            Boolean bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get peBullets of hoFocus to eBullets
+                If (eBullets <> buBullets) Begin
+                    Set peBullets of hoFocus to buBullets
+                End
+                Else Begin
+                    Set peBullets of hoFocus to buNone
+                End
+            End
+        End_Procedure
+    End_Object
+
+//    Object oHyperLink is a cCJRTFToolBarButton
+//        Set psCaption to "Hyperlink"
+//        Set psDescription to "Insert hyperlink (Ctrl+K)"
+//        Set psImage to "Hyperlink032N32.ico"
+//
+//        Procedure OnExecute Variant vCommandBarControl
+//            Handle hoFocus
+//            Boolean bIsRichEdit
+//
+//            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+//            If (bIsRichEdit) Begin
+//                Send DoPopupHyperLinkDialog of (Client_Id(ghoCommandBars)) hoFocus
+//            End
+//        End_Procedure
+//
+//    End_Object
+
+    Object oFindInTextButton is a cCJRTFToolBarButton
+        Set pbControlBeginGroup to True
+        Set psCaption to "Find Text"
+        Set psDescription to "Find Text in Control (Ctrl+F)"
+        Set psImage to "FindInText.ico"
+
+        //****************************************************************************
+        //  Send a message to open the find dialog
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Send DoFind of hoFocus
+            End
+        End_Procedure
+    End_Object
+
+    //****************************************************************************
+    //  This object shows a bitmap to indicate that the user can find and replace
+    //  in text
+    //****************************************************************************
+    Object oFindAndReplaceButton is a cCJRTFToolBarButton
+        Set psCaption to "Find and Replace Text"
+        Set psDescription to "Find and Replace Text in Control (Ctrl+H)"
+        Set psImage to "FindReplace.ico"
+
+        //****************************************************************************
+        //  Send a message to open the find and replace dialog
+        //****************************************************************************
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Send DoFindReplace of hoFocus
+            End
+        End_Procedure
+    End_Object
+
+    Object oCutToolbarItem is a cCJCutMenuItem
+        Set pbControlBeginGroup to True
+    End_Object
+
+    Object oCopyToolbarItem is a cCJCopyMenuItem
+    End_Object
+
+    Object oPasteToolbarItem is a cCJPasteMenuItem
+    End_Object
+
+    Object oSelectAllButton is a cCJRTFToolBarButton
+        Set pbControlBeginGroup to True
+        Set psCaption to "Select All"
+        Set psDescription to "Select all text (Ctrl+A)"
+        Set psImage to "SelectAllText.ico"
+
+        Procedure OnExecute Variant vCommandBarControl
+            Handle hoFocus
+            Boolean bState bIsRichEdit
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get CanSelect of hoFocus to bState
+                If (bState = True) Begin
+                    Send Select_All of hoFocus
+                End
+            End
+        End_Procedure
+
+    End_Object
+
+    Object oDeleteEditToolbarItem is a cCJDeleteEditMenuItem
+    End_Object
+
+End_Object

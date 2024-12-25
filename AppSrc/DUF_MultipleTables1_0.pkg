@@ -1,0 +1,671 @@
+//  ***  The Database Update Framework (DUF) ***
+// Created by: 'DUF Update Code Generator'. Created: 2019-09-06 18:21:59.586
+Use cDbUpdateVersion.pkg
+
+Object oDbUpdateVersion1 is a cDbUpdateVersion
+    Set pnVersionNumber to 1
+    Procedure OnUpdate
+        Boolean bOK
+        tAPITableNameInfo APITableNameInfo
+        tAPIColumn[]   APIColumns APIColumnEmpty
+        tAPIIndex[]    APIIndexes APIIndexEmpty
+        tAPIRelation[] APIRelations APIRelationEmpty
+        Integer iCount iSegment
+        Handle hTable
+
+        Set pbUseConnectionID       to True
+        Set pbToAnsi                to True
+        Set pbRecnum                to True
+        Set pbApiTableUpdateAuto    to True
+        Set pbCompareDate_DateTime  to False
+        Set pbCompareIndexAscending to False
+        Set pbCompareIndexUppercase to False
+
+        Set Allow_Cancel_State of ghoStatusPanel  to False
+        Set pbVisible    of ghoProgressBarOverall to True
+        Set piPosition   of ghoProgressBarOverall to 0
+        Set piMaximum    of ghoProgressBarOverall to 4
+        Set piAdvanceBy  of ghoProgressBarOverall to 1
+        Send DoAdvance   of ghoProgressBarOverall
+        Move 0 to iCount
+
+        // Logical Table Name: "ManHdr" Filelist.cfg Number: 1
+        Move 1 to APITableNameInfo.iTableNumber
+        Move "ManHdr" to APITableNameInfo.sRootName
+        Move "ManHdr" to APITableNameInfo.sLogicalName
+        Move "ManHdr" to APITableNameInfo.sDisplayName
+        Move "DATAFLEX" to APITableNameInfo.sDriverID
+        Move False to APITableNameInfo.bIsAlias
+        Move False to APITableNameInfo.bIsSQL
+        Move False to APITableNameInfo.bIsSystemFile
+
+        // Table: "ManHdr" Column: 1
+        Move 1 to APIColumns[iCount].iFieldNumber
+        Move "ID" to APIColumns[iCount].sFieldName
+        Move 1 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "Numeric" to APIColumns[iCount].sType
+        Move 8 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "ManHdr" Column: 2
+        Move 2 to APIColumns[iCount].iFieldNumber
+        Move "ManifestFileName" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 80 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "ManHdr" Column: 3
+        Move 3 to APIColumns[iCount].iFieldNumber
+        Move "Path" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 150 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "ManHdr" Column: 4
+        Move 4 to APIColumns[iCount].iFieldNumber
+        Move "CreatedBy" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 25 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "ManHdr" Column: 5
+        Move 5 to APIColumns[iCount].iFieldNumber
+        Move "CreatedDateTime" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 20 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "ManHdr" Column: 6
+        Move 6 to APIColumns[iCount].iFieldNumber
+        Move "ChangedBy" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 25 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "ManHdr" Column: 7
+        Move 7 to APIColumns[iCount].iFieldNumber
+        Move "ChangedDateTime" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 20 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "ManHdr" Column: 8
+        Move 8 to APIColumns[iCount].iFieldNumber
+        Move "Comment" to APIColumns[iCount].sFieldName
+        Move 5 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "Text" to APIColumns[iCount].sType
+        Move 15360 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+
+        // Table: "ManHdr" Index: 1
+        Move 0 to iCount
+        Move 0 to iSegment
+        Move 1 to APIIndexes[iCount].iIndexNumber
+        Move 0 to APIIndexes[iCount].iPrimaryIndex
+        Move 0 to APIIndexes[iCount].iSQLIndexType
+        Move False to APIIndexes[iCount].bIsSQLClustered
+        Move False to APIIndexes[iCount].bIsSQLPrimaryKey
+        Move 1 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ID" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iCount
+
+        // Table: "ManHdr" Index: 2
+        Move 0 to iSegment
+        Move 2 to APIIndexes[iCount].iIndexNumber
+        Move 0 to APIIndexes[iCount].iPrimaryIndex
+        Move 0 to APIIndexes[iCount].iSQLIndexType
+        Move False to APIIndexes[iCount].bIsSQLClustered
+        Move False to APIIndexes[iCount].bIsSQLPrimaryKey
+        Move 2 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ManifestFileName" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move True to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iSegment
+        Move 3 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "Path" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move True to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iSegment
+        Move 1 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ID" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iCount
+
+        // Table: "ManHdr" Index: 3
+        Move 0 to iSegment
+        Move 3 to APIIndexes[iCount].iIndexNumber
+        Move 0 to APIIndexes[iCount].iPrimaryIndex
+        Move 0 to APIIndexes[iCount].iSQLIndexType
+        Move False to APIIndexes[iCount].bIsSQLClustered
+        Move False to APIIndexes[iCount].bIsSQLPrimaryKey
+        Move 3 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "Path" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move True to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iSegment
+        Move 2 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ManifestFileName" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move True to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iSegment
+        Move 1 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ID" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+
+        Get ApiTableUpdate APITableNameInfo APIColumns APIIndexes APIRelations to bOK
+
+        Move APIColumnEmpty   to APIColumns
+        Move APIRelationEmpty to APIRelations
+        Move APIIndexEmpty    to APIIndexes
+        Move 0 to iCount
+        Send DoAdvance of ghoProgressBarOverall
+
+        // Logical Table Name: "ManDet" Filelist.cfg Number: 2
+        Move 2 to APITableNameInfo.iTableNumber
+        Move "ManDet" to APITableNameInfo.sRootName
+        Move "ManDet" to APITableNameInfo.sLogicalName
+        Move "ManDet" to APITableNameInfo.sDisplayName
+        Move "DATAFLEX" to APITableNameInfo.sDriverID
+        Move False to APITableNameInfo.bIsAlias
+        Move False to APITableNameInfo.bIsSQL
+        Move False to APITableNameInfo.bIsSystemFile
+
+        // Table: "ManDet" Column: 1
+        Move 1 to APIColumns[iCount].iFieldNumber
+        Move "ID" to APIColumns[iCount].sFieldName
+        Move 1 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "Numeric" to APIColumns[iCount].sType
+        Move 8 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "ManDet" Column: 2
+        Move 2 to APIColumns[iCount].iFieldNumber
+        Move "ManHdrID" to APIColumns[iCount].sFieldName
+        Move 1 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "Numeric" to APIColumns[iCount].sType
+        Move 8 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "ManDet" Column: 3
+        Move 3 to APIColumns[iCount].iFieldNumber
+        Move "ManifestFragmentFile" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 150 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+
+        // Table: "ManDet" Index: 1
+        Move 0 to iCount
+        Move 0 to iSegment
+        Move 1 to APIIndexes[iCount].iIndexNumber
+        Move 0 to APIIndexes[iCount].iPrimaryIndex
+        Move 0 to APIIndexes[iCount].iSQLIndexType
+        Move False to APIIndexes[iCount].bIsSQLClustered
+        Move False to APIIndexes[iCount].bIsSQLPrimaryKey
+        Move 1 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ID" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iCount
+
+        // Table: "ManDet" Index: 2
+        Move 0 to iSegment
+        Move 2 to APIIndexes[iCount].iIndexNumber
+        Move 0 to APIIndexes[iCount].iPrimaryIndex
+        Move 0 to APIIndexes[iCount].iSQLIndexType
+        Move False to APIIndexes[iCount].bIsSQLClustered
+        Move False to APIIndexes[iCount].bIsSQLPrimaryKey
+        Move 2 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ManHdrID" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iSegment
+        Move 1 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ID" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iCount
+
+        // Table: "ManDet" Index: 3
+        Move 0 to iSegment
+        Move 3 to APIIndexes[iCount].iIndexNumber
+        Move 0 to APIIndexes[iCount].iPrimaryIndex
+        Move 0 to APIIndexes[iCount].iSQLIndexType
+        Move False to APIIndexes[iCount].bIsSQLClustered
+        Move False to APIIndexes[iCount].bIsSQLPrimaryKey
+        Move 2 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ManHdrID" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iSegment
+        Move 3 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ManifestFragmentFile" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move True to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+
+        // Table: "ManDet" Relation: 1
+        Move 0 to iCount
+        Move 2 to APIRelations[iCount].hTableFrom
+        Move 2 to APIRelations[iCount].iColumnFrom
+        Move 1 to APIRelations[iCount].hTableTo
+        Move 1 to APIRelations[iCount].iColumnTo
+
+        Get ApiTableUpdate APITableNameInfo APIColumns APIIndexes APIRelations to bOK
+
+        Move APIColumnEmpty   to APIColumns
+        Move APIRelationEmpty to APIRelations
+        Move APIIndexEmpty    to APIIndexes
+        Move 0 to iCount
+        Send DoAdvance of ghoProgressBarOverall
+
+        // Logical Table Name: "DigitalCerts" Filelist.cfg Number: 3
+        Move 3 to APITableNameInfo.iTableNumber
+        Move "DigitalCerts" to APITableNameInfo.sRootName
+        Move "DigitalCerts" to APITableNameInfo.sLogicalName
+        Move "Digital Certificates" to APITableNameInfo.sDisplayName
+        Move "DATAFLEX" to APITableNameInfo.sDriverID
+        Move False to APITableNameInfo.bIsAlias
+        Move False to APITableNameInfo.bIsSQL
+        Move False to APITableNameInfo.bIsSystemFile
+
+        // Table: "DigitalCerts" Column: 1
+        Move 1 to APIColumns[iCount].iFieldNumber
+        Move "ID" to APIColumns[iCount].sFieldName
+        Move 1 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "Numeric" to APIColumns[iCount].sType
+        Move 8 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "DigitalCerts" Column: 2
+        Move 2 to APIColumns[iCount].iFieldNumber
+        Move "FileName" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 100 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "DigitalCerts" Column: 3
+        Move 3 to APIColumns[iCount].iFieldNumber
+        Move "Pw" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 30 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "DigitalCerts" Column: 4
+        Move 4 to APIColumns[iCount].iFieldNumber
+        Move "Description" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 100 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "DigitalCerts" Column: 5
+        Move 5 to APIColumns[iCount].iFieldNumber
+        Move "WebLocation" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 50 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "DigitalCerts" Column: 6
+        Move 6 to APIColumns[iCount].iFieldNumber
+        Move "AddTimeStamp" to APIColumns[iCount].sFieldName
+        Move 1 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "Numeric" to APIColumns[iCount].sType
+        Move 2 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "DigitalCerts" Column: 7
+        Move 7 to APIColumns[iCount].iFieldNumber
+        Move "TimeStampServiceSHA1" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 100 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "DigitalCerts" Column: 8
+        Move 8 to APIColumns[iCount].iFieldNumber
+        Move "TimeStampServiceSHA256" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 100 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "DigitalCerts" Column: 9
+        Move 9 to APIColumns[iCount].iFieldNumber
+        Move "DefaultDigitalCert" to APIColumns[iCount].sFieldName
+        Move 1 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "Numeric" to APIColumns[iCount].sType
+        Move 2 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+
+        // Table: "DigitalCerts" Index: 1
+        Move 0 to iCount
+        Move 0 to iSegment
+        Move 1 to APIIndexes[iCount].iIndexNumber
+        Move 0 to APIIndexes[iCount].iPrimaryIndex
+        Move 0 to APIIndexes[iCount].iSQLIndexType
+        Move False to APIIndexes[iCount].bIsSQLClustered
+        Move False to APIIndexes[iCount].bIsSQLPrimaryKey
+        Move 1 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ID" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iCount
+
+        // Table: "DigitalCerts" Index: 2
+        Move 0 to iSegment
+        Move 2 to APIIndexes[iCount].iIndexNumber
+        Move 0 to APIIndexes[iCount].iPrimaryIndex
+        Move 0 to APIIndexes[iCount].iSQLIndexType
+        Move False to APIIndexes[iCount].bIsSQLClustered
+        Move False to APIIndexes[iCount].bIsSQLPrimaryKey
+        Move 2 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "FileName" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move True to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iCount
+
+        // Table: "DigitalCerts" Index: 3
+        Move 0 to iSegment
+        Move 3 to APIIndexes[iCount].iIndexNumber
+        Move 0 to APIIndexes[iCount].iPrimaryIndex
+        Move 0 to APIIndexes[iCount].iSQLIndexType
+        Move False to APIIndexes[iCount].bIsSQLClustered
+        Move False to APIIndexes[iCount].bIsSQLPrimaryKey
+        Move 4 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "Description" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move True to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iSegment
+        Move 1 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ID" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iCount
+
+        // Table: "DigitalCerts" Index: 4
+        Move 0 to iSegment
+        Move 4 to APIIndexes[iCount].iIndexNumber
+        Move 0 to APIIndexes[iCount].iPrimaryIndex
+        Move 0 to APIIndexes[iCount].iSQLIndexType
+        Move False to APIIndexes[iCount].bIsSQLClustered
+        Move False to APIIndexes[iCount].bIsSQLPrimaryKey
+        Move 5 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "WebLocation" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move True to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iSegment
+        Move 1 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "ID" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+
+        Get ApiTableUpdate APITableNameInfo APIColumns APIIndexes APIRelations to bOK
+
+        Move APIColumnEmpty   to APIColumns
+        Move APIRelationEmpty to APIRelations
+        Move APIIndexEmpty    to APIIndexes
+        Move 0 to iCount
+        Send DoAdvance of ghoProgressBarOverall
+
+        // Logical Table Name: "CODETYPE" Filelist.cfg Number: 253
+        Move 253 to APITableNameInfo.iTableNumber
+        Move "CodeType" to APITableNameInfo.sRootName
+        Move "CODETYPE" to APITableNameInfo.sLogicalName
+        Move "Code Maintenance Type Table" to APITableNameInfo.sDisplayName
+        Move "DATAFLEX" to APITableNameInfo.sDriverID
+        Move False to APITableNameInfo.bIsAlias
+        Move False to APITableNameInfo.bIsSQL
+        Move False to APITableNameInfo.bIsSystemFile
+
+        // Table: "CODETYPE" Column: 1
+        Move 1 to APIColumns[iCount].iFieldNumber
+        Move "Type" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 10 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "CODETYPE" Column: 2
+        Move 2 to APIColumns[iCount].iFieldNumber
+        Move "Description" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 30 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "CODETYPE" Column: 3
+        Move 3 to APIColumns[iCount].iFieldNumber
+        Move "Comment" to APIColumns[iCount].sFieldName
+        Move 5 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "Text" to APIColumns[iCount].sType
+        Move 1024 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+
+        // Table: "CODETYPE" Index: 1
+        Move 0 to iCount
+        Move 0 to iSegment
+        Move 1 to APIIndexes[iCount].iIndexNumber
+        Move 0 to APIIndexes[iCount].iPrimaryIndex
+        Move 0 to APIIndexes[iCount].iSQLIndexType
+        Move False to APIIndexes[iCount].bIsSQLClustered
+        Move False to APIIndexes[iCount].bIsSQLPrimaryKey
+        Move 1 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "Type" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move True to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+
+        Get ApiTableUpdate APITableNameInfo APIColumns APIIndexes APIRelations to bOK
+
+        Move APIColumnEmpty   to APIColumns
+        Move APIRelationEmpty to APIRelations
+        Move APIIndexEmpty    to APIIndexes
+        Move 0 to iCount
+        Send DoAdvance of ghoProgressBarOverall
+
+        // Logical Table Name: "CODEMAST" Filelist.cfg Number: 254
+        Move 254 to APITableNameInfo.iTableNumber
+        Move "CodeMast" to APITableNameInfo.sRootName
+        Move "CODEMAST" to APITableNameInfo.sLogicalName
+        Move "Code Maintenance Code Table" to APITableNameInfo.sDisplayName
+        Move "DATAFLEX" to APITableNameInfo.sDriverID
+        Move False to APITableNameInfo.bIsAlias
+        Move False to APITableNameInfo.bIsSQL
+        Move False to APITableNameInfo.bIsSystemFile
+
+        // Table: "CODEMAST" Column: 1
+        Move 1 to APIColumns[iCount].iFieldNumber
+        Move "Type" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 10 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "CODEMAST" Column: 2
+        Move 2 to APIColumns[iCount].iFieldNumber
+        Move "Code" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 10 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+        Increment iCount
+
+        // Table: "CODEMAST" Column: 3
+        Move 3 to APIColumns[iCount].iFieldNumber
+        Move "Description" to APIColumns[iCount].sFieldName
+        Move 0 to APIColumns[iCount].iType
+        Move False to APIColumns[iCount].bIsSQLType
+        Move False to APIColumns[iCount].bAllowNULL
+        Move "" to APIColumns[iCount].sDefaultValue
+        Move "ASCII" to APIColumns[iCount].sType
+        Move 30 to APIColumns[iCount].iLength
+        Move 0 to APIColumns[iCount].iPrecision
+        Move 0 to APIColumns[iCount].iOptions
+
+        // Table: "CODEMAST" Index: 1
+        Move 0 to iCount
+        Move 0 to iSegment
+        Move 1 to APIIndexes[iCount].iIndexNumber
+        Move 0 to APIIndexes[iCount].iPrimaryIndex
+        Move 0 to APIIndexes[iCount].iSQLIndexType
+        Move False to APIIndexes[iCount].bIsSQLClustered
+        Move False to APIIndexes[iCount].bIsSQLPrimaryKey
+        Move 1 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "Type" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move True to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+        Increment iSegment
+        Move 2 to APIIndexes[iCount].IndexSegmentArray[iSegment].iFieldNumber
+        Move "Code" to APIIndexes[iCount].IndexSegmentArray[iSegment].sFieldName
+        Move True to APIIndexes[iCount].IndexSegmentArray[iSegment].bUppercase
+        Move False to APIIndexes[iCount].IndexSegmentArray[iSegment].bAscending
+
+        // Table: "CODEMAST" Relation: 1
+        Move 0 to iCount
+        Move 254 to APIRelations[iCount].hTableFrom
+        Move 1 to APIRelations[iCount].iColumnFrom
+        Move 253 to APIRelations[iCount].hTableTo
+        Move 1 to APIRelations[iCount].iColumnTo
+
+        Get ApiTableUpdate APITableNameInfo APIColumns APIIndexes APIRelations to bOK
+
+        Move APIColumnEmpty   to APIColumns
+        Move APIRelationEmpty to APIRelations
+        Move APIIndexEmpty    to APIIndexes
+        Move 0 to iCount
+        Send DoAdvance of ghoProgressBarOverall
+
+    End_Procedure
+End_Object

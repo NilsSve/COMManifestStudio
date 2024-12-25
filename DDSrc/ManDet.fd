@@ -1,0 +1,5 @@
+#REPLACE FILE2 ManDet
+#REPLACE ManDet.Recnum |FN2,0
+#REPLACE ManDet.ID |FN2,1
+#REPLACE ManDet.ManHdrID |FN2,2
+#REPLACE ManDet.ManifestFragmentFile |FS2,3

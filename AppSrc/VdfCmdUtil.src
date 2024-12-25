@@ -1,0 +1,299 @@
+//****************************************************************************
+// $Module type: Program
+// $Module name: VDFCmdUtil.src
+// $Author     : Nils G. Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
+// Web-site    : http://www.rdctools.com
+// Created     : 2013-03-16 @ 14:49
+//
+// Description : Command line utility for Visual DataFlex.
+// Usage       : vdfcmdutil /c [/p] [/d] [/v] [/w] [/s]
+//                   /c -Command; DOS command or Windows program
+//                   /p -Params; Parameters to pass to the command, should be in quotes
+//                   /d -working Directory; The directory to execute the command in, should be in quotes
+//                   /v -Visible; Show DOS cmd window or output from the command
+//                   /w -Wait; Wait for the command to finish
+//                   /s -Show; Show all passed command line parameters in output window
+// Note        : The parameters can be passed in any order.
+//
+// Sample Usage: DataFlex code;
+//               Move ("/c" + "RegSvr32.exe" * '"/p' + "/u" * "My.ocx" + '"' * ("/d" + '"' + "C:\MyPath\Subfolder" + '"' * "/v")) to sParams
+//               Runprogram Shell Background "VdfCmdUtil.exe" sParams
+//
+// IMPORTANT!    The VDFCmdUtil.exe uses a manifest file with Administrator
+//               execution level requirements. This means that the user will be presented
+//               with an UAC prompt asking the user if it is allowed to run the program.
+//               This has been done in order to be able to e.g. make registry changes by
+//               the command name that is passed to the program with the /c flag.
+//               To be specific; the manifest file must contain the following line:
+//               <v3:requestedExecutionLevel level="requireAdministrator"></v3:requestedExecutionLevel>
+//
+// The code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// This is free software; you can redistribute it and/or modify it under the terms of the
+// GNU Lesser General Public License.
+// License: LGPLv3 - GNU LESSER GENERAL PUBLIC LICENSE Version 3 - http://www.gnu.org/licenses/lgpl.txt
+//
+// $Rev History:
+//    2013-03-16  Module header created (Military date format)
+//****************************************************************************
+Use cApplication.pkg
+Use Dfbitmap.pkg
+Use seq_chnl.pkg
+Use Dfcursor.pkg
+Use vWin32fh.pkg
+Use StartProg.pkg
+
+Use cDigitalSoftwareCertificate.pkg
+
+Object oDigitalSoftwareCertificate is a cDigitalSoftwareCertificate
+    Move Self to ghoDigitalSoftwareCertificate
+
+    // Set pbWarnIfNotDigitallySigned = True if you like to have a warning when the
+    // program is started, but the program has not been digitally signed.
+    // Only applies when run outside the Studio.
+    Set pbWarnIfNotDigitallySigned to False
+
+    // This message does the actual checking for a valid digital certificate.
+    // If the program has been tampered with e.g. it has been infected by a virus,
+    // the user will get a warning and the program will be aborted.
+    Send ValidateProgramOnStartup
+
+End_Object
+
+Define CS_VdfCmdUtil   for "VdfCmdUtil"
+Define CS_FlagCommand  for "/c"
+Define CS_FlagVisible  for "/v"
+Define CS_FlagWait     for "/w"
+Define CS_FlagParam    for "/p"
+Define CS_FlagDir      for "/d"
+Define CS_FlagShow     for "/s"
+
+Object oApplication is a cApplication
+    Set psCompany to "RDC Tools International"
+    Set psProduct to (Module_Name(Self))
+    Set pbPreserveEnvironment to False
+    Set psVersion to (String(piVersionMajor(phoVersionInfo(Self))) + "." + String(piVersionMinor(phoVersionInfo(Self))))
+    Set psAutoOpenWorkspace to "" 
+    
+    Property String psText
+
+    Procedure OnCreate
+        Handle hoCmdLine
+        String sValue sFlag sCommand sParams sWorkDir sText sVisible sWait sShowLine sInvalidFlag sPath
+        Integer iRetval iArgs i eOpened
+        Boolean bVisible bWait bShowLine bInvalidFlag
+
+        Move True to iRetval
+        Move "" to sCommand
+        Move "" to sParams
+        Move "" to sWorkDir
+        Move False to bVisible
+        Move False to bWait
+        Move False to bShowLine
+        Move False to bInvalidFlag
+
+        // If no workspace file exists; set all paths to the current directory.
+        Get OpenWorkspaceFile of (phoWorkspace(ghoApplication)) "config.ws" to eOpened
+        If (eOpened <> wsWorkspaceOpened) Begin   
+            Get ApplicationPath of ghoDigitalSoftwareCertificate  to sPath
+            Set psHome          of (phoWorkspace(ghoApplication)) to "."
+            Set psProgramPath   of (phoWorkspace(ghoApplication)) to "."
+            Set psDataPath      of (phoWorkspace(ghoApplication)) to "."
+            Set psFileList      of (phoWorkspace(ghoApplication)) to "."
+            Set psHelpPath      of (phoWorkspace(ghoApplication)) to "."
+            Set psBitmapPath    of (phoWorkspace(ghoApplication)) to "."
+        End
+        
+        Get Module_Name to sValue
+        Send DoCheckFile (sValue + ".exe.manifest") "Resource:res_Install_ManifestFile" False
+
+        // Because we allow to pass arguments in any order we need loop through the array
+        // of arguments and look for the predefined flags.
+        Get phoCommandLine to hoCmdLine
+        Get CountOfArgs of hoCmdLine to iArgs
+        // /cRegsvr32.exe /p/u""Visual Report Writer 2012 Developer Edition API.ocx"" /d"C:\Users\Nils G. Svedmyr\Documents\My Dropbox\Visual DataFlex Projects 17\ManifestSideBySideLocal\Common COM Library\" /v
+        For i from 1 to iArgs
+            Get Argument of hoCmdLine i to sValue
+            Move (Left(sValue, 2)) to sFlag
+            Move (Lowercase(sFlag)) to sFlag
+            If (sFlag <> "/s" and sFlag <> "/v" and sFlag <> "/w") Begin
+                Move (Replace(sFlag, sValue, "")) to sValue
+            End
+            Case Begin
+                Case (sFlag = CS_FlagCommand)
+                    Move sValue to sCommand
+                    Case Break
+                Case (sFlag = CS_FlagParam)
+                    Move sValue to sParams
+                    Case Break
+                Case (sFlag = CS_FlagDir)
+                    Move sValue to sWorkDir
+                    Case Break
+                Case (sFlag = CS_FlagVisible)
+                    Move sFlag to sVisible
+                    Case Break
+                Case (sFlag = CS_FlagWait)
+                    Move sFlag to sWait
+                    Case Break
+                Case (sFlag = CS_FlagShow)
+                    Move sFlag to sShowLine
+                    Case Break
+                Case Else
+                    Move True  to bInvalidFlag
+                    Move sFlag to sInvalidFlag
+            Case End
+        Loop
+
+        // If the CS_FlagShow parameter was passed; show the values of all passed parameters in
+        // the DataFlex output window:
+        If (sShowLine = CS_FlagShow) Begin
+            Showln "sCommand = " sCommand
+            Showln "sParams = " sParams
+            Showln "sWorkDir = " sWorkDir
+            Showln "sVisible = " sVisible
+            Showln "sWait = " sWait
+            Showln "sShowLine = " sShowLine
+        End
+
+        If (sCommand <> "" and bInvalidFlag = False) Begin
+            // Setup the two booleans:
+            Move (sVisible = CS_FlagVisible) to bVisible
+            Move (sWait    = CS_FlagWait)    to bWait
+
+            // If the path ends with a backslash, remove it. Else the vFilePathExists will fail.
+            If (Right(sWorkDir, 1) = "\") Begin
+                Move (Left(sWorkDir, (Length(sWorkDir) -1))) to sWorkDir
+            End
+            // Check if the path exixts:
+            If (sWorkDir <> "") Begin
+                Get vFilePathExists sWorkDir to iRetval
+            End
+
+            If (iRetval = True) Begin
+                // Replace single quotes with double. The reason is that e.g.
+                // regsvr32.exe must have double quotes, else it will fail.
+                // So a component name is surrounded with single quotes in the main
+                // program and passed on the command line to this program.
+                Move (Replaces("'", sParams, '"')) to sParams
+                // OK, perform the action!
+                Get gStartProgram sCommand sParams sWorkDir bVisible bWait to iRetval
+                If (iRetval = -1) Begin
+                    Move ("Operation failed for the command:" * sCommand + "\nParameters:" * sParams * "\nWorking directory:" * sWorkDir) to sText
+                    Set psText to sText
+                End
+                Else Begin
+                    // Success! We are out of here...
+                    Send Exit_Application
+                End
+            End
+            Else Begin
+                Move ("Path does not exist:" * sWorkDir) to sText
+                Set psText to sText
+            End
+        End
+        Else Begin
+            If (bInvalidFlag = True) Begin
+                Move ("The command-flag" * '"' + sInvalidFlag + '"' * "is not valid. Please review the command usage and try again.\n\n") to sText
+            End
+            Else Begin
+                Move "To use this command line utility, you must pass the name of a command or program.\n\nNote that this utility uses a manifest file set to run with Administrator rights.\n\n" to sText
+            End
+            Move (sText + "Usage:" * CS_VdfCmdUtil * "/c [/p] [/d] [/v] [/w] [/s] \n") to sText
+            Move (sText + "/c -Command; DOS command or Windows program\n") to sText
+            Move (sText + "/p -Params; Parameters to pass to the command, should be in quotes\n") to sText
+            Move (sText + "/d -working Directory; The directory to execute the command in, should be in quotes\n") to sText
+            Move (sText + "/v -Visible; Show DOS cmd window or output from the command\n") to sText
+            Move (sText + "/w -Wait; Wait for the command to finish\n") to sText
+            Move (sText + "/s -Show; Show all passed command line parameters in output window\n\n") to sText
+            Move (sText + 'Sample Usage:\n/cRegsvr32 /p"/u my.ocx" /d"c:\some path\sub folder" /v /w /s\n\n') to sText
+            Move (sText + 'This would unregister the my.ocx component by starting the regsvr32 program in "c:\some path\sub folder". ') to sText
+            Move (sText + 'It would display the info box from the regsvr32.exe program (/v), Wait for the command to finish (/w) and display all passed parameters in an output window (/s).') to sText
+            Set psText to sText
+        End
+    End_Procedure
+
+    // Check if the file exists in the Programs/Data folder (or current folder if no workspace used),
+    // else create it from memory as it has been compiled into the currents program:
+    Procedure DoCheckFile String sFileName String sResourceName Boolean bDataFile
+        String sPath sDataPath
+        Boolean bExists
+
+        Get ApplicationPath of ghoDigitalSoftwareCertificate to sPath
+        If (bDataFile = True) Begin
+            Get psDataPath of (phoWorkspace(ghoApplication)) to sPath
+        End
+        Get vFolderFormat sPath to sPath
+        Move (sPath + sFileName) to sFileName
+        Get vFilePathExists sFileName to bExists
+
+        If (bExists = False) Begin
+            // Read from memory & create file on disk.
+            Send CreateFileFromMemory of ghoDigitalSoftwareCertificate sResourceName sFileName
+        End
+    End_Procedure
+
+    // Dummy message. To tell the compiler to embed a file into the program as a resource.
+    Procedure DummyEmbedFile
+        Include_Resource ..\Programs\VdfCmdUtil.exe.manifest as res_Install_ManifestFile Type DF_RESOURCE_TYPE_BINARY
+    End_Procedure
+
+End_Object
+
+Object oMain is a BasicPanel
+    Set Label to "DataFlex Command Line Utility - VdfCmdUtil" // * CS_VdfCmdUtil)
+    Set Size to 203 339
+    Set Icon to "ConsoleMode064N32.ico"
+    Set Locate_Mode to Center_On_Screen
+    Set Maximize_Icon to False
+    Set Minimize_Icon to False
+    Set Color to clWhite
+    Set piMinSize to (Hi(Size(Self)) - 100) (Low(Size(Self)))
+    Set piMaxSize to (Hi(Size(Self)) +  50) (Low(Size(Self) + 200))
+
+    Object oBitmap is a BitmapContainer
+        Set Size to 24 28
+        Set Location to 11 9
+        Set Bitmap to "Stop048N32.bmp"
+        Set Border_Style to Border_None
+        Set Color to clWhite
+    End_Object
+
+    Object oText is a TextBox
+        Set Size to 163 290
+        Set Location to 12 41
+        Set Auto_Size_State to False
+        Set Justification_Mode to JMode_Left
+        Set Color to clWhite
+        Set peAnchors to anAll
+    End_Object
+
+    Object oLowerBackground_tb is a Container3d
+        Set Size to 26 340
+        Set Location to 177 0
+        Set Color to clBtnFace
+        Set peAnchors to anBottomLeftRight
+        Set Border_Style to Border_None
+
+        Object oOk is a Button
+            Set Location to 6 281
+            Set Size to 14 50
+            Set Label to "OK"
+            Set peAnchors to anBottomRight
+            Procedure OnClick
+                Send Exit_Application
+            End_Procedure
+        End_Object
+
+    End_Object
+
+    Procedure Activating
+        String sText
+        Get psText of ghoApplication to sText
+//        Send Stop_Box sText
+        Move (Replaces("\n", sText, Character(13))) to sText
+        Set Value of oText to sText
+    End_Procedure
+
+End_Object
+
+Start_UI oMain

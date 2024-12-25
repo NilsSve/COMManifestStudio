@@ -1,0 +1,7 @@
+// Xtreme DockingPane Control version=17.1
+<file name="Codejock.DockingPane.v17.1.0.ocx">
+	<comClass clsid="{654b8136-07f7-40e7-95c6-bdbb29819f8d}" description="Xtreme Docking Pane Control" tlbid="{945E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,invisibleatruntime,nouiactivate" progid="Codejock.DockingPane.17.1.0"></comClass>
+	<comClass clsid="{24f890b9-8f4d-49c8-a97a-a541f6fae3f8}" description="Xtreme Docking Pane Frame Control" tlbid="{945E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="Codejock.DockingPaneFrame.17.1.0"></comClass>
+	<comClass clsid="{104635bf-9da7-460b-94a3-e93c64523b87}" description="Codejock.DockingPaneGlobalSettings.17.1.0" progid="Codejock.DockingPaneGlobalSettings.17.1.0"></comClass>
+	<typelib tlbid="{945E8FCC-830E-45CC-AF00-A012D5AE7451}" resourceid="1" version="17.1" helpdir=""></typelib>
+</file>

@@ -1,0 +1,139 @@
+Use cCJRTFToolbar.pkg
+Use tTypeface.pkg
+Use cTypeFaces.Pkg
+Use IsFocusRichEditControl.pkg
+
+Object oRTFTypeFaceBand is a cCJRTFToolbar
+    Set psTitle to "Typefaces"
+    Set pbCloseable to False
+    Set pbCustomizable to False
+    Set pbGripper to False
+    Set pbShowExpandButton to False
+    Set peStretched to stStretchShared
+    Set pbHideWrap to True
+
+    Object oTypeFacesToolItem is a cCJMenuItem
+        Set peControlType to xtpControlComboBox
+        Set pbEnabled to False
+        Set peControlStyle to xtpButtonCaption
+        Set pbActiveUpdate to True
+
+        Property Boolean pbChangeTypeFace
+
+        Object oSystemTypeFaces is a cTypeFaces
+        End_Object
+
+        Procedure OnCreateControl Handle hoCombo
+            Send FillComboList hoCombo
+        End_Procedure
+
+        Procedure FillComboList Handle hoCombo
+            tTypeFace[] TypeFaces SortedTypeFaces
+            String sCaption
+            Integer iThumbWidth iElements iElement iIndex
+            Integer iTextSize iMaxTextWidth iLabelWidth
+
+            Send ComClear of hoCombo
+            Move (GetSystemMetrics (SM_CXVSCROLL)) to iThumbWidth
+            Send EnumTypeFaces of oSystemTypeFaces
+            Get pTypeFaces of oSystemTypeFaces to TypeFaces
+
+            // *** New start NGS 2012-07-26
+            //     Sort the list of typefases alphabetically
+            Move (SortArray(TypeFaces, (oSystemTypeFaces(Self)), (RefFunc(CompareTypefaces)))) to SortedTypeFaces
+            Move SortedTypeFaces to TypeFaces
+            Set pTypeFaces of oSystemTypeFaces to TypeFaces
+            // *** stop
+
+            Move (SizeOfArray (TypeFaces)) to iElements
+            Decrement iElements
+            For iElement From 0 To iElements
+                Move (iElement + 1) To iIndex
+                Send ComAddItem of hoCombo TypeFaces[iElement].sFaceName iIndex
+                Set ComItemData of hoCombo iIndex to iElement
+
+                Get Text_Extent TypeFaces[iElement].sFaceName to iTextSize
+                Move ((Low (iTextSize) + 10 + iThumbWidth) Max iMaxTextWidth) To iMaxTextWidth
+            Loop
+
+            Get psCaption to sCaption
+            Get Text_Extent sCaption to iTextSize
+            Move (Low (iTextSize)) to iLabelWidth
+            Move (iMaxTextWidth + iLabelWidth) To iMaxTextWidth
+
+            Set ComDropDownWidth of hoCombo to iMaxTextWidth
+            Set ComListIndex of hoCombo to 1
+            Set ComWidth of hoCombo to iMaxTextWidth
+        End_Procedure
+
+        Procedure OnExecute Variant vControl
+            Handle hoCombo hoFocus
+            Integer iIndex iElement
+            tTypeFace[] TypeFaces
+            Boolean bChangeTypeFace bIsRichEdit
+
+            Get pbChangeTypeFace to bChangeTypeFace
+            If (bChangeTypeFace) Begin
+                Get CreateProxyControl vControl to hoCombo
+                If (hoCombo > 0) Begin
+                    Get ComListIndex of hoCombo to iIndex
+                    If (iIndex > 0) Begin
+                        Get ComItemData of hoCombo iIndex to iElement
+                        If (iElement >= 0) Begin
+                            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+                            If (bIsRichEdit) Begin
+                                Get pTypeFaces of oSystemTypeFaces to TypeFaces
+                                Set psTypeFace of hoFocus to TypeFaces[iElement].sFaceName
+                            End
+                        End
+                    End
+                    Send Destroy of hoCombo
+                End
+            End
+        End_Procedure
+
+        Procedure UpdateComboForm String sTypeFace
+            Integer iIndex
+            Variant vControl
+            Handle hoCombo
+
+            Get FindFirstControl to vControl
+            If (Not (IsNullComObject (vControl))) Begin
+                Get CreateProxyControl vControl To hoCombo
+
+                Set pbChangeTypeFace to False
+
+                Get ComFindItem of hoCombo sTypeFace to iIndex
+                Set ComListIndex of hoCombo to iIndex
+
+                Set pbChangeTypeFace to True
+
+                Send Destroy of hoCombo
+            End
+        End_Procedure
+
+        Procedure OnUpdate
+            Boolean bIsRichEdit
+            Handle hoFocus
+            String sTypeFace
+
+            Forward Send OnUpdate
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+            If (bIsRichEdit) Begin
+                Get psTypeFace of hoFocus to sTypeFace
+                Send UpdateComboForm sTypeFace
+            End
+        End_Procedure
+
+        Function IsEnabled Returns Boolean
+            Boolean bIsRichEdit
+            Handle hoFocus
+
+            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+
+            Function_Return bIsRichEdit
+        End_Function
+    End_Object
+
+End_Object

@@ -1,0 +1,6 @@
+// Recognize bounced emails and extract email addresses. Classifies email into 13 bounce types.
+// http://www.chilkatsoft.com
+<file name="ChilkatBounce.dll">
+	<typelib tlbid="{3F474A33-3F3C-43E3-9C98-8C67466CC8A6}" version="1.0" helpdir=""/>
+	<comClass description="Chilkat Bounce" clsid="{CE981562-7386-47AF-976F-1AD3EA06CD1D}" progid="ChilkatBounce.ChilkatBounce.1" threadingModel="Apartment" tlbid="{3F474A33-3F3C-43E3-9C98-8C67466CC8A6}"/>
+</file>

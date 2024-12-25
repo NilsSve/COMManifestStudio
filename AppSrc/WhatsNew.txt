@@ -1,0 +1,364 @@
+Changes made after the full release:
+===============================    
+2013-08-15
+- Added a help button to the setup dialog for how to export digital software
+  certificates to .pfx files, that is a must to be able to use the programs
+  "Digitally Sign Program" feature. 
+
+2013-08-14   
+- Changed the cWsDbCJGrid class to make the tooltip use the global desktop
+  level tooltip object properties. Sadly though, it isn't possible to use a header icon and title,
+  like in all other CodeJock classes (and the application desktop object). CodeJock has
+  decided not to implement the ComShowTitleAndDescription method for the Report class! 
+  So I commented out those properties from the ghoToolTipController object at application
+  deskop level, to make all tooltips look the same.
+- Added new class "cDbReadOnlyForm" that behaves like a DD-class field that has been set to
+  "No Enter". However, it has the added conveniance of still showing the tooltip text when
+  the mouse hovers over the object. 
+- Commented out the "Procedure Page" message of the cButton class as it seems not be necessary any longer.
+
+2013-08-10
+- Fixed a bug in the cManifestSideBySide class - IsCLSIDRegisteredFromCOMComponent function,
+  reported by Todd Forsberg. The values are now compared in uppercase.
+- Added "Powered by Visual DataFlex" image to the About dialog.
+  
+2013-07-21
+- Added two new classes cProjectIniFile & cIniFileForm for generalizing read/write of
+  ini-file values.
+- Changed objects in Setup2.dg to use the cIniFileForm class instead of the form class.
+- Changed the default setting of the Setup2.dg VDF main & minor version to use VDF system constants. 
+- Commented out the AddEndBackslashCharacter function from the cManifestSideBySide class and changed all references of it to use
+  vFolderFormat from vWin32fh.pkg. It was unintentional to duplicate that function. This also included to
+  add the vFolderFormat to a lot of places where the "Get psManifestFragmentLibrary of ghoManifestSideBySide to sPath" syntax
+  were used.
+
+2013-07-15
+- Added new functionality to the COMManifestBuilderPro program - DbMergerViewNew.vw;
+  New Options - "Compress Program", "Digitally Sign Program" & "Check if Digitally Signed"
+  The Setup2.dg was also changed to hold info about digital signing, like what .pfx file
+  to use for the digital certificate, the digital signing password et al.
+- Moved the "Test Run Program" button to the "Actions!" group. 
+- Changed all button labels from "Select" to "Browse..." 
+
+2013-06-04
+- 2013-06-04 NGS Change. Bugfix for the GetExternalProgramResult function.
+  With some COM components that exports a _lot_ of COM objects the list
+  returned was to big for the memory pipe, resulting in an endless loop.
+
+2013-04-23 (Military date format)
+- Added HTML help object and augmented Procedure DoDisplayTOC there to show the help dialog.          
+          
+2013-04-19 (Military date format)
+- Adjusted sizes to better accomodate the status bars on dialogs (cModalPanel & cDbModalPanel)
+  It looked OK on 17.0 on my machine but not with 17.1. Now the vertical size of the panel
+  is increased by 8 units, which looks much better.
+- Added handle property for the dialog status bars. This makes it easy to show text, like the
+  COMComponents.dg does; "Send Show_Status_Help of (phoDialogCommandbar(Self)) sText"
+
+2013-04-17 (Military date format)
+- Created more DAW subclasses and moved various code fragments there.
+- Fixed a bug when building manifest files in the cManifestSideBySide class.
+
+2013-04-09 (Military date format)
+- Subclassed ModalPanel &dbModalPanel to auto-set common properties, fix "Set Icon..." bug,
+  and to include lower-right hand corner resizer if Border_Style = Border_Thick.
+- Fixed a bug in the comand line program VdfCmdUtil.src when using long file names with spaces. The filename 
+  was then not properly surrounded by quotes which made the command fail. Also improved dialogs so that when appropiated,
+  they only change size horizontally.
+  Important: A database change was made - The field manhdr.ManifestFileName was extended to ASCII 80 (was 50).
+
+2013-03-31 (Military date format)   
+- Added functionality to check - when a new manifest fragment file is about
+  to be created - that the component is registered with Windows. If not a question
+  will be asked, and if "Yes" is answered, the component will get registered with Windows
+  before an attempt is made to create the manifest fragment file.
+- Also fixed some other registry searching logics in cManifestSideBySide.pkg.  
+
+2013-03-31 (Military date format)   
+- Fixed a coupble of bugs regarding pathing in Setup2.dg, when initializing.
+
+2013-03-27 (Military date format)   
+- Implemented a request to handle dependency files. An example would be the Visual Report Writer.
+  The COM component (currently) is named "Visual Report Writer 2012 Developer Edition API.ocx",
+  but when deployed it also needs the following files to reside in the Programs folder: "dynapdf.dll",
+  "dfapi30.dll" and "df_collate.cfg". The Builder's "Copy COM Components" function can now also handle
+  such dependency files. You do that by using a new keyword syntax in a manifest fragment file:
+  "//#=" - without the quotes - followed by the dependency filename. It is assumed that the dependency file 
+  resides in the "Common COM Libarary", but if it isn't you also need to specify the full path to the file.
+  See also: "Visual Report Writer 2012 Developer Edition API.v2.1.txt" manifest fragment file.
+  Note: This will not help you after your application has been depoyed. It only helps you in copying
+  all COM Compoenents and dependency files when you press the "Copy COM Components" button.
+
+2013-03-23(Military date format)   
+- Added new function to cManifestSideBySide.pkg that uses the mt.exe program to create the TypeLib
+  line for a manifest fragment file. This gives more information than can be read from the registry.  
+- Added functionality for the CreateManifestFragmentfile dialog to check that a selected COM component
+  is registered with Windows. If not, a question is asked if it should be registered. Two buttons were
+  also added to the same dialog, one for checking and the other for registering a selected COM component.
+- Skipped the usage of the "Programs/Temp" folder as a working folder. No temp output is performed any more
+  Instead the output from certain processes is captured in memory and passed to the program via a string array.
+  This also cleaned up the code interface quite a bit (it was a bit messy). 
+- Added text to the CreateManifestFragmentFile.dg about the necessity of that the COM component must be registered 
+  with Windows. No checking is performed that the component is registered before the "Create" process is done, 
+  simply because not enough information is available at the time - all we know is the name of the component.
+
+2013-03-20 (Military date format)     
+- Skipped the usage of mt.exe to create manifest fragment files. A much better utility is now used: CLSExport.exe
+  The new CLSExport.exe was created by Bernhard Ponemayr. Thank you Bernhard! The new utility is much more cabable of extracting
+  the correct CLSID's from a COM component, but it also means an important difference. To be able to create new 
+  manifest fragment files the COM component _must_ be registered with Windows. This is because the registry is used
+  to extract the important COM component manifest information from. The CLSExport utility "only" exposes the necessary
+  CLSID's that is in use by the COM component, then the registry is used by the Builder to find all necessary data. And
+  the mt.exe is finally used to extract the TypeLib information only. The mt.exe extracts more information about the 
+  TypeLib value than what is available from the registry. The net result from this totally reworked process is a much 
+  better generated manifest fragment file.
+- Added "security" to the creation process of application manifest files. It used to rely on that the manifest 
+  fragment files had a certain format. This limitation has been lifted so that component manifest fragment files 
+  created by "any" tool can be used.  
+  Note: A manifest fragment file still needs to contain ONLY ONE "<comclass description", "<comclass clsid" or 
+  "<typelib tlbid" per row, that is really important! The file must also contain the "<file name" and "</file>" tags,
+  that surrounds the "<comclass description", "<comclass clsid" and "<typelib tlbid" tags.
+
+2013-03-19 (Military date format)     
+- NB! Major improvement:
+  In some rare cases components didn't work properly when run with SxS execution.
+  The component run just fine while registered with Windows, but failed in some aspects when
+  run with SxS. It turned out that in those cases something called "Misc Status Content" information was needed. The logic
+  for including such information has been added to the manifest fragment file creation process. Finding the root
+  of the problem and a solution was a joint effort between myself, Bernhard Ponemayr, Dennis Piccioni and John Tuohy.
+  Thanks to all involved in this process! Great work guys.
+
+2013-03-12 (Military date format)     
+- Added prompt functionality to the main grid oComment_Column. I had just forgot to do so.
+- Added function AddEndBackslashCharacter to the cManifestSideBySide class and changed
+  all code to always use it after getting a path parameter. Some anomolies were found in
+  that work so it was well worth the effort.
+- Added functionality to check & register/unregister COM components.
+  Right clicking the main grid shows three new menu options; "Check if COM component is registered",
+  "Register COM Component" and "Unregister COM Component". The Windows regsvr32.exe program is 
+  used internally to perform the register/unregister actions.
+  As usual Windows "UAC" comes into play and therefore a VDF command line utility program was 
+  written: VdfCmdUtil.exe. It is started with execution level "requireAdministrator" (in the manifest file),
+  which means that if "UAC" is active a Windows dialog
+  will be shown asking for permissions for the program to make changes to the machine.
+  When "Yes" is clicked the component will get Registered/Unregistered to Windows registry.
+  Note: The VdfCmdUtil is a general purpose command line utility that can be used from any program
+  Run it without passing any parameters to view how to use it.
+- Recreated the setup.dg to use the splitter & scrolling containers correctly. The old version was
+  a bit dodgy.
+
+2013-03-03 (Military date format)     
+- Changed the main view layout. Especially made it clearer with the numbers 1-4 to show
+  the working order when building application manifest files.
+- Cleanup up and clarified the toolips and header texts for the main DbMergerView.vw
+- Removed button "Visit VDF-Guidance Page" & "Exit Application" buttons
+  Added a "Visit VDF-Guidance page" to the help menu and to a button for the About object.     
+  Also made the size and the Minimum size smaller for the application.
+- Changed the gStartProgram function sligthly with the help of Bernhard Ponemayr. It turned out that in
+  some special situations the function would fail if the pathing contained a dot (.)
+  I originanally copied the .bat file to the Programs folder to get it to work properly and
+  called this "weird voodoo" in a code comment. However, by surrounding the pathing in quotes
+  it now works without any "weird voodoo".
+- Changed a couple of short-cuts so that the new Create is Alt+C and Configure is Alt+F.  
+- Added logic to the statup.dg that sets the path's for the Manifest Fragment Library and
+  COM Common Library folders. If at startup the ini file settings are blank, the
+  two folders are created if they does not exist. The added logic is for when the program
+  is copied to a new location. If the folder from the ini file is not found the pathing(s)
+  will be reset to blank strings. This will result in that when a previously saved record
+  is found all manifest fragment files will get displayed in red text that clerly gives
+  a warning sign that something is at miss - in this case no manifest fragment files can
+  be found and it needs to be fixed from the setup dialog.
+- * Renamed the main program! The program is now called COMManifestBuilder.exe.
+  The reason is the implementation of the new important functionality to create
+  new manifest fragment files from the program, which makes the program more complete and
+  that it is now more a builder tool than just a manager. Just point to a COM module and the program will 
+  create the fragment file.  The new program name better describes what it does.
+- Changed the package name from ManifestSideBySide.pkg to cManifestSideBySide.pkg
+  The class it consists of has always been called cManifestSideBySide, thus logically the 
+  package should be named the same.
+- Fixed a bug in the logic when checking for duplicate typelibs. The sorting test
+  of typelib declarations was not performed in uppercase, wich made it fail in some cases.
+- Added logic to the "Test Run Program" button so that it first checks if all COM
+  components are present in the application folder prior trying to start the program.
+- Changed the working logic for when an application manifest file is verified. All work is
+  now done in a subfolder of this workspace Programs folder. The folder is called "Temp".
+  The folder is also used as a temp folder when creating new manifest fragment files.
+- Major improvement! It is now possible to create manifest fragment files from the program!
+  A new toolbar button "Create" was added for the purpose (Alt-C).            
+  This is of course to make it easier to all users if a COM component lacks a manifest fragment 
+  file both in the local "Manifest Fragment Library" folder and in the global repository 
+  at vdf-guidance.          
+  Note however that creating manifest fragment files is no exact science! So care must
+  be taken to test a newly created file thoroughly before deploying an application.
+- Changed logic for checking if COM components are present in the application folder.
+  It used to be that the popup was always displayed - even though that all
+  components were present in the application folder. This has been changed so that
+  an info box is displayed with the text "All components alread exists in the application folder."
+- Change the text of context menus from "Edit Manifest File" to "Edit Application Manifest File",
+  to make the distinction clearer between application manifest files and manifest fragment files.
+- Changed the text of the "Edit Manifest File" button to "Edit App Manifest File" for the same reason
+  the context menus text were changed.
+- Changed the text for the "Run Program" button to "Test Run Program" to make it clearer what
+  the button is for.
+
+2013-02-24 (Military date format) 
+- Fixed a bug in the SendSharedFilesDialog.dg where a function wasn't called correctly.
+- Fixed a bug where a parameter was not passed correctly to the CopyCOMComponents function.
+- Brushed up the help texts quite a bit.
+- Changed a menu item for the program setup that was wrong.
+- Added a broadcast send DoSetCurrentRow after skin change to repaint grid
+  current row colors.
+
+2013-02-21 (Military date format) 
+- Fixed a couple of bugs that made the psManifestFragmentLibrary & psCommonCOMLibrary
+  properties not to initialize correctly.
+- Added menu to the COMComponents.dg for consistancy.
+- Fixed two bugs regarding the psCommonCOMLibrary property, were it wasn't set/used correctly.
+- Added two new properties to the ManifestSideBySide class. psManifestFragmentLibrary & psCommonCOMLibrary.
+  They are set from the Setup.dg at startup or when changed. There were several bugs that made it to not
+  work if the pathing was changed in Setup.dg. It should now all work just fine.
+- Finished the work with changing all dialogs to use the new cWsCheckboxCJGrid class which is based on
+  the cCJGrid class. It replaces the usage of the old cCheckBoxGrid class. It makes the interface look
+  more unified.
+
+2013-02-15 (Military date format)
+- Cleaned up the code interface a bit. Only the struct tFileStruct in Symdef.pkg is now used to
+  send arrays of files and status back and forth. This made it easier to also introduce a new
+  property in the main class cManifestSideBySide; psFileStructArray that is a tFileStruct struct array,
+  used to communicate between different parts of the program. There used to be several panel psFilesArray
+  properties scattered around.
+- A new class cWsCheckboxCJGrid was introduced to replace the old cCheckBoxGrid class, that was based on
+  the old Grid class. By subclassing the cCJGrid class, all dialogs now have a common interface. It used to
+  be that some dialogs used the cCJGrid and some used the older Grid class.  
+  The new class also contains the new property "tFileStruct[] psFileStructArray" that is used to
+  send file arrays between the different dialogs. It used to be file array properties defined at panel level
+  in the different dialogs. These have all been removed in favour of the new cWsCheckboxCJGrid and 
+  cWsDbCJGrid psFileStructArray property.  
+- Removed the Property tFileStruct[] pTypeLibIDsArray from the ManifestSideBySide class as it was not used/needed.  
+
+2013-02-15 (Military date format)
+- Fixed a bug in FramgentFilesSelection.sl. If files were selected and the "x" was clicked
+  in the upper right corner of the popup, the selected files were added to the main
+  grid in DbMergerView.vw. The files should only be added if the OK button is pressed.
+
+2013-02-11 (Military date format)
+- Added splittercontainer & client to the setup dialog. Now it is possible to scroll vertically
+  while the OK and Cancel buttons are positioned at lower right at all times.
+  The Studio cannot render this correctly but it looks good when run.
+
+2013-02-08 (Military date format)
+- Added scrolling container and textboxex with vertical lines to denote different
+  section of the Setup dialog. See this as a user interface experiment.
+- Added configuration option in the Setup.dg to set "Use Alternate Row Background Color" for cWsDbCJGrids
+- Changed the menu texts from "Open File" to "Edit File"
+- Sub-classed the cDbCJGrid to cWsDbCJGrid
+
+2013-02-05 (Military date format)
+- Fixed a bug in FilesArrayDifference
+  If all Manifest Fragment files exists in both arrays,
+  the return array should be empty and it was not, resulting in that the full
+  selection list was displayed. If any of those were selected it would result
+  in "Duplicate records" errors.
+- Changed many array passing calls to use ByRef. (Just had forgot to do so)  
+- Changed the Manifest Fragment file column for the main DbMergerView grid to pbMultiLine = True 
+
+2013-02-04 (Military date format)
+- Added textbox in front of the main grid with the text:
+  "2) Click header to select Manifest Fragment Files corresponding to the COM components used by the application" and
+  simplified the grid column header text.
+- Added security when searching records. If a saved manifest file can't be found, an error message pops up
+  and the action buttons gets disabled. This can e.g. happen if a workspace was moved to a
+  new location, the workspace or program was renamed et al.
+- Fixed a save bug when entering main grid. This only applied to VDF 16.
+
+2013-02-03 (Military date format)
+- Changed the DbMergerView.vw grid to have a new column where the Fragment Comment is shown - instead of
+  its own object.
+- Changed the tab-order in the DbMergerView.vw - it was just wrong.  
+- Added configure settings in setup.dg for highlight row state and selection of color
+- Changed all grids to use highlight row state and set the current row color to clAqua
+
+2013-02-02 (Military date format)
+- Added a "Fragment Comment" object to the COMComponents.dg to make the user UI more consistent.
+- Changed the top textbox info object of the DbMergerView.vw to new class cRichEditor object. Created new RTF file "TopInfoBox.rtf"
+  with text for the object. The file is compiled into the program as a resource. The text explains (as it did before)
+  what side-by-side assemblies is, and adds the four steps for creating a side-by-side application manifest file.
+- Also changed all previous cRichEdit & cTextEdit objects to new class cRichEditor. This includes the Fragment comment
+  objects. This means that web-adresses in a Manifest Fragment file can now be clicked to start the web-browser.
+  The new cRichEditor class also contains logic for embedding RTF files as resources and other code that were
+  scattered in various objects are now in one place.
+- For the new cRichEditor class the logic on how to load resources at compile time was changed, so all RTF files
+  are now kept in the Help folder - instead of the Data folder. 
+- Changed the ManifestSideBySide.pkg so that comments in Manifest Fragment files are handled a bit more
+  intelligent. It allows for easier and better comments, especially for internet links.   
+- Major rework on the layout of the main view.               
+  I never quite liked the layout after adding the cDbRichEditor to the main view, because it was to wide to really
+  fit and it was much wider due to the width of the typeface combo and it just looked odd.
+  The typeface combo has now been dropped, typefaces can be selected from the toolbar anyway.
+  When the comboform was gone it also made sense to move the "Open in Windows Explorer" group to the right of
+  the cDbRichEditor object. All in all it makes the interface more balanced. Also moved the Fragment comment object
+  to the left of the grid. These changes makes the program not as high and can now fit on lower screen resolutions.
+  Also changed menus to reflect these changes.
+- Added four numbers (1-4) on the controls corresponding to the four steps for creating a side-by-side application manifest file.
+
+2013-02-01 (Military date format)
+- Fixed a compatability bug where VDF versions 16.0 & 16.1 would generate compile errors because of
+  two used attributes that were new to VDF 17. Reported by Renato Villa - Thanks!          
+          
+2013-01-31 (Military date format)
+- Added a send Resize after the skin is changed. It is needed for the main container to resize properly.
+- Added logic to check for duplicate records when entering main db grid. The index that must be unique
+  is Manifest file name + full pathing in the header record (ManHdr). A stop_box message is informs about
+  that the two values needs to be unique and disallows entering to the grid.
+
+2013-01-30 (Military date format)
+- Added a button to the HelpDialog.dg "View Image" that shows the "SxS Assemblies and Manifests.png" image from the
+  workspace root folder. The image describes schematically how Side-By-Side assemblies and manifest files works.
+- Fixed a bug in DoCheckCollatingSequence.pkg. The reindex routine was not always called when needed. The logic has
+  now been fixed.
+- Improved the cDbRichEditor class to automatically use the oRichEditFind.dg and oRichEditFindReplace.dg. Also added
+  context menu items for those dialogs.
+- Swapped cRichEdit objects to cDbRichEditor in FirstTimeUsage.dg, HelpDialog.dg & DuplicateTypeLibsExplained.dg
+  This makes the text searchable.
+  
+2013-01-27 (Military date format)
+- Made major improvements to the COMComponents.dg logic. The grid is now a cCJGrid. This is to improve the visual
+  guidance of the state of the component. If the component filename is in red text it means that it is either
+  missing from the Common COM Library or if it is a CodeJock component it is not installed on the machine.
+  Either way the component needs to be copied to the Common COM Library first.
+  If the COM filename is blank in the grid it means that the Manifest Fragment file is missing.
+- For the new COMComponents.dg logic to work it was also necessary to change the tCOMComponent struct to also 
+  accomodate the name of the Manifest Fragment file.
+- The "Copy COM" button of the DbMergerView.vw was renamed to "Check and Copy COM".
+- Added functionality to pass a switch on the command line to automatically reindex/repair
+  the database tables. Pass the keyword "/reindex" on the commandline to reindex. Casing is of no importance.
+
+Changes made after first Beta release:                   
+=====================================
+- Changed logic for hiding/showing top info containers. They used to flicker when the setup dialog was activated.
+- Changed logic for sharing locally created Manifest Fragment Files. Simple mapi is used to send e-mails
+  and it can't communicate with a 64-bit e-mail client. So a cLinkLabel was added as an alternate
+  solution for sending out e-mails. A special dialog was created for this purpose.
+- Changed placement of buttons and grouped the "Open..." buttons.  
+- Added idea suggested by Hans van de Laar. Functionality allows for Manifest Fragment Files to contain 
+  comments that describes what the COM component does etc. Note: Comment lines must start 
+  with double forward slashes (//) - just as in the Visual DataFlex language.  
+  These comments are shown in read only edit objects.
+- Added functionality to auto enable/disable buttons, so they can't be pressed
+  before e.g. a data record has been created.
+- Changed the application size so that the toolbars also fits horizontally when no
+  skin is used.                                       
+- Edited and adjusted menu texts to be more consistent.  
+- Added Home & End key functionality that sends Beginning_Of_Data & End_Of_Data for the cCheckBoxGrid class.
+
+Goals for the new version of the ManifestSideBySide program: (Pre-beta version)
+=======================================================
+1. Should handle more than one workpace
+2. Should handle more than one program within the same workspace
+3. Should be able to save which COM components and versions are used for a particular program
+4. Should be able to handle when a workspace is moved - hence
+   the pathing needs changes. E.g. One developer has his pathing setup in a
+   particular way on machine A. It should be possible for another
+   developer to specify another pathing for machine B to the workspace and 
+   everything else should work on the machine B as well.
+      

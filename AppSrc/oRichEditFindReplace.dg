@@ -1,0 +1,186 @@
+Use Windows.Pkg
+
+Object oRichEditFindReplace is a ModalPanel
+    Set Border_Style to Border_Thick
+    Set Label to "Find & Replace"
+    Set Location to 6 4
+    Set Size to 103 280
+    Set piMaxSize to 122 1000
+    Set piMinSize to 103 280
+
+    // handle of invoking object (RichEdit control)
+    { DesignTime = False }
+    Property Handle phoControl
+
+    Procedure Page Integer iPageObject
+        Set Icon to "FindReplace.ico"
+        Forward Send Page iPageObject
+    End_Procedure  
+    
+    Object oTextGroup is a Group
+        Set Size to 44 210
+        Set Location to 5 5
+        Set Label to "Text"
+
+        Object oSearchText is a Form
+            Set Label to "What:"
+            Set Size to 13 150
+            Set Location to 10 55
+            Set peAnchors to anTopLeftRight
+            Set Label_Col_Offset to 0
+            Set Label_Justification_Mode to jMode_Right
+        End_Object
+
+        Object oReplaceText is a Form
+            Set Label to "Replace with:"
+            Set Size to 13 150
+            Set Location to 25 55
+            Set peAnchors to anTopLeftRight
+            Set Label_Col_Offset to 0
+            Set Label_Justification_Mode to jMode_Right
+        End_Object
+    End_Object
+
+    Object oFindButton is a Button
+        Set Label to "&Find Next"
+        Set Location to 5 220
+        Set peAnchors to anBottomRight
+        Set Default_State to TRUE
+
+        Procedure OnClick
+            Integer eSearchOptions
+            Handle hoControl
+            Boolean bMatchWholeWord bMatchCase bStartAtTop
+            String sSearchText
+
+            Get phoControl To hoControl
+
+            Get Value Of oSearchText To sSearchText
+            Get Checked_State Of oStartAtTop To bStartAtTop
+
+            Get Checked_State Of oMatchWholeWord To bMatchWholeWord
+            Get Checked_State Of oMatchCase To bMatchCase
+
+            Case Begin
+                Case (bMatchWholeWord And bMatchCase)
+                    Move (FR_WHOLEWORD + FR_MATCHCASE) To eSearchOptions
+                    Case Break
+                Case (bMatchWholeWord And (Not (bMatchCase)))
+                    Move FR_WHOLEWORD To eSearchOptions
+                    Case Break
+                Case ((Not (bMatchWholeWord)) And bMatchCase)
+                    Move FR_MATCHCASE To eSearchOptions
+                    Case Break
+                Case Else
+                    Move 0 To eSearchOptions
+                    Case Break
+            Case End
+
+            // start at top of control?
+            If (bStartAtTop) Begin
+                Send Beginning_Of_Data Of hoControl
+                // turn this off after first find
+                Set Checked_State Of oStartAtTop To False
+            End
+
+            Send DoSearch Of hoControl sSearchText eSearchOptions
+        End_Procedure
+    End_Object
+
+    Object oReplaceButton is a Button
+        Set Label to "&Replace"
+        Set Location to 21 220
+        Set peAnchors to anBottomRight
+
+        Procedure OnClick
+            String sSelectedText sSearchText sReplaceText
+            Handle hoControl
+
+            Get phoControl To hoControl
+
+            // if no text is currently selected in invoking control,
+            // act like search and simply find the search text
+            Get SelText Of hoControl To sSelectedText
+            If (sSelectedText = "") Begin
+                // find next occurence of search text (via oFindButton)
+                Send KeyAction Of oFindButton
+            End
+            // if text is currently selected in invoking control,
+            // replace the text, then find the next occurence of the search text
+            Else Begin
+                Get Value Of oSearchText To sSearchText
+                Get Value Of oReplaceText To sReplaceText
+
+                Send DoReplace Of hoControl sSearchText sReplaceText False
+
+                // find next occurence of search text (via oFindButton)
+                Send KeyAction Of oFindButton
+            End
+        End_Procedure
+    End_Object
+
+    Object oReplaceAllButton is a Button
+        Set Label to "Replace &All"
+        Set Location to 37 220
+        Set peAnchors to anBottomRight
+
+        Procedure OnClick
+            String sSearchText sReplaceText
+            Handle hoControl
+
+            get phoControl To hoControl
+
+            Get Value Of oSearchText To sSearchText
+            Get Value Of oReplaceText To sReplaceText
+
+            Send DoReplace Of hoControl sSearchText sReplaceText True
+        End_Procedure
+    End_Object
+
+    Object oCancelButton is a Button
+        Set Label to "&Close"
+        Set Location to 53 220
+        Set peAnchors to anBottomRight
+
+        Procedure OnClick
+            Send Close_Panel
+        End_Procedure
+    End_Object
+
+    Object oOptionsGroup is a Group
+        Set Size to 47 210
+        Set Location to 51 5
+        Set Label to "Options"
+
+        Object oMatchWholeWord is a CheckBox
+            Set Label to "Match Whole Word"
+            Set Size to 10 79
+            Set Location to 10 5
+        End_Object
+
+        Object oMatchCase is a CheckBox
+            Set Label to "Match Case"
+            Set Size to 10 55
+            Set Location to 22 5
+        End_Object
+
+        Object oStartAtTop is a CheckBox
+            Set Label to "Start at Top of Control"
+            Set Size to 10 86
+            Set Location to 34 5
+        End_Object
+    End_Object
+
+    // store handle of invoking object on startup
+    Procedure DoReplace Handle hoControl
+        Set phoControl To hoControl
+
+        Send Popup_Modal
+    End_Procedure
+
+    On_Key Key_Alt+Key_F send KeyAction of oFindButton
+    On_Key Key_Alt+Key_C send KeyAction of oCancelButton
+    On_Key Key_Alt+Key_R send KeyAction of oReplaceButton
+    On_Key Key_Alt+Key_A send KeyAction of oReplaceAllButton
+    On_Key Key_Escape Send KeyAction Of oCancelButton
+End_Object

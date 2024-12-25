@@ -1,0 +1,15 @@
+Use Windows.pkg
+
+Class cWizardLeftSideButtons is a Container3d
+    
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+    End_Procedure
+
+    Procedure End_Construct_Object
+        Forward Send End_Construct_Object
+
+    End_Procedure
+
+End_Class

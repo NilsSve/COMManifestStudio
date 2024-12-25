@@ -1,0 +1,5 @@
+// ctToolBar Control version=2.0
+<file name="ctToolBar.ocx">
+	<comClass clsid="{ea9f57a8-7f9a-11d5-a85e-0080c8dfc881}" description="ctToolBar Control 2.0" tlbid="{EA9F57A5-7F9A-11D5-A85E-0080C8DFC881}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="ctTOOLBAR.ctToolBarCtrl.2"></comClass>
+	<typelib tlbid="{EA9F57A5-7F9A-11D5-A85E-0080C8DFC881}" resourceid="1" version="2.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

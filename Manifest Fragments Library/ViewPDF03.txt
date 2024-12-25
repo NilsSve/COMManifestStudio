@@ -1,0 +1,5 @@
+// WPViewPDF Element version=3.0
+<file name="ViewPDF03.ocx">
+	<comClass clsid="{d8d3a8f6-46ef-4424-ae49-4376f1fe1eb4}" description="WPViewPDF Element" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="ViewPDF01.WPViewPDFX"></comClass>
+	<typelib tlbid="{096A024E-2364-4BD4-95B3-849A0F10D980}" resourceid="1" version="3.0" helpdir=""></typelib>
+</file>

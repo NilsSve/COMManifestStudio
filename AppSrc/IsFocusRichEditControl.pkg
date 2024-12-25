@@ -1,0 +1,18 @@
+//Use Winbase.pkg
+
+Register_Function pbIsRichEdit Returns Boolean
+
+// Important: This function must be global or Desktop
+Function IsFocusRichEditControl Global Handle ByRef hoFocus Returns Boolean
+    Integer eDelegationMode
+    Boolean bIsRichEdit
+
+    Get Focus to hoFocus
+
+    Get Delegation_Mode of hoFocus to eDelegationMode
+    Set Delegation_Mode of hoFocus to No_Delegate_Or_Error
+    Get pbIsRichEdit of hoFocus to bIsRichEdit
+    Set Delegation_Mode of hoFocus to eDelegationMode
+
+    Function_Return bIsRichEdit
+End_Function

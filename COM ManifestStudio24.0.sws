@@ -1,0 +1,16 @@
+[Properties]
+Version=24.0
+[WorkspacePaths]
+ConfigFile=.\Programs\Config.ws
+[Conditionals]
+Is$WebApp=False
+Is$Win64=True
+[Libraries]
+Lib4=Libraries\DigitalCert\DigitalCert24.0.sws
+Lib1=..\DbUpdateFramework\DUF24.0.sws
+Lib2=..\Libraries\Filesystem\Filesystem24.0.sws
+[Projects]
+Project0=COMManifestStudio.src
+Project1=VdfCmdUtil.src
+Project2=DoTouchExeFile.src
+Project3=WriteDateTimeHeaderFile.src

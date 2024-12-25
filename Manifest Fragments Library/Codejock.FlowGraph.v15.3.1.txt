@@ -1,0 +1,9 @@
+// The Flow Graph control is included with the Codejock ChartPro component,
+// and is a graphing control used to display relationship graphs. 
+// This control can be thought of as a tool to visually display the 
+// relationships for a relational database.
+<file name="Codejock.FlowGraph.v15.3.1.ocx">
+	<typelib tlbid="{BC70F81F-1155-41DF-8810-266AB291B513}" version="15.3" helpdir=""></typelib>
+	<comClass description="Xtreme FlowGraph Control" clsid="{7640068E-B81A-4E8E-9D68-C3F85A508C89}" progid="Codejock.FlowGraphCtrl.15.3.1" threadingModel="Apartment" tlbid="{BC70F81F-1155-41DF-8810-266AB291B513}"></comClass>
+	<comClass description="Codejock.FlowGraphGlobalSettings.15.3.1" clsid="{4B29B0B1-C412-48E1-860A-BBB2C25818D4}" progid="Codejock.FlowGraphGlobalSettings.15.3.1"></comClass>
+</file>

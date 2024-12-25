@@ -1,0 +1,29 @@
+// Schedule Class version=1.0
+// The eXSchedule tool is an approach to provide scheduling of appointments into your application. 
+// The ExSchedule library lets the user changes its visual appearance using skins, each one providing 
+// an additional visual experience that enhances viewing pleasure. Skins are relatively easy to build 
+// and put on any part of the control.
+<file name="ExSchedule.dll">
+	<comClass clsid="{9b09e13d-7a88-4299-9dbe-383380435377}" description="ExSchedule ActiveX Control" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Exontrol.Schedule.1"></comClass>
+	<comClass clsid="{1706e777-83e0-4ef3-9233-ccb7e54f486d}" description="TemplatePage Class" threadingModel="Apartment"></comClass>
+	<comClass clsid="{bed0ec89-e883-491a-95a4-891832a7ce84}" description="Appearance Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.Appearance.1"></comClass>
+	<comClass clsid="{6768f3a0-3708-4bb8-88c0-1d00a9f738e0}" description="Calendar Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.Calendar.1"></comClass>
+	<comClass clsid="{c1fbdfa7-8bbb-44c6-ad78-6d5be9060d3c}" description="TimeScales Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.TimeScales.1"></comClass>
+	<comClass clsid="{42d1c3ee-e316-425b-a151-c5942ca3f8b1}" description="TimeScale Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.TimeScale.1"></comClass>
+	<comClass clsid="{dc5394d6-9b15-4d2b-b3d9-979c4ac800b6}" description="Highlight Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.Highlight.1"></comClass>
+	<comClass clsid="{1c3e82ff-153a-4699-8b53-ffa979d68bcd}" description="Groups Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.Groups.1"></comClass>
+	<comClass clsid="{bd158c23-d5d0-45a3-ba57-6a67b4ebc587}" description="Group Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.Group.1"></comClass>
+	<comClass clsid="{caeda5e4-f4b0-4585-922a-4ebf22131651}" description="Pattern Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.Pattern.1"></comClass>
+	<comClass clsid="{95ef1e39-2867-4acf-9804-6137e7ad0f8a}" description="NonworkingPattern Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.NonworkingPattern.1"></comClass>
+	<comClass clsid="{4fd5388a-1c3b-49f2-b04e-725f9259aaf3}" description="NonworkingTimes Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.NonworkingTimes.1"></comClass>
+	<comClass clsid="{9635dafb-c220-4ef3-b80f-26c1b6a5024c}" description="NonworkingTime Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.NonworkingTime.1"></comClass>
+	<comClass clsid="{510ed82c-19d9-420e-9dbf-efc70e968d74}" description="MarkZones Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.MarkZones.1"></comClass>
+	<comClass clsid="{26d6e653-43b6-492f-904a-c8a1016fc374}" description="MarkZone Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.MarkZone.1"></comClass>
+	<comClass clsid="{a7fc0d0d-8987-4325-9218-bc752d61109e}" description="MarkTimes Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.MarkTimes.1"></comClass>
+	<comClass clsid="{45c71c95-0f9a-45d3-95db-1350a8c1b3f1}" description="MarkTime Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.MarkTime.1"></comClass>
+	<comClass clsid="{dce90639-98f9-482d-82d2-b6f23c0797fb}" description="ExPictures Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.ExPictures.1"></comClass>
+	<comClass clsid="{150169e3-0d9b-4e0e-aeb1-1777a16a5a47}" description="ExPicture Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.ExPicture.1"></comClass>
+	<comClass clsid="{0e247c5a-1047-44e9-a8c9-62da0ac66a79}" description="Events Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.Events.1"></comClass>
+	<comClass clsid="{e9ee448c-abaf-468a-8aa1-c125a0c9d672}" description="Event Class" tlbid="{3BED7FEF-0A62-44eb-BB51-130EF7D6272E}" threadingModel="Apartment" progid="ExSchedule.Event.1"></comClass>
+	<typelib tlbid="{3BED7FEF-0A62-44EB-BB51-130EF7D6272E}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

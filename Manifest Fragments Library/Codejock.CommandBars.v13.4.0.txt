@@ -1,0 +1,12 @@
+// Standard Codejock Commandbars component that ships with Visual DataFlex 15.0 and 15.1.
+// Comprehensive, fully customizable menus and toolbars.
+// http://www.codejock.com/products/commandbars/?2yn6s14z=p1z
+<file name="Codejock.CommandBars.v13.4.0.ocx">
+	<comClass clsid="{FF4EBDA8-89E8-4D78-9181-5BA4EC42DF54}" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" description="Xtreme CommandBars Control"></comClass>
+	<comClass clsid="{4A554B68-0AC9-4997-B4D7-75B0F2E7E4BD}" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" description="Xtreme StatusBar Control"></comClass>
+	<comClass clsid="{2C05FF94-26D4-434E-9A9F-EE679E722862}" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" description="Xtreme CommandBars Frame Control"></comClass>
+	<comClass clsid="{E6E2061B-C2D6-42BF-B40B-E0D30B01F1C3}" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" description="Xtreme ImageManager Control"></comClass>
+	<comClass clsid="{CC84DCC3-B1C5-4F78-A547-582755CD9CA2}" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" description="PrintPreview Control"></comClass>
+	<comClass clsid="{87517A8F-60D2-4222-A538-7F5B895BDC0C}" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" description="Command Bars Settings"></comClass>
+	<typelib tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" resourceid="1" version="13.4" helpdir=""></typelib>
+</file>

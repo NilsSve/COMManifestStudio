@@ -1,0 +1,7 @@
+// Syntax Edit version=16.2
+<file name="Codejock.SyntaxEdit.v16.2.4.ocx">
+	<comClass clsid="{75f8c6b4-3c7c-4fba-91da-c2532ba49688}" description="Xtreme Syntax Edit" tlbid="{CA73588D-282F-4592-9369-A61CC244FADA}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.SyntaxEdit.16.2.4"></comClass>
+	<comClass clsid="{c06fee30-f935-43fb-9cee-7bbdfd9a4751}" description="Xtreme Syntax Edit Frame" tlbid="{CA73588D-282F-4592-9369-A61CC244FADA}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.SyntaxEditFrame.16.2.4"></comClass>
+	<comClass clsid="{9ec5dfe0-4695-4bd2-a306-b055a28bf46e}" description="Codejock.SyntaxEditGlobalSettings.16.2.4" progid="Codejock.SyntaxEditGlobalSettings.16.2.4"></comClass>
+	<typelib tlbid="{CA73588D-282F-4592-9369-A61CC244FADA}" resourceid="1" version="16.2" helpdir=""></typelib>
+</file>

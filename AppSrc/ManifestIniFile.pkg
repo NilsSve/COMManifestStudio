@@ -1,0 +1,181 @@
+//****************************************************************************
+// $Module type: Package
+// $Module name: ManifestIniFile.pkg
+//
+// $Author     : Nils G. Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
+// Web-site    : http://www.rdctools.com
+// Created     : 2012-09-20 @ 18:04 (Military date format - Year-Month-Day)
+//
+// The code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// This is free software; you can redistribute it and/or modify it under the terms of the
+// GNU Lesser General Public License - see the "GNU Lesser General Public License.txt"
+// in the help folder for more details.
+//
+Use cIniFile.pkg
+Use Symdef.pkg
+Use Base64Functions.pkg
+
+#IFNDEF ghoManifestIniFile
+    Global_Variable Integer ghoManifestIniFile
+#ENDIF
+
+Class cManifestIniFile is a cIniFile
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        Property String psPath        ""
+        Property String psIniFileName ""
+        Property String psManifestFileEditor ""
+        Property String psManifestFileEditorParams ""
+    End_Procedure
+
+    // *** Generalized messages to Get & Set values of the ini file.
+    // *** The ini file is CS_IniFileName and is kept in the root workspace folder.
+    // Set a value in the program's ini file (write)
+    // Pass a section name, the value name parameter and the value itself to be written.
+    Procedure Set IniFileValue String sSection String sValueName String sValue
+        String sIniFile sPath
+
+        Get psPath to sPath
+        Get psIniFileName to sIniFile
+        Move (sPath + sIniFile) to sIniFile
+        Set psFileName to sIniFile
+        Send WriteString sSection sValueName sValue
+    End_Procedure
+
+    // Get a value from program's ini-file (read)
+    // Pass a section name and the name of the value parameter & a default value.
+    // Returns the value
+    Function IniFileValue String sSection String sValueName String sDefaultValue Returns String
+        String sValue sIniFile sPath
+
+        Get psPath to sPath
+        Get psIniFileName to sIniFile
+        Move (sPath + sIniFile) to sIniFile
+        Set psFileName to sIniFile
+        Get ReadString sSection sValueName sDefaultValue to sValue
+
+        Function_Return sValue
+    End_Function
+
+    // The same functions as above but intended for e.g. passwords that can use "extended" characters that
+    // get scrambled when writing/reading to an ini-file. So they uses Base64 logic to ensure that the
+    // password can be properly decoded again.
+    Procedure Set IniFileValueBase64 String sSection String sValueName String sValue
+        String sIniFile sPath
+        Pointer pDir
+        Integer iLen
+
+        Get psPath to sPath
+        Get vFolderFormat sPath to sPath
+        Get psIniFileName to sIniFile
+        Move (sPath + sIniFile) to sIniFile
+        Set psFileName to sIniFile
+
+        Get EncodeString of oBase64Functions sValue to sValue
+        Send WriteString sSection sValueName sValue
+    End_Procedure
+
+    // Get a value from program's ini-file (read)
+    // Pass a section name and the name of the value parameter & a default value.
+    // Returns the value
+    Function IniFileValueBase64 String sSection String sValueName String sDefaultValue Returns String
+        String sValue sIniFile sPath
+        Pointer pDir
+        Integer iLen
+
+        Get psPath to sPath
+        Get psIniFileName to sIniFile
+        Move (sPath + sIniFile) to sIniFile
+        Set psFileName to sIniFile
+
+        Get ReadString sSection sValueName sDefaultValue to sValue
+        If (sValue <> "") Begin
+            Get DecodeString of oBase64Functions sValue to sValue
+        End
+        Function_Return sValue
+    End_Function
+
+    // Same as the original IniFileValue procedure/functions, but doesn't do any ANSI to OEM translations,
+    // of the sValue parameter.
+    Procedure Set IniFileValueNoKeywordANSItoOEMStranslate String sSection String sValueName String sValue
+        String sIniFile sPath
+
+        Get psPath to sPath
+        Get psIniFileName to sIniFile
+        Move (sPath + sIniFile) to sIniFile
+        Set psFileName to sIniFile
+        Send WriteStringNoKeywordANSItoOEMStranslate sSection sValueName sValue
+    End_Procedure
+
+    // Get a value from program's ini-file (read)
+    // Pass a section name and the name of the value parameter & a default value.
+    // Returns the value
+    Function IniFileValueNoKeywordANSItoOEMStranslate String sSection String sValueName String sDefaultValue Returns String
+        String sValue sIniFile sPath
+
+        Get psPath to sPath
+        Get psIniFileName to sIniFile
+        Move (sPath + sIniFile) to sIniFile
+        Set psFileName to sIniFile
+        Get ReadStringNoKeywordANSItoOEMStranslate sSection sValueName sDefaultValue to sValue
+
+        Function_Return sValue
+    End_Function
+
+    // Overwridden procedure/functions for the cInifile class:
+    Procedure WriteStringNoKeywordANSItoOEMStranslate String sSection String sKey String sValue
+        Boolean bSuccess
+
+        If (trim(psFileName(Self))="") Begin
+            Error DFERR_INI_FILE "Ini file name not defined"
+            Procedure_Return
+        End
+//        Move (WritePrivateProfileString(ToAnsi(sSection), ToAnsi(sKey), ToAnsi(sValue), ToAnsi(psFilename(self)))) To bSuccess
+        Move (WritePrivateProfileString(ToAnsi(sSection), ToAnsi(sKey), sValue, ToAnsi(psFilename(Self)))) to bSuccess
+        If (bSuccess = False) ;
+            Error DFERR_INI_FILE C_$CannotWriteToTheIniFile
+    End_Procedure
+
+    Function ReadStringNoKeywordANSItoOEMStranslate String sSection String sKey String sDefault Returns String
+        Integer iNumChars iSizeValue
+        Pointer lpsValue
+        String sValue
+
+        Move (ToAnsi(sSection)) to sSection
+//        Move (ToAnsi(sKey))     to sKey
+        Move (ToAnsi(sDefault)) to sDefault
+
+        Move 2047 to iSizeValue
+
+        Pad " " to sValue iSizeValue
+        GetAddress of sValue to lpsValue
+
+        If (trim(psFileName(Self))="") Begin
+            Error DFERR_INI_FILE "Ini file name not defined"
+            Function_Return ''
+        End
+        Move (GetPrivateProfileString(AddressOf(sSection), AddressOf(sKey), AddressOf(sDefault), lpsValue, iSizeValue, ToAnsi(psFilename(Self)))) to iNumChars
+//        Function_Return  (ToOem(CString(sValue)))
+        Function_Return  (CString(sValue))
+    End_Function
+
+End_Class
+
+Object oManifestIniFile is a cManifestIniFile
+    Move Self to ghoManifestIniFile
+    // 2013-03-14 NGS Added for supporting the RegSvr program
+    // At the point we get here in that program the phoWorkspace isn't defined yet.
+    Send Ignore_Error of Error_Object_Id 98
+    Set psPath        to CS_IniFileFolder
+    Send Trap_Error   of Error_Object_Id 98
+    Set psIniFileName to CS_IniFileName
+    Procedure OnStartup
+        String sEditor sEditorParams
+        Get IniFileValue CS_SectionName CS_Editor CS_Notepad to sEditor
+        Set psManifestFileEditor to sEditor
+        Get IniFileValue CS_SectionName CS_EditorParams "" to sEditorParams
+        Set psManifestFileEditorParams to sEditorParams
+    End_Procedure
+    Send OnStartup
+End_Object

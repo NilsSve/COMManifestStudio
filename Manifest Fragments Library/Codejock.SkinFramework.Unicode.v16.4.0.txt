@@ -1,0 +1,6 @@
+// SkinFramework Control version=16.4
+<file name="Codejock.SkinFramework.Unicode.v16.4.0.ocx">
+	<comClass clsid="{44b5a659-2e68-45f8-ae67-e0e181238c14}" description="Xtreme SkinFramework Control" tlbid="{BD0C1912-66C3-49CC-8B12-7B347BF6C846}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,nouiactivate,setclientsitefirst" progid="Codejock.SkinFramework.16.4.0"></comClass>
+	<comClass clsid="{e0f136eb-4ba5-4c3f-8769-1ad0a7330a98}" description="Codejock.SkinFrameworkGlobalSettings.16.4.0" progid="Codejock.SkinFrameworkGlobalSettings.16.4.0"></comClass>
+	<typelib tlbid="{BD0C1912-66C3-49CC-8B12-7B347BF6C846}" resourceid="1" version="16.4" helpdir=""></typelib>
+</file>

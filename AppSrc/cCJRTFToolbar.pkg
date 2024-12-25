@@ -1,0 +1,10 @@
+Use cCJCommandBarSystem.pkg
+
+Class cCJRTFToolbar is a cCJToolbar
+    Procedure ToggleVisibleState
+        Boolean bVisible
+
+        Get pbVisible to bVisible
+        Set pbVisible to (not (bVisible))
+    End_Procedure
+End_Class

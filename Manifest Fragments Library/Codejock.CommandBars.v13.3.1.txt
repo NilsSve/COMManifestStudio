@@ -1,0 +1,9 @@
+// Comprehensive, fully customizable menus and toolbars.
+<file name="Codejock.CommandBars.v13.3.1.ocx">
+	<typelib tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" version="13.3" helpdir=""></typelib>
+	<comClass description="Xtreme CommandBars Control" clsid="{FF4EBDA8-89E8-4D78-9181-5BA4EC42DF54}" progid="Codejock.CommandBars.13.3.1" threadingModel="Apartment" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}"/>
+	<comClass description="Xtreme CommandBars Frame Control" clsid="{2C05FF94-26D4-434E-9A9F-EE679E722862}" progid="Codejock.CommandBarsFrame.13.3.1" threadingModel="Apartment" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}"/>
+	<comClass description="Xtreme ImageManager Control" clsid="{E6E2061B-C2D6-42BF-B40B-E0D30B01F1C3}" progid="Codejock.ImageManager.13.3.1" threadingModel="Apartment" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}"/>
+	<comClass description="Xtreme PrintPreview Control" clsid="{CC84DCC3-B1C5-4F78-A547-582755CD9CA2}" progid="Codejock.PrintPreview.13.3.1" threadingModel="Apartment" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}"/>
+	<comClass description="Codejock.CommandBarsGlobalSettings.13.3.1" clsid="{87517A8F-60D2-4222-A538-7F5B895BDC0C}" progid="Codejock.CommandBarsGlobalSettings.13.3.1"/>
+</file>

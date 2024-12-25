@@ -1,0 +1,6 @@
+// Write a comment here! It will be displayed as a description for the component in the COM Manifest Builder program.
+<file name="ExPrint.dll">
+	<comClass clsid="{4deb0d2b-6ebd-4a22-9835-48ab9cdc8088}" description="ExPrint ActiveX Control" tlbid="{ED7B66F6-C533-48E9-B536-6F3B0E9C5839}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="Exontrol.Print.1"/>
+	<comClass clsid="{f8dba669-f3db-423c-8744-8349c3d85554}" description="Page Class" tlbid="{ED7B66F6-C533-48E9-B536-6F3B0E9C5839}" threadingModel="Apartment" progid="ExPrint.Page.1"/>
+	<typelib tlbid="{ED7B66F6-C533-48E9-B536-6F3B0E9C5839}" version="1.0" helpdir=""/>
+</file>

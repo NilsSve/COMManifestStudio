@@ -1,0 +1,9 @@
+// XAML Markup Support. Most CodeJock controls allows you to use XAML to format 
+// the contents of the control. Codejock ships an XAML editor utility to help 
+// you make XAML snippets to place in the controls.
+// http://www.codejock.com/products/controls/?2yn6s14z=p1z
+<file name="Codejock.Markup.v15.1.3.ocx">
+	<typelib tlbid="{C981544E-1A65-45D5-B80E-28746DFE8055}" version="15.1" helpdir="" flags="control,hasdiskimage"/>
+	<comClass clsid="{08B2633B-579B-442B-9837-7E77A59793E5}" description="Markup Label Property Page"/>
+	<comClass clsid="{752EAF81-01F7-4A7F-819B-9B8C43901B39}" description="Xtreme Markup Label Control" tlbid="{C981544E-1A65-45D5-B80E-28746DFE8055}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,simpleframe,setclientsitefirst" progid="Codejock.MarkupLabel.15.1.3"/>
+</file>

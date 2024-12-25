@@ -1,0 +1,8 @@
+// Chilkat Software Encryption Component Features
+// http://www.chilkatsoft.com/encryption-features.asp
+<file name="ChilkatCrypt2.dll">
+	<comClass clsid="{3352b5b9-82e8-4ffd-9eb1-1a3e60056904}" description="Chilkat Crypt2" tlbid="{ED798215-27F2-448D-8E51-CA2BD5DDE14B}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="ChilkatCrypt2.ChilkatCrypt2.1"></comClass>
+	<comClass clsid="{0b70ab61-5c95-4126-9985-a32531ca8619}" description="Chilkat OmaDrm" tlbid="{ED798215-27F2-448D-8E51-CA2BD5DDE14B}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="ChilkatCrypt2.ChilkatOmaDrm.1"></comClass>
+	<comClass clsid="{9794ad41-68e7-4815-bed1-ec7676dc001f}" description="ChilkatNtlm Class" tlbid="{ED798215-27F2-448D-8E51-CA2BD5DDE14B}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="Chilkat.Ntlm.1"></comClass>
+	<typelib tlbid="{ED798215-27F2-448D-8E51-CA2BD5DDE14B}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

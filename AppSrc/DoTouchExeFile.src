@@ -1,0 +1,183 @@
+//****************************************************************************
+// $Module type: Utility program
+// $Module name: DoTouchExeFile
+// $Author     : Nils Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
+// Web-site    : http://www.rdctools.com
+// Created     : 2014-10-10 @ 10:13
+//
+// Description : The Microsoft documentation on external application manifest files would lead one
+//               to conclude that as long as an .exe does not have an embedded manifest, an external
+//               manifest will be read and used instead.
+//               The truth, however, is that manifests are cached in the "Activation Context Cache" (Windows ACC).
+//               The ACC is a mysterious entity that is not discussed in the MSDN documentation.
+//               This cache is resident in memory and there is no way to give a command to flush it.
+//               Sometimes a reboot flushes it, sometimes it doesn't. (Go figure!)
+//               There is one secret way of making the loader refresh itself and that is to change the
+//               file's Date Modified Stamp.
+//               However, you cannot change that property while the program is running as it is in use! (Catch 22).
+//               Therefor we need to exit that program, run this CS_DoTouchExeFileExe utility that does the "touch"
+//               for us & also restarts the program.
+//
+// Sample usage: DoTouchExeFile "MyApp.exe"
+//               It is assumed that both this utility program and the program that is to be changed,
+//               resides in the same folder.
+//
+// The code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// This is free software; you can redistribute it and/or modify it under the terms of the
+// GNU Lesser General Public License.
+// License: LGPLv3 - GNU LESSER GENERAL PUBLIC LICENSE Version 3 - http://www.gnu.org/licenses/lgpl.txt
+//
+// $Rev History:
+//    2014-10-10  Module header created
+//****************************************************************************
+Use cApplication.pkg
+Use Dfbitmap.pkg
+Use seq_chnl.pkg
+Use Dfcursor.pkg
+Use vWin32fh.pkg
+
+Use cDigitalSoftwareCertificate.pkg   
+
+Object oDigitalSoftwareCertificate is a cDigitalSoftwareCertificate
+    Move Self to ghoDigitalSoftwareCertificate
+
+    // Set pbWarnIfNotDigitallySigned = True if you like to have a warning when the
+    // program is started, but the program has not been digitally signed.
+    // Only applies when run outside the Studio.
+    Set pbWarnIfNotDigitallySigned to True
+
+    // This message does the actual checking for a valid digital certificate.
+    // If the program has been tampered with e.g. it has been infected by a virus,
+    // the user will get a warning and the program will be aborted.
+    Send ValidateProgramOnStartup
+
+End_Object
+
+Object oApplication is a cApplication
+    Set psCompany to "RDC Tools International"
+    Set psProduct to (Module_Name(Self))
+    Set pbPreserveEnvironment to False
+    Set psVersion to (String(piVersionMajor(phoVersionInfo(Self))) + "." + String(piVersionMinor(phoVersionInfo(Self))))
+    Set psAutoOpenWorkspace to ""
+
+    Property String psText
+
+    Procedure OnCreate
+        Handle hoCmdLine
+        Integer iNumArgs
+        String sPath sFileName sText
+        tWinFileTime stFileTime
+        Boolean bExists
+        
+        Get phoCommandLine to hoCmdLine
+        Get CountOfArgs of hoCmdLine to iNumArgs
+
+        If (iNumArgs > 0) Begin
+            // First wait for the calling program to end...
+            Sleep 1
+            // Get the passed program name from the command line.
+            Get Argument of hoCmdLine 1 to sFileName
+            Move (Trim(sFileName))      to sFileName
+
+            Get ApplicationPath of ghoDigitalSoftwareCertificate to sPath
+            Get vFolderFormat sPath to sPath
+            Move (sPath + sFileName) to sFileName
+            Get vFilePathExists sFileName to bExists
+            If (bExists = False) Begin
+                Send Stop_Box ("Cannot find the file to 'touch':\n" * sFileName)
+                Send Exit_Application
+            End
+             // Change the file date stamp
+            Get FileTimeWinApi of ghoDigitalSoftwareCertificate sFileName to stFileTime
+            // Change the modified time of the exe file:
+            Move (stFileTime.dwHighDateTime + 10) to stFileTime.dwHighDateTime
+            Set FileTimeWinApi of ghoDigitalSoftwareCertificate sFileName to stFileTime
+            // Start the program (passed program name).
+            Runprogram Shell Background sFileName
+            // ...and we're out of here.
+            Send Exit_Application
+        End
+
+        Else Begin
+            Move "To use this command line utility, you must pass the name of a program that should be 'touched' - aka the 'Date Modified' stamp should be changed.\n\n" to sText
+            Move (sText + "Usage:" * CS_DoTouchExeFileExe * "MyExeProgram.exe\n") to sText
+            Move (sText + "The passed program name only needs to be in quotes if the name contains spaces.\n\n") to sText
+            Move (sText + "Description : The Microsoft documentation on external application manifest files ") to sText
+            Move (sText + "would lead one to conclude that as long as an EXE does not have an embedded manifest, an external ") to sText
+            Move (sText + "manifest will be read and used instead.") to sText
+            Move (sText + "The truth, however, is that manifests are cached in the 'Activation Context Cache' (Windows ACC). ") to sText
+            Move (sText + "The ACC is a mysterious entity that is not discussed in the MSDN documentation. ") to sText
+            Move (sText + "This cache is resident in memory and there is no command to flush it. ") to sText
+            Move (sText + "Sometimes a reboot flushes it, sometimes it doesn't.\n\n") to sText
+            Move (sText + "There is one way of making the loader refresh itself and that is to change the ") to sText
+            Move (sText + "file's 'Date Modified' stamp. It doesn't matter how much it is changed. ") to sText
+            Move (sText + "However, you cannot change this property from the program itself when it is running as it is in use! (Catch 22). ") to sText
+            Move (sText + "Therefor we need to exit the program, run the" * CS_DoTouchExeFileExe * "program that does the 'touch' ") to sText
+            Move (sText + "and then restarts the program.") to sText
+
+            Set psText to sText
+        End
+
+    End_Procedure
+
+End_Object
+
+Object oMain is a BasicPanel
+    Set Label to "Do Touch Exe File - Command Line Utility"
+    Set Size to 203 339
+    Set Icon to "ConsoleMode064N32.ico"
+    Set Locate_Mode to Center_On_Screen
+    Set Maximize_Icon to False
+    Set Minimize_Icon to False
+    Set Color to clWhite
+    Set piMinSize to (Hi(Size(Self)) - 100) (Low(Size(Self)))
+    Set piMaxSize to (Hi(Size(Self)) +  50) (Low(Size(Self) + 200))
+    Set Border_Style to Border_Thick
+
+    Object oBitmap is a BitmapContainer
+        Set Size to 24 28
+        Set Location to 11 9
+        Set Bitmap to "Stop048N32.bmp"
+        Set Border_Style to Border_None
+        Set Color to clWhite
+    End_Object
+
+    Object oText is a TextBox
+        Set Size to 163 290
+        Set Location to 12 41
+        Set Auto_Size_State to False
+        Set Justification_Mode to JMode_Left
+        Set Color to clWhite
+        Set peAnchors to anAll
+    End_Object
+
+    Object oLowerBackground_tb is a Container3d
+        Set Size to 26 340
+        Set Location to 177 0
+        Set Color to clBtnFace
+        Set peAnchors to anBottomLeftRight
+        Set Border_Style to Border_None
+
+        Object oOk is a Button
+            Set Location to 6 281
+            Set Size to 14 50
+            Set Label to "OK"
+            Set peAnchors to anBottomRight
+            Procedure OnClick
+                Send Exit_Application
+            End_Procedure
+        End_Object
+
+    End_Object
+
+    Procedure Activating
+        String sText
+        Get psText of ghoApplication to sText
+        Move (Replaces("\n", sText, Character(13))) to sText
+        Set Value of oText to sText
+    End_Procedure
+
+End_Object
+
+Start_UI oMain 

@@ -1,0 +1,6 @@
+// Xtreme PropertyGrid Control version=16.2
+<file name="Codejock.PropertyGrid.v16.2.4.ocx">
+	<comClass clsid="{8a65a769-56f4-423a-8a27-2194ea2d3642}" description="Xtreme PropertyGrid Control" tlbid="{5B44EC52-B95B-45CF-98FF-A49DFEED5A92}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.PropertyGrid.16.2.4"></comClass>
+	<comClass clsid="{ad0f8e45-6d36-48d5-b204-6ad1a047798a}" description="Codejock.PropertyGridGlobalSettings.16.2.4" progid="Codejock.PropertyGridGlobalSettings.16.2.4"></comClass>
+	<typelib tlbid="{5B44EC52-B95B-45CF-98FF-A49DFEED5A92}" resourceid="1" version="16.2" helpdir=""></typelib>
+</file>

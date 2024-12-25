@@ -1,0 +1,29 @@
+// ActLikeSDI.pkg - Make view act like an SDI view
+// Author: Dave Robinson.
+//
+// Usage:
+//    Activate_View Activate_oMyView for oMyView
+//    Object oMyView is a dbView
+//        Set Size to 271 506
+//        Set Location to 0 1
+//    #Include ActLikeSDI.pkg
+//
+Procedure Activating Returns Integer
+    Integer rval
+    Handle ho
+
+    Forward Get msg_activating to rval
+
+    Set Maximize_Icon to False
+    Set Minimize_Icon to False
+    Set Border_Style to Border_Thick
+    Set View_Mode to Viewmode_Zoom
+    // Note: The following is essential for the resizing
+    // to work when starting the program.
+    Move (Client_Id(ghoCommandBars)) to ho
+    Set Border_Style of ho to Border_None
+    Procedure_Return rval
+End_Procedure
+
+On_Key Key_Ctrl+Key_F4 Send None
+On_Key Key_F3          Send None

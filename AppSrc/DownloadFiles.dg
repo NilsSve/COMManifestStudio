@@ -1,0 +1,236 @@
+Use cCJGridColumn.pkg
+Use cRDCModalPanel.pkg
+Use cRDCCJGridColumnSuggestion.pkg
+Use cManifestCheckboxCJGrid.pkg
+Use cRDCButton.pkg
+Use cRDCRichEditor.pkg
+Use cManifestFunctionLibrary.pkg
+
+Use CreateManifestFragmentFile.dg
+
+Object oDownloadFiles_dg is a cRDCModalPanel
+    Set Size to 254 377
+    Set Label to "Manifest Fragment Library - Download from Global Repository"
+    Set Icon to "FragmentLibrary.ico"
+
+    // We need this string array to return the selected items.
+    // This is because we cannot ask the grid after the panel is closed (after popup)
+    // because the grid object is by then already destroyd.
+    Property String[] psFilesArray
+
+    Object oNewFragmentFiles_grid is a cManifestCheckboxCJGrid
+        Set Location to 66 10
+        Set Size to 160 298
+        Set peAnchors to anAll
+        Set pbReadOnly to False
+        Set pbAllowEdit to True
+        Set pbAllowDeleteRow to False
+        Set pbFocusSubItems to False
+        Set piLayoutBuild to 2
+
+        Object oCJGridColumnRowIndicator is a cCJGridColumnRowIndicator
+            Set piWidth to 20
+        End_Object
+
+        Object oFileNameFirst_Col is a cRDCCJGridColumnSuggestion
+            Set piWidth to 487
+            Set psCaption to "New Manifest Fragment Files.  Right-click grid for menu options"
+            Delegate Set piFileNameFirstCol to (piColumnId(Self))    // cWsCheckboxCJGrid property
+        End_Object
+
+        Procedure DoFillGrid
+            Integer i iFiles
+            String[] sManifestLibraryArray sFilesArray
+            Integer iCheckbox_Col iFileNameFirst_Col
+            tFileStruct[] FilesStructArray
+            Handle hoDataSource hoCol
+            tDataSourceRow[] TheData
+
+            Forward Send DoFillGrid
+
+            Get phoDataSource                to hoDataSource
+            Get DataSource of hoDataSource   to TheData
+            Get piCheckboxCol                to iCheckbox_Col
+            Get piFileNameFirstCol           to iFileNameFirst_Col
+            Get psFilesStructArray           to FilesStructArray
+            Get FileStructArrayAsStringArray of ghoManifestFunctionLibrary FilesStructArray True to sFilesArray
+
+            Move (SizeOfArray(sFilesArray)) to iFiles
+            Decrement iFiles
+            For i from 0 to iFiles
+                Move False          to TheData[i].sValue[iCheckbox_Col]
+                Move sFilesArray[i] to TheData[i].sValue[iFileNameFirst_Col]
+            Loop
+
+            // Initialize Grid with new data
+            Send InitializeData TheData
+
+            Send MovetoFirstRow
+            Get ColumnObject iFileNameFirst_Col to hoCol
+            Set psFooterText of hoCol           to ("Number of available New Manifest Fragment Files:" * String(iFiles + 1))
+            Get ColumnObject iCheckbox_Col to hoCol
+            Set psFooterText of hoCol to ("Selected:" * String(0))
+        End_Procedure
+
+        Procedure OnCreateGridControl
+            Set pbEnabled of (oOpenCurrentGridItem_MenuItem(phoContextMenu(Self))) to False
+        End_Procedure
+
+        Object oCheckbox_Col is a cCJGridColumn
+            Set piWidth to 89
+            Set psCaption to "Select"
+            Set pbCheckbox to True
+            Set peHeaderAlignment to xtpAlignmentCenter
+            Set peFooterAlignment to xtpAlignmentCenter
+            Delegate Set piCheckboxCol to (piColumnId(Self)) // cWsCheckboxCJGrid property
+        End_Object
+
+        On_Key kEnter Send KeyAction of oOK_Btn
+    End_Object
+
+    Object oSelectAll_btn is a cRDCButton
+        Set Size to 14 52
+        Set Location to 66 316
+        Set Label to "Select All"
+        Set Status_Help to "Select All (Ctrl+A)"
+        Set psImage to "SelectAll.ico"
+        Set MultiLineState to True
+        Set peAnchors to anTopRight
+        Procedure OnClick
+            Set SelectItems of oNewFragmentFiles_grid to cx_Select_All
+        End_Procedure
+
+    End_Object
+
+    Object oDeSelectAll_btn is a cRDCButton
+        Set Size to 14 52
+        Set Location to 82 316
+        Set Label to "None"
+        Set Status_Help to "Select None (Ctrl+N)"
+        Set psImage to "SelectNone.ico"
+        Set peAnchors to anTopRight
+        Procedure OnClick
+            Set SelectItems of oNewFragmentFiles_grid to cx_Select_None
+        End_Procedure
+
+    End_Object
+
+    Object oInvertSelection_btn is a cRDCButton
+        Set Size to 14 52
+        Set Location to 98 316
+        Set Label to "Invert"
+        Set Status_Help to "Invert Selection (Ctrl+I)"
+        Set psImage to "SelectInvert.ico"
+        Set peAnchors to anTopRight
+        Procedure OnClick
+            Set SelectItems of oNewFragmentFiles_grid to cx_Select_Invert
+        End_Procedure
+    End_Object
+
+    Object oRefresh_btn is a cRDCButton
+        Set Size to 14 52
+        Set Location to 132 316
+        Set Label to "Refresh" 
+        Set psImage to "Refresh.ico"
+        Set Status_Help to "Refresh the grid with Manifest Fragment files. Click if the Manifest Fragment Library has been updated after the program was started (F5)"
+        Set peAnchors to anTopRight
+        Procedure OnClick
+            Send DoFillGrid of oNewFragmentFiles_grid
+        End_Procedure
+
+    End_Object
+
+    Object oOK_Btn is a cRDCButton
+        Set Size to 14 74
+        Set Label to "Download Now!"  
+        Set psImage to "FragmentDownload.ico"
+        Set Status_Help to "Start downloading new Manifest Fragment Library files from VDF-Guidance to your local 'Manifest Fragment Library'"
+        Set Location to 233 238
+        Set peAnchors To anBottomRight
+        Set Default_State to True
+
+        Procedure OnClick
+            String[] sFilesArray
+            Integer iFiles
+            Boolean bOk
+
+            Get SelectedItems of oNewFragmentFiles_grid True to sFilesArray
+            Move (SizeOfArray(sFilesArray))    to iFiles
+            If (iFiles = 0) Begin
+                Send Info_Box "No files to download selected. Please select at least one file and try again."
+                Procedure_Return
+            End
+            Send Cursor_Wait of Cursor_Control
+            Get DownloadNewFiles of ghoManifestFunctionLibrary (&sFilesArray) to bOk
+            Send Cursor_Ready of Cursor_Control
+            If (bOk = True) Begin
+                Send Info_Box "Success! The selected Manifest Fragment Files were downloaded to your local Manifest Fragment Library."
+            End
+            Else Begin
+                Send Info_Box "A problem occured while downloading files from the VDF-Guidance 'Manifest Fragment Library'. At least one of the selected files could not be downloaded. Press the 'Refresh Grid Data' button to view newly downloaded files."
+            End
+            Send Close_Panel
+        End_Procedure
+
+    End_Object
+
+    Object oCancel_Btn is a cRDCButton
+        Set Label    to "&Cancel"
+        Set Status_Help to "Close Panel"
+        Set Location to 233 316
+        Set peAnchors to anBottomRight
+
+        Procedure OnClick
+            Send Close_Panel
+        End_Procedure
+
+    End_Object
+
+    Object oInfo_3d is a Container3d
+        Set Size to 52 359
+        Set Location to 7 10
+        Set peAnchors to anTopLeftRight
+        Set Color to clWhite
+        Set Border_Style to Border_Normal
+        Set Skip_State to True
+
+        Object oInfo_tb is a cRDCRichEditor
+            Set Size to 43 345
+            Set Location to 4 7
+            Set peAnchors to anTopLeftRight
+            Set Border_Style to Border_None
+            Set Read_Only_State to True
+            Set Skip_State to True
+            Procedure OnStartup
+                String sValue
+                Move "The list shows new manifest fragment files that exists in the global repository at VDF-Guidance, but not in your local 'Manifest Fragment Library' folder. Select the fragment files to download and press the Download Now! button." to sValue
+                Move (sValue + CR_LF + "Note:  If you can't find a suitable manifest fragment file here or in your local Manifest Fragment Library, create one by pressing the 'Create' toolbar button.") to sValue
+                Set Value to sValue
+            End_Procedure
+            Send OnStartup
+        End_Object
+
+    End_Object
+
+    Procedure Activate_Dialog tFileStruct[] FilesStructArray
+        String[] sFilesArray
+        Set psFilesStructArray of oNewFragmentFiles_grid to FilesStructArray
+        Send Popup
+    End_Procedure
+
+    On_Key Key_Alt+Key_O Send KeyAction of oOK_Btn
+    On_Key Key_Alt+Key_C Send KeyAction of oCancel_Btn
+    On_Key kCancel       send KeyAction of oCancel_Btn
+End_Object
+
+// Public access method to this dialog
+// Pass an array with the files that should appear in the grid.
+Procedure Activate_oDownloadFiles_dg tFileStruct[] FilesStructArray
+    Integer iSize
+    Move (SizeOfArray(FilesStructArray)) to iSize
+    If (iSize = 0) Begin
+        Send Info_Box "No new 'Manifest Fragment Library' files to download from VDF-Guidance."
+        Procedure_Return
+    End
+    Send Activate_Dialog of (oDownloadFiles_dg(Self)) FilesStructArray
+End_Procedure

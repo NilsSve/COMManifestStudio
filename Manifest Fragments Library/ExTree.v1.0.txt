@@ -1,0 +1,17 @@
+// Helper component for the Exontrol's exG2antt component 
+// http://www.exontrol.com/exg2antt.jsp
+<file name="ExTree.dll">
+	<comClass clsid="{3C5FC763-72BA-4B97-9985-81862E9251F2}" tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" description="Tree Class"></comClass>
+	<comClass clsid="{27DFC9CE-81DA-4741-B9F2-D30D6CCBC08B}" tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" description="Column Class"></comClass>
+	<comClass clsid="{A62D4D05-4772-402D-A9F3-690391158C10}" tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" description="Columns Class"></comClass>
+	<comClass clsid="{838567C7-F100-42D7-AF04-AA567D37EF77}" tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" description="Items Class"></comClass>
+	<comClass clsid="{4B8D60D2-B809-46B9-8794-4E6BD055468F}" tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" description="OleEvent Class"></comClass>
+	<comClass clsid="{9FE25F10-931E-4AFF-9262-DEA483028062}" tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" description="OleEventParam Class"></comClass>
+	<comClass clsid="{78CA0EB3-32B7-47A4-BCBB-887ABA7F20B9}" tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" description="ExDataObjectFiles Class"></comClass>
+	<comClass clsid="{1D08BE7D-3CDB-4E13-9FD7-FACFCFCF592B}" tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" description="ExDataObject Class"></comClass>
+	<comClass clsid="{EEAB62C7-5235-4258-A625-B10DB5410793}" tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" description="TemplatePage Class"></comClass>
+	<comClass clsid="{2BC17754-50BA-49D5-923D-5B1B982CD8CA}" tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" description="Appearance Class"></comClass>
+	<comClass clsid="{139EDCA6-E7FC-41F6-9215-467A67DE35D7}" tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" description="ConditionalFormat Class"></comClass>
+	<comClass clsid="{2C38CD39-0125-4695-B5DC-D7AD8BB83C5A}" tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" description="ConditionalFormats Class"></comClass>
+	<typelib tlbid="{3FB32B9A-7948-479C-A8B4-38965F92F530}" resourceid="1" version="1.0" helpdir=""></typelib>
+</file>

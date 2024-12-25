@@ -1,0 +1,10 @@
+Object
+
+    //Fires whenever the value of the control is changed
+    //Procedure OnChange
+    //    Boolean bChecked
+    //
+    //    Get Checked_State To bChecked
+    //End_Procedure
+
+End_Object
