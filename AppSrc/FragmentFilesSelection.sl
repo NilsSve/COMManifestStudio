@@ -1,4 +1,4 @@
-Use cRDCModalPanel.pkg
+﻿Use cRDCModalPanel.pkg
 Use cRDCSpinForm.pkg
 Use cCJGridColumnRowIndicator.pkg
 Use cManifestCheckboxCJGrid.pkg
@@ -163,6 +163,36 @@ Object oFragmentFiles_sl is a cRDCModalPanel
                 Move False to bFound
                 Move TheData[i].sValue[iFileName_Col] to sFileName
                 Case Begin
+                    Case (iMajorVersion = 25 and iMinorVersion = 0)
+                        Move (Uppercase(sFileName) contains "CODEJOCK" and sFileName contains "24.0.0") to bFound
+                        If (bFound = True) Begin
+                            Move (Uppercase(sFileName) contains "COMMANDBARS" or Uppercase(sFileName) contains "REPORTCONTROL" or Uppercase(sFileName) contains "SKINFRAMEWORK") to bFound
+                        End
+                        Case Break
+                    Case (iMajorVersion = 24 and iMinorVersion = 0)
+                        Move (Uppercase(sFileName) contains "CODEJOCK" and sFileName contains "22.0.0") to bFound
+                        If (bFound = True) Begin
+                            Move (Uppercase(sFileName) contains "COMMANDBARS" or Uppercase(sFileName) contains "REPORTCONTROL" or Uppercase(sFileName) contains "SKINFRAMEWORK") to bFound
+                        End
+                        Case Break
+                    Case (iMajorVersion = 23 and iMinorVersion = 0)
+                        Move (Uppercase(sFileName) contains "CODEJOCK" and sFileName contains "22.0.0") to bFound
+                        If (bFound = True) Begin
+                            Move (Uppercase(sFileName) contains "COMMANDBARS" or Uppercase(sFileName) contains "REPORTCONTROL" or Uppercase(sFileName) contains "SKINFRAMEWORK") to bFound
+                        End
+                        Case Break
+                    Case (iMajorVersion = 20 and iMinorVersion = 1)
+                        Move (Uppercase(sFileName) contains "CODEJOCK" and sFileName contains "20.0.0") to bFound
+                        If (bFound = True) Begin
+                            Move (Uppercase(sFileName) contains "COMMANDBARS" or Uppercase(sFileName) contains "REPORTCONTROL" or Uppercase(sFileName) contains "SKINFRAMEWORK") to bFound
+                        End
+                        Case Break
+                    Case (iMajorVersion = 20 and iMinorVersion = 0)
+                        Move (Uppercase(sFileName) contains "CODEJOCK" and sFileName contains "20.0.0") to bFound
+                        If (bFound = True) Begin
+                            Move (Uppercase(sFileName) contains "COMMANDBARS" or Uppercase(sFileName) contains "REPORTCONTROL" or Uppercase(sFileName) contains "SKINFRAMEWORK") to bFound
+                        End
+                        Case Break
                     Case (iMajorVersion = 19 and iMinorVersion = 1)
                         Move (Uppercase(sFileName) contains "CODEJOCK" and sFileName contains "18.3.0") to bFound
                         If (bFound = True) Begin
