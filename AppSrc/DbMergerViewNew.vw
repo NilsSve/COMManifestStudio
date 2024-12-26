@@ -62,6 +62,13 @@ Object oDbMerger_vw is a dbView
     Set Main_DD to oManHdr_DD
     Set Server  to oManHdr_DD
 
+    Object oCompile_Info_tb is a TextBox
+        Set Size to 10 33
+        Set Location to 2 12
+        Set Label to "NOTE: This program needs to compiled as 32-bit to function properly!"
+        Set FontWeight to fw_Bold
+    End_Object
+
     Object oAppManifest_grp is a cRDCHeaderDbGroup //cRDCDbGroup
         Set Size to 68 376
         Set Location to 16 12
@@ -885,13 +892,6 @@ Register_Object oViewContextMenu
             End_Procedure
         End_Object
 
-    End_Object
-
-    Object oCompile_Info_tb is a TextBox
-        Set Size to 10 33
-        Set Location to 2 12
-        Set Label to "NOTE: This program needs to compiled as 32-bit to function properly!"
-        Set FontWeight to fw_Bold
     End_Object
 
     // Context sensitive menu for the view
