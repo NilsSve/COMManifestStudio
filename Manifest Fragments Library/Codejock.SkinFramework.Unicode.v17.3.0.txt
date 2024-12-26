@@ -1,6 +1,0 @@
-// SkinFramework Control version=17.3 Comes with DataFlex 19.0
-<file name="Codejock.SkinFramework.Unicode.v17.3.0.ocx">
-	<comClass clsid="{de67160b-9a3e-4ea6-846e-8c9a72f9f203}" description="Xtreme SkinFramework Control" tlbid="{BD0C1912-66C3-49CC-8B12-7B347BF6C846}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,nouiactivate,setclientsitefirst" progid="Codejock.SkinFramework.17.3.0"></comClass>
-	<comClass clsid="{c4136a4a-67fd-4fc1-ba62-a715b4d60808}" description="Codejock.SkinFrameworkGlobalSettings.17.3.0" progid="Codejock.SkinFrameworkGlobalSettings.17.3.0"></comClass>
-	<typelib tlbid="{BD0C1912-66C3-49CC-8B12-7B347BF6C846}" resourceid="1" version="17.3" helpdir=""></typelib>
-</file>

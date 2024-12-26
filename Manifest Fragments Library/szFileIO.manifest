@@ -1,5 +1,0 @@
-﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity name="szFileIO" version="2.0.0.0" type="win32">
-  </assemblyIdentity>
-  <clrClass clsid="{8E63234F-D407-4090-A62C-E412D41378F9}" progid="szFileIO" threadingModel="Both" name="szFileIO.szFileIO" runtimeVersion="v4.0.30319"></clrClass><clrClass clsid="{28DC944A-2C15-4403-847D-F59D5DE58ED2}" progid="szFileStream" threadingModel="Both" name="szFileIO.szFileStream" runtimeVersion="v4.0.30319"></clrClass><clrClass clsid="{223D3BB7-145C-4954-B508-12D758A4A09F}" progid="szSerialPort" threadingModel="Both" name="szFileIO.szSerialPort" runtimeVersion="v4.0.30319"></clrClass><clrClass clsid="{DABA9AD8-AD6E-49D1-9C8A-F5372E7D9C86}" progid="szStreamReader" threadingModel="Both" name="szFileIO.szStreamReader" runtimeVersion="v4.0.30319"></clrClass><clrClass clsid="{37879B1F-E2FB-40FD-88B7-B0ED6B519432}" progid="szStreamWriter" threadingModel="Both" name="szFileIO.szStreamWriter" runtimeVersion="v4.0.30319"></clrClass><file name="szFileIO.dll" hashalg="SHA1"></file></assembly>

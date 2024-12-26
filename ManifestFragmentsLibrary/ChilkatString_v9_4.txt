@@ -1,0 +1,9 @@
+// Manipulating strings.
+// http://www.chilkatsoft.com
+<file name="CkString.dll">
+	<typelib tlbid="{7D1E3FEA-D568-4DD0-9D77-99F4576E9674}" version="1.0" helpdir="" flags="hasdiskimage"/>
+	<comClass clsid="{22D3A4CA-227A-44DE-B6E7-B926634C27DB}" description="DtObj Class" tlbid="{7D1E3FEA-D568-4DD0-9D77-99F4576E9674}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="CkString.DtObj.1"><progid>CkString.DtObj</progid><progid>Chilkat.DtObj</progid><progid>Chilkat.DtObj.1</progid></comClass>
+	<comClass clsid="{522115F3-DF96-4D69-96D4-E3DD5399747B}" description="StrFun Class" tlbid="{7D1E3FEA-D568-4DD0-9D77-99F4576E9674}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="CkString.StrFun.1"><progid>CkString.StrFun</progid></comClass>
+	<comClass clsid="{8901B0F3-FD95-4774-A29B-D5144F636CDD}" description="CkDateTime Class" tlbid="{7D1E3FEA-D568-4DD0-9D77-99F4576E9674}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="CkString.CkDateTime.1"><progid>CkString.CkDateTime</progid><progid>Chilkat.DateTime</progid><progid>Chilkat.DateTime.1</progid></comClass>
+	<comClass clsid="{90E567DA-5E79-4571-AB07-7A397FFBE995}" description="Chilkat String" tlbid="{7D1E3FEA-D568-4DD0-9D77-99F4576E9674}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="CkString.CkString.1"><progid>CkString.CkString</progid><progid>Chilkat.String</progid><progid>Chilkat.String.1</progid></comClass>
+</file>

@@ -1,6 +1,0 @@
-// MarkupLabel Control version=17.0
-<file name="Codejock.Markup.v17.0.0.ocx">
-	<comClass clsid="{aa29e1f2-0a79-4bff-8ed1-c8187d358ceb}" description="Xtreme Markup Label Control" tlbid="{C981544E-1A65-45D5-B80E-28746DFE8055}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,simpleframe,setclientsitefirst" progid="Codejock.MarkupLabel.17.0.0"></comClass>
-	<comClass clsid="{047e74fb-de34-4094-a5bc-c482e314e5d7}" description="Codejock.MarkupGlobalSettings.17.0.0" progid="Codejock.MarkupGlobalSettings.17.0.0"></comClass>
-	<typelib tlbid="{C981544E-1A65-45D5-B80E-28746DFE8055}" resourceid="1" version="17.0" helpdir=""></typelib>
-</file>

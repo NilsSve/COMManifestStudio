@@ -1,5 +1,0 @@
-// SpellChecker Class version=5.0
-<file name="PolarSpellChecker.dll">
-	<comClass clsid="{2e304293-5da6-4243-8bd8-a703f31aa581}" description="Polar SpellChecker 5.0 ActiveX Control" tlbid="{13ADDE2B-B303-4618-975F-648031250148}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="SpellChecker.SpellChecker.5"></comClass>
-	<typelib tlbid="{13ADDE2B-B303-4618-975F-648031250148}" resourceid="1" version="5.0" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>

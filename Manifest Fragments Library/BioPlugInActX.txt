@@ -1,5 +1,0 @@
-// BioPlugInActX Control version=1.0
-<file name="BioPlugInActX.ocx">
-	<comClass clsid="{05e8280c-d45a-494f-ae42-840a40444aff}" description="BioPlugInActX Control" tlbid="{73308679-FC6B-4482-8AD2-235AA8E75EBB}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="BIOPLUGINACTX.BioPlugInActXCtrl.1"></comClass>
-	<typelib tlbid="{73308679-FC6B-4482-8AD2-235AA8E75EBB}" resourceid="1" version="1.0" helpdir=""></typelib>
-</file>

@@ -1,0 +1,5 @@
+// EasyMail SMTP Object version=6.5
+<file name="emsmtp.dll">
+	<comClass clsid="{dafa4bf6-c807-463c-8745-c9e0c90cf84f}" description="EasyMail SMTP Object" tlbid="{68AC0D5D-0424-11d5-822F-00C04F6BA8D9}" threadingModel="Both" progid="EasyMail.SMTP.6.5"></comClass>
+	<typelib tlbid="{68AC0D5D-0424-11D5-822F-00C04F6BA8D9}" resourceid="1" version="6.5" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

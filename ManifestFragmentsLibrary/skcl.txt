@@ -1,0 +1,5 @@
+// LFile Class (A) version=1.0
+<file name="skcl.dll">
+	<comClass clsid="{f83fb969-d981-11d2-a80a-00104bf191a4}" description="Protection PLUS Standard" tlbid="{F83FB95C-D981-11D2-A80A-00104BF191A4}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="SKCL.LFile.1"></comClass>
+	<typelib tlbid="{F83FB95C-D981-11D2-A80A-00104BF191A4}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

@@ -1,0 +1,8 @@
+// Chilkat E-mail SMTP component
+// http://www.chilkatsoft.com
+<file name="ChilkatMail2.dll">
+	<typelib tlbid="{9959DADB-D246-49ab-A2CD-8DE719E7BC07}" version="1.0" helpdir=""/>
+	<comClass description="Chilkat Email2" clsid="{D54033AB-E017-44DA-B67E-02DE4B36EA54}" progid="ChilkatMail2.ChilkatEmail2.1" threadingModel="Apartment" tlbid="{9959DADB-D246-49ab-A2CD-8DE719E7BC07}"/>
+	<comClass description="Chilkat MailMan2" clsid="{126FB030-1E9E-4517-A254-430616582C50}" progid="ChilkatMail2.ChilkatMailMan2.1" threadingModel="Apartment" tlbid="{9959DADB-D246-49ab-A2CD-8DE719E7BC07}"/>
+	<comClass description="Chilkat EmailBundle2" clsid="{F90C76FF-9511-47DD-A9EB-62F1306E84F2}" progid="ChilkatMail2.ChilkatEmailBundle2.1" threadingModel="Apartment" tlbid="{9959DADB-D246-49ab-A2CD-8DE719E7BC07}"/>
+</file>

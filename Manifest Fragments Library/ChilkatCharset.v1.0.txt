@@ -1,6 +1,0 @@
-// Chilkat Software Charset Encoding Conversion 
-// http://www.chilkatsoft.com/products.asp
-<file name="ChilkatCharset.dll">
-	<comClass clsid="{bef04f41-1fdc-46bd-9e94-10ad4f10ac1b}" description="Chilkat Charset2" tlbid="{2497C38C-6C8B-453F-8EBA-3C2821A5551B}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="ChilkatCharset2.ChilkatCharset2.1"></comClass>
-	<typelib tlbid="{2497C38C-6C8B-453F-8EBA-3C2821A5551B}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>

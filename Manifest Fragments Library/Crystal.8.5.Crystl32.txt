@@ -1,5 +1,0 @@
-// Crystal Reports 8.5 runtime file
-<file name="Crystl32.OCX">
-	<comClass clsid="{00025601-0000-0000-C000-000000000046}" tlbid="{00025600-0000-0000-C000-000000000046}" description="Crystal Report Control"></comClass>
-	<typelib tlbid="{00025600-0000-0000-C000-000000000046}" resourceid="1" version="5.2" helpdir=""></typelib>
-</file>

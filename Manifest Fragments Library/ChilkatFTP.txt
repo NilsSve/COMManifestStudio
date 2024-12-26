@@ -1,5 +1,0 @@
-// Write a comment here! It will be displayed as a description for the component in the COM Manifest Builder program.
-<file name="ChilkatFTP.dll">
-	<comClass clsid="{3b598bd0-af50-48c6-b6a5-63261a48b054}" description="ChilkatFTP Class" tlbid="{5B7759CE-C04E-4C5D-993B-8297E30D9065}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="ChilkatFTP.ChilkatFTP.1"></comClass>
-	<typelib tlbid="{5B7759CE-C04E-4C5D-993B-8297E30D9065}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>

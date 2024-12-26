@@ -1,5 +1,0 @@
-// Microsoft Winsock Control version=1.0
-<file name="MSWINSCK.ocx">
-	<comClass clsid="{248dd896-bb45-11cf-9abc-0080c7e7b78d}" description="Microsoft WinSock Control, version 6.0 (SP6)" tlbid="{248DD890-BB45-11CF-9ABC-0080C7E7B78D}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="MSWinsock.Winsock.1"></comClass>
-	<typelib tlbid="{248DD890-BB45-11CF-9ABC-0080C7E7B78D}" resourceid="1" version="1.0" helpdir=""></typelib>
-</file>

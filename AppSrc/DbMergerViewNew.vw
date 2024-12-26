@@ -27,18 +27,19 @@ Use oRichEditFind.dg
 Use oRichEditFindReplace.dg
 Use COMComponents.dg
 //Use Setup2.dg
-Use SetupNew.dg
+Use ProgramSetup.dg
 Use DownloadFiles.dg
 
 Use cManHdrDataDictionary.dd
 Use cManDetManDataDictionary.dd
+Use Windows.pkg
 
 Register_Object oManHdrManifestFileName_fm
 Register_Object oManHdrPath_fm
 
 Activate_View Activate_oDbMerger_vw for oDbMerger_vw
 Object oDbMerger_vw is a dbView
-    Set Size to 269 400
+    Set Size to 279 400
     Set Location to 0 0 
     Set Label to "Main view"
     // Saves in header should not clear the view
@@ -63,7 +64,7 @@ Object oDbMerger_vw is a dbView
 
     Object oAppManifest_grp is a cRDCHeaderDbGroup //cRDCDbGroup
         Set Size to 68 376
-        Set Location to 6 12
+        Set Location to 16 12
         Set Label to "Manifest File"
         Set psNote to "Select manifest file for your Windows program (.exe) file"  
         Set psImage to "Program.ico"
@@ -207,7 +208,7 @@ Object oDbMerger_vw is a dbView
 
     Object oManifestFragmentFileGrid_grp is a cRDCHeaderDbGroup //cRDCDbGroup
         Set Size to 94 376
-        Set Location to 82 12
+        Set Location to 92 12
         Set Label to "Manifest Fragment Files"                 
         Set psNote to "Select one fragment file for each *.ocx/*.dll ActiveX component"
         Set psImage to "FragmentFile.ico"
@@ -625,7 +626,7 @@ Object oDbMerger_vw is a dbView
 
     Object oDbTabDialog is a dbTabDialog
         Set Size to 81 377
-        Set Location to 181 12
+        Set Location to 191 12
         Set peAnchors to anBottomLeftRight
         Set Rotate_Mode to RM_Rotate_in_Ring
         Set Skip_Button_Mode to SBM_Never
@@ -879,11 +880,18 @@ Register_Object oViewContextMenu
             Set pbControlBeginGroup to True
             Procedure OnExecute Variant vCommandBarControl
                 Forward Send OnExecute vCommandBarControl
-                Send Popup of (oConfigureWizardDialog(Client_Id(ghoCommandBars)))
+                Send Popup of (oProgramSetup_Panel(Client_Id(ghoCommandBars)))
                 Send OnStartup of ghoManifestIniFile
             End_Procedure
         End_Object
 
+    End_Object
+
+    Object oCompile_Info_tb is a TextBox
+        Set Size to 10 33
+        Set Location to 2 12
+        Set Label to "NOTE: This program needs to compiled as 32-bit to function properly!"
+        Set FontWeight to fw_Bold
     End_Object
 
     // Context sensitive menu for the view
@@ -1017,7 +1025,7 @@ Register_Object oViewContextMenu
     On_Key Key_Alt+Key_R  Send Popup                          of (oCreateManifestFragmentFile(Client_Id(ghoCommandBars)))
     On_Key Key_Alt+Key_S  Send DoShareManifestFragmentFiles   of ghoApplication
     On_Key Key_Alt+Key_L  Send RegisterOrUnregister           of ghoManifestFunctionLibrary
-    On_Key Key_Alt+Key_F  Send Popup                          of (oConfigureWizardDialog(Client_Id(ghoCommandBars)))
+    On_Key Key_Alt+Key_F  Send Popup                          of (oProgramSetup_Panel(Client_Id(ghoCommandBars)))
 
     On_Key Key_Ctrl+Key_S Send Request_Save
     On_Key kCancel        Send None

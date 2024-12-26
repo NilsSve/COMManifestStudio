@@ -1,5 +1,0 @@
-// ctMDay Control version=4.0
-<file name="ctMDay.ocx">
-	<comClass clsid="{56a7e978-5e26-11d4-a85d-0080c8dfc881}" description="ctMDay Control 4.0" tlbid="{56A7E975-5E26-11D4-A85D-0080C8DFC881}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="ctMULTIDAY.ctMDayCtrl.4"></comClass>
-	<typelib tlbid="{56A7E975-5E26-11D4-A85D-0080C8DFC881}" resourceid="1" version="4.0" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>

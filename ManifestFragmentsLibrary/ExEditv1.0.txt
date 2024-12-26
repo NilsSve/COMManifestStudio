@@ -1,0 +1,11 @@
+// Helper component for the Exontrol's exG2antt component 
+// http://www.exontrol.com/exg2antt.jsp
+<file name="ExEdit.dll">
+	<comClass clsid="{39136531-DD0F-4281-B445-E36FC2CDDBC5}" tlbid="{99AD4CAA-B101-4F05-A4A0-EF27437AB040}" description="Edit Class"></comClass>
+	<comClass clsid="{03F2B067-BAC9-428C-A94F-768329F80EF3}" tlbid="{99AD4CAA-B101-4F05-A4A0-EF27437AB040}" description="Context Class"></comClass>
+	<comClass clsid="{77274D04-DE10-4C06-8431-BEC91CBFC21C}" tlbid="{99AD4CAA-B101-4F05-A4A0-EF27437AB040}" description="ExDataObjectFiles Class"></comClass>
+	<comClass clsid="{AC1F7078-CAD9-402E-9A2B-AB85495C47AD}" tlbid="{99AD4CAA-B101-4F05-A4A0-EF27437AB040}" description="ExDataObject Class"></comClass>
+	<comClass clsid="{7241FC9A-A5C9-4D41-A44C-33561C522C61}" tlbid="{99AD4CAA-B101-4F05-A4A0-EF27437AB040}" description="TemplatePage Class"></comClass>
+	<comClass clsid="{48C5C1E5-1921-4F83-A38D-A84EA09780D7}" tlbid="{99AD4CAA-B101-4F05-A4A0-EF27437AB040}" description="Appearance Class"></comClass>
+	<typelib tlbid="{99AD4CAA-B101-4F05-A4A0-EF27437AB040}" resourceid="1" version="1.0" helpdir=""></typelib>
+</file>

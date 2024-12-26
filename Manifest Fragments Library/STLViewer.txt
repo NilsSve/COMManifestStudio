@@ -1,6 +1,0 @@
-// STL 3D Viewer Control version=1.0
-<file name="STLViewer.ocx">
-	<comClass clsid="{f1d34ebc-5cbe-44c9-bf3a-24008e65726c}" description="STL 3D Viewer Control" tlbid="{3670A1F9-D644-442E-BC20-B463160E5F0B}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,actslikelabel,simpleframe,setclientsitefirst" progid="STLViewer.STL3DViewer"></comClass>
-	<comClass clsid="{86455ba8-4e5d-4b2c-bd11-653d693238ec}" description="STL3DViewer LightSource Object. Use this to interact with the light source in the viewer." tlbid="{3670A1F9-D644-442E-BC20-B463160E5F0B}" threadingModel="Apartment" progid="STLViewer.STL3DViewerLightSource"></comClass>
-	<typelib tlbid="{3670A1F9-D644-442E-BC20-B463160E5F0B}" resourceid="1" version="1.0" helpdir=""></typelib>
-</file>

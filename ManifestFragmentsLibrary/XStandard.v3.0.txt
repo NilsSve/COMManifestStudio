@@ -1,0 +1,6 @@
+// XStandard Pro is a WYSIWYG editor that runs in browser or desktop-based content management systems.
+// www.xstandard.com/en/products
+<file name="XStandard.ocx">
+	<typelib tlbid="{0EED7203-1661-11D7-84A3-00606744831D}" version="3.0" helpdir=""></typelib>
+	<comClass description="XStandard" clsid="{0EED7206-1661-11D7-84A3-00606744831D}" progid="XStandard.XHTMLEditor" threadingModel="Apartment" tlbid="{0EED7203-1661-11D7-84A3-00606744831D}"></comClass>
+</file>

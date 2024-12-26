@@ -1,0 +1,9 @@
+// Outlook style Reporting grid component.
+// http://www.codejock.com/products/reportcontrol/?2yn6s14z=p1z
+<file name="Codejock.ReportControl.v13.4.0.ocx">
+	<comClass clsid="{0342CD37-C44D-4F47-9173-8682AD909019}" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" description="Report Control"></comClass>
+	<comClass clsid="{466FEC23-CE52-4C3B-B917-9D27C0605677}" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" description="Track Control"></comClass>
+	<comClass clsid="{1E2FF829-1437-412E-B6F0-B917419447F7}" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" description="FieldChooser Control"></comClass>
+	<comClass clsid="{65A5A151-9B91-4984-AC6C-B2535C24B797}" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" description="ReportControl Global Settings"></comClass>
+	<typelib tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" resourceid="1" version="13.4" helpdir=""></typelib>
+</file>

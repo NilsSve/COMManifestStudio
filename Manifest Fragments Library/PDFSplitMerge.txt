@@ -1,7 +1,0 @@
-// PDFSplitMerge Class version=1.0
-<file name="PDFSplitMerge.dll">
-	<comClass clsid="{50d41702-b618-41ba-8153-7ad7e8535574}" description="CPDFSplitMergeObj Object" tlbid="{18441CDF-26A6-424C-9FCB-3435B5FA8C37}" threadingModel="apartment" progid="PDFSplitMerge.PDFSplitMerge.1"></comClass>
-	<typelib tlbid="{18441CDF-26A6-424C-9FCB-3435B5FA8C37}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>
-// Dependecies:
-//#=pdfkit.dll

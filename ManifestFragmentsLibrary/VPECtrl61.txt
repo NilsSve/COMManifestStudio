@@ -1,0 +1,20 @@
+// Virtual Print Engine 6.1 (VPE) is a Report Engine and
+// PDF Library/Component for the Dynamic Creation of Documents 
+// www.idealsoftware.com 
+<file name="vpectrl61.ocx">
+	<comClass clsid="{3BC5ECCA-8164-49F7-9B3C-6C1F9FACB6A1}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="VPEngine ActiveX Control Class 6.10"></comClass>
+	<comClass clsid="{CCB133EA-735D-4730-BEE7-E62C592DB586}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="TVPEObject Class"></comClass>
+	<comClass clsid="{06519D0F-2AFA-487E-9316-FB800875F83B}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="TVPEField Class"></comClass>
+	<comClass clsid="{2A71BA5B-39B1-41D2-B8D8-C49B1322CB6C}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="TVPETemplate Class"></comClass>
+	<comClass clsid="{659831DE-3E32-441D-8C14-3152F3573DF6}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="TVPETemplatePage Class"></comClass>
+	<comClass clsid="{D50A051B-E6D0-4608-8568-F347F61D3147}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="TVPEDataSource Class"></comClass>
+	<comClass clsid="{AC08E014-6333-402C-BE07-0A6CA9D3B3AE}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="TVPEStream Class"></comClass>
+	<comClass clsid="{08C92A65-511E-4538-9A94-4A7D614824E6}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="TVPEChartData Class"></comClass>
+	<comClass clsid="{A0E76388-9E3E-4441-A03C-EA42E40ACCDB}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="TVPEPolygon Class"></comClass>
+	<comClass clsid="{9F61FAD7-F46A-48B8-8777-45373464EA57}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="TVPEPolyLine Class"></comClass>
+	<comClass clsid="{197D070E-3CFA-4EA2-B8C4-AA365F8C290F}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="TVPEBookmark Class"></comClass>
+	<comClass clsid="{C800DC31-0B11-4AFB-BFE7-A9DF378650EE}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="GeneralPropertyPage Class"></comClass>
+	<comClass clsid="{74435A69-F234-40D8-8B05-3667F3B14ABF}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="UIPropertyPage Class"></comClass>
+	<comClass clsid="{3A856083-D8AB-4E64-8CBD-B4B0BA890B8B}" tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" description="DocViewPropertyPage Class"></comClass>
+	<typelib tlbid="{0E400164-0685-434B-B5FF-CE76FE37CF14}" resourceid="1" version="6.10" helpdir=""></typelib>
+</file>

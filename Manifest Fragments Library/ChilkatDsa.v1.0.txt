@@ -1,6 +1,0 @@
-// Chilkat Software. http://www.chilkatsoft.com/dsa-features.asp
-// The Digital Signature Algorithm (DSA) is synonomous with the Digital Signature Standard (DSS)
-<file name="ChilkatDsa.dll">
-	<comClass clsid="{302950f9-bbb2-4c9e-8cf8-17709780f158}" description="ChilkatDsa Class" tlbid="{22EB4ABD-BFD2-4732-94AA-224F27A73628}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="Chilkat.Dsa.1"></comClass>
-	<typelib tlbid="{22EB4ABD-BFD2-4732-94AA-224F27A73628}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>

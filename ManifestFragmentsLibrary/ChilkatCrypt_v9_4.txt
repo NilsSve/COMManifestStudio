@@ -1,0 +1,7 @@
+// Powerful and easy-to-use encryption, hashing, and digital signatures.
+<file name="ChilkatCrypt2.dll">
+	<typelib tlbid="{ED798215-27F2-448D-8E51-CA2BD5DDE14B}" version="1.0" helpdir=""/>
+	<comClass description="Chilkat Crypt2" clsid="{3352B5B9-82E8-4FFD-9EB1-1A3E60056904}" progid="ChilkatCrypt2.ChilkatCrypt2.1" threadingModel="Apartment" tlbid="{ED798215-27F2-448D-8E51-CA2BD5DDE14B}"/>
+	<comClass description="Chilkat OmaDrm" clsid="{0B70AB61-5C95-4126-9985-A32531CA8619}" progid="ChilkatCrypt2.ChilkatOmaDrm.1" threadingModel="Apartment" tlbid="{ED798215-27F2-448D-8E51-CA2BD5DDE14B}"/>
+	<comClass description="ChilkatNtlm Class" clsid="{9794AD41-68E7-4815-BED1-EC7676DC001F}" progid="Chilkat.Ntlm.1" threadingModel="Apartment" tlbid="{ED798215-27F2-448D-8E51-CA2BD5DDE14B}"/>
+</file>

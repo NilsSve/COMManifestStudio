@@ -1,7 +1,0 @@
-// Office style Task Panel and VS Toolbox control.
-// http://www.codejock.com/products/taskpanel/?2yn6s14z=p1z
-<file name="Codejock.TaskPanel.v15.2.1.0403.ocx">
-	<typelib tlbid="{B8E5842E-102B-4289-9D57-3B3F5B5E15D3}" version="15.2" helpdir="" flags="control,hasdiskimage"/>
-	<comClass clsid="{0EF2AE6D-82B5-458F-A0F3-6BEB9CEA70F1}" description="Codejock.TaskPanelGlobalSettings.15.2.1.0403" progid="Codejock.TaskPanelGlobalSettings.15.2.1.0403"/>
-	<comClass clsid="{5A0FF393-A262-41FB-A115-E54601DEDB42}" description="Xtreme Task Panel Control" tlbid="{B8E5842E-102B-4289-9D57-3B3F5B5E15D3}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,simpleframe,setclientsitefirst" progid="Codejock.TaskPanel.15.2.1.0403"/>
-</file>

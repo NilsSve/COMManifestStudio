@@ -1,7 +1,0 @@
-// Xtreme ShortcutBar Control version=16.3
-<file name="Codejock.ShortcutBar.v16.3.1.ocx">
-	<comClass clsid="{39388dec-c744-4e15-8e3b-54928060e73d}" description="Xtreme ShortcutBar Control" tlbid="{C8E5842E-102B-4289-9D57-3B3F5B5E15D3}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="Codejock.ShortcutBar.16.3.1"></comClass>
-	<comClass clsid="{5063d9ce-49c3-4093-a67f-572e26e55205}" description="Xtreme Shortcut Caption Control" tlbid="{C8E5842E-102B-4289-9D57-3B3F5B5E15D3}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.ShortcutCaption.16.3.1"></comClass>
-	<comClass clsid="{355cebf1-82f2-4d35-b031-0f4377c7a268}" description="Codejock.ShortcutBarGlobalSettings.16.3.1" progid="Codejock.ShortcutBarGlobalSettings.16.3.1"></comClass>
-	<typelib tlbid="{C8E5842E-102B-4289-9D57-3B3F5B5E15D3}" resourceid="1" version="16.3" helpdir=""></typelib>
-</file>

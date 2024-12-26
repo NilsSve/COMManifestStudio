@@ -1,6 +1,0 @@
-// CHILKAT Compression PPMD, Deflate, Bzip2, LZW compression.
-// http://www.chilkatsoft.com/
-<file name="ChilkatBz2.dll">
-	<comClass clsid="{629a4e20-771e-435a-832c-6eec5fc48bdf}" description="ChilkatBz2 Class" tlbid="{23A7B80D-B78C-4D1F-A9B1-A36705BBC6C8}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="Chilkat.Bz2.1"></comClass>
-	<typelib tlbid="{23A7B80D-B78C-4D1F-A9B1-A36705BBC6C8}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>

@@ -1,0 +1,24 @@
+// Outlook Redemption works around limitations imposed by the Outlook Security Patch plus 
+// provides a number of objects and functions to work with properties and functionality not exposed through the Outlook object model.
+// http://www.dimastr.com/redemption/home.htm
+<file name="Redemption.dll">
+	<comClass clsid="{4fd5c4d3-6c15-4ea0-9eb9-eee8fc74a91b}" threadingModel="Apartment" progid="Redemption.SafeContactItem"></comClass>
+	<comClass clsid="{620d55b0-f2fb-464e-a278-b4308db1db2b}" threadingModel="Apartment" progid="Redemption.SafeAppointmentItem"></comClass>
+	<comClass clsid="{741beefd-aec0-4aff-84af-4f61d15f5526}" description="Safe Replica of the Outlook's MailItem" threadingModel="Apartment" progid="Redemption.SafeMailItem"></comClass>
+	<comClass clsid="{7a41359e-0407-470f-b3f7-7c6a0f7c449a}" threadingModel="Apartment" progid="Redemption.SafeTaskItem"></comClass>
+	<comClass clsid="{c5aa36a1-8bd1-47e0-90f8-47e7239c6ea1}" threadingModel="Apartment" progid="Redemption.SafeJournalItem"></comClass>
+	<comClass clsid="{fa2cbafb-f7b1-4f41-9b7a-73329a6c1cb7}" threadingModel="Apartment" progid="Redemption.SafeMeetingItem"></comClass>
+	<comClass clsid="{11e2bc0c-5d4f-4e0c-b438-501ffe05a382}" threadingModel="Apartment" progid="Redemption.SafePostItem"></comClass>
+	<comClass clsid="{4a5e947e-c407-4dcc-a0b5-5658e457153b}" threadingModel="Apartment" progid="Redemption.MAPIUtils"></comClass>
+	<comClass clsid="{03c4c5f4-1893-444c-b8d8-002f0034da92}" threadingModel="Apartment" progid="Redemption.MAPIFolder"></comClass>
+	<comClass clsid="{7ed1e9b1-cb57-4fa0-84e8-fae653fe8e6b}" threadingModel="Apartment" progid="Redemption.SafeCurrentUser"></comClass>
+	<comClass clsid="{7c4a630a-de98-4e3e-8093-e8f5e159bb72}" threadingModel="Apartment" progid="Redemption.SafeDistList"></comClass>
+	<comClass clsid="{37587889-fc28-4507-b6d3-8557305f7511}" threadingModel="Apartment" progid="Redemption.AddressLists"></comClass>
+	<comClass clsid="{a6931b16-90fa-4d69-a49f-3abfa2c04060}" threadingModel="Apartment" progid="Redemption.MAPITable"></comClass>
+	<comClass clsid="{d46ba7b2-899f-4f60-85c7-4df5713f6f18}" threadingModel="Apartment" progid="Redemption.SafeReportItem"></comClass>
+	<comClass clsid="{ed323630-b4fd-4628-bc6a-d4cc44ae3f00}" threadingModel="Apartment" progid="Redemption.SafeInspector"></comClass>
+	<comClass clsid="{29ab7a12-b531-450e-8f7a-ea94c2f3c05f}" description="Redemption RDOSession object" threadingModel="Both" progid="Redemption.RDOSession"></comClass>
+	<comClass clsid="{3e8e0584-1b63-46df-8783-eae6db9859dd}" threadingModel="Apartment" progid="Redemption.Addin"></comClass>
+	<comClass clsid="{c3b05695-ae2c-4fd5-a191-2e4c782c03e0}" threadingModel="Apartment" progid="Redemption.SafeExplorer"></comClass>
+	<typelib tlbid="{2D5E2D34-BED5-4B9F-9793-A31E26E6806E}" resourceid="1" version="5.5" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

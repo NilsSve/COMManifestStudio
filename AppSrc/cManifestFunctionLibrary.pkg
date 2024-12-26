@@ -2170,9 +2170,12 @@ Class cManifestFunctionLibrary is a cObject
 
                     // This is the ByRef string value
                     Move sValue to sPath
-                    Get ConvertToShortPath sValue to sValue
-                    Get ConvertToShortPath sCOMComponentFileName to sCOMComponentFileName
+                    Move (Uppercase(sPath) contains Uppercase(sCOMComponentFileName)) to bRegistered
+                    If (bRegistered = False) Begin
+                        Get ConvertToShortPath sValue to sValue
+                        Get ConvertToShortPath sCOMComponentFileName to sCOMComponentFileName
                     Move (Uppercase(sValue) contains Uppercase(sCOMComponentFileName)) to bRegistered
+                    End
                     Send CloseKey of hoReg
                 End
             End

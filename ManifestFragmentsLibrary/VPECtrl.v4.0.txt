@@ -1,0 +1,11 @@
+<file name="vpectrl40.ocx">
+	<typelib tlbid="{AC2D9DEB-A11C-4913-AC55-808072FD63E9}" version="4.0" helpdir=""></typelib>
+	<comClass description="VPEngine ActiveX Control Class 4.00" clsid="{5705E07D-D921-48D3-B1A7-D5BD53D0EE83}" progid="VpeControl.VpeControl.40" threadingModel="Apartment" tlbid="{AC2D9DEB-A11C-4913-AC55-808072FD63E9}"></comClass>
+	<comClass description="TVPEObject Class" clsid="{145E736B-8F7C-48FD-9F91-9D331228B823}" progid="VpeControl.TVPEObject.40" threadingModel="Apartment" tlbid="{AC2D9DEB-A11C-4913-AC55-808072FD63E9}"></comClass>
+	<comClass description="TVPEField Class" clsid="{6E0EF578-2077-4EFF-A15A-4D949B8DC53C}" progid="VpeControl.TVPEField.40" threadingModel="Apartment" tlbid="{AC2D9DEB-A11C-4913-AC55-808072FD63E9}"></comClass>
+	<comClass description="TVPETemplate Class" clsid="{67D21AD9-6426-479F-95FF-A61A77F7F29C}" progid="VpeControl.TVPETemplate.40" threadingModel="Apartment" tlbid="{AC2D9DEB-A11C-4913-AC55-808072FD63E9}"></comClass>
+	<comClass description="TVPETemplatePage Class" clsid="{EF385E3B-76C1-406F-83FE-3BAFEB0C7FBC}" progid="VpeControl.TVPETemplatePage.40" threadingModel="Apartment" tlbid="{AC2D9DEB-A11C-4913-AC55-808072FD63E9}"></comClass>
+	<comClass description="TVPEDataSource Class" clsid="{3DD466EA-99F2-4256-9AEF-5D7F02BDE66E}" progid="VpeControl.TVPEDataSource.40" threadingModel="Apartment" tlbid="{AC2D9DEB-A11C-4913-AC55-808072FD63E9}"></comClass>
+</file>
+// VPE - Virtual Print Engine version 4.0
+// http://www.idealsoftware.com/en/pdf-library/report-engine.html

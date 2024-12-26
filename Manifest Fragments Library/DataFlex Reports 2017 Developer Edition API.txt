@@ -1,5 +1,0 @@
-// DataFlex Reports 2017 Developer Edition runtime version=6.0
-<file name="DataFlex Reports 2017 Developer Edition API.ocx">
-	<comClass clsid="{4108d2d2-0ffa-4665-8d1d-a4eaf7b0e0aa}" description="DataFlex Reports runtime 6.0" tlbid="{4D574C3D-CDBE-483A-A150-240B2E3BE454}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="DRAPI.ViewerCtrl.6.0"></comClass>
-	<typelib tlbid="{4D574C3D-CDBE-483A-A150-240B2E3BE454}" resourceid="1" version="6.0" helpdir=""></typelib>
-</file>

@@ -1,0 +1,11 @@
+// Outlook style Reporting grid component.
+// This is a one of three standard CodeJock components that comes with Visual DataFlex 18.0;
+// CodeJock.CommandBars.v16.3.1, Codejock.ReportControl.v16.3.1 & CodeJock.SkinFramework.v16.3.1
+<file name="Codejock.ReportControl.v16.3.1.ocx">
+	<comClass clsid="{c175ae28-8112-4885-b847-46fca264a45d}" description="Codejock.ReportRecord.16.3.1" progid="Codejock.ReportRecord.16.3.1"></comClass>
+	<comClass clsid="{f02b0903-2e18-46a6-a1d2-de997ef397c7}" description="Xtreme Report Control" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.ReportControl.16.3.1"></comClass>
+	<comClass clsid="{fbf3b6fc-09e5-4645-82b4-c4c142c8b8c3}" description="Xtreme Track Control" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.TrackControl.16.3.1"></comClass>
+	<comClass clsid="{cacb34ec-95aa-466e-8566-8b8b08766449}" description="Xtreme Report FieldChooser" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.FieldChooser.16.3.1"></comClass>
+	<comClass clsid="{f6b09548-4807-469d-8153-20c4fba8d4f1}" description="Codejock.ReportControlGlobalSettings.16.3.1" progid="Codejock.ReportControlGlobalSettings.16.3.1"></comClass>
+	<typelib tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" resourceid="1" version="16.3" helpdir=""></typelib>
+</file>

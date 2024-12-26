@@ -1,0 +1,8 @@
+// This is a standard CodeJock component that comes with Visual DataFlex 15.0 and 15.1
+// Sophisticated application skinning framework technology.
+// http://www.codejock.com/products/skinframework/?2yn6s14z=p1z
+<file name="Codejock.SkinFramework.v13.4.0.ocx">
+	<comClass clsid="{4CF90878-817D-49CB-890D-578A032B2934}" tlbid="{BD0C1912-66C3-49CC-8B12-7B347BF6C846}" description="SkinFramework Control"></comClass>
+	<comClass clsid="{3549AF1E-58CA-403E-BC90-B6AC396022F9}" tlbid="{BD0C1912-66C3-49CC-8B12-7B347BF6C846}" description="SkinFramework Global Settings"></comClass>
+	<typelib tlbid="{BD0C1912-66C3-49CC-8B12-7B347BF6C846}" resourceid="1" version="13.4" helpdir=""></typelib>
+</file>

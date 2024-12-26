@@ -1,0 +1,9 @@
+// Write a description for the component here! It will be displayed in the COM Manifest Builder grid.
+<file name="gdpicturepro5.ocx">
+	<comClass clsid="{96663db2-110c-45a2-8b0e-9616ecb11697}" description="GdPicturePro5.GdViewer" tlbid="{C30AFC8D-43BC-4B49-AA3B-775BDEDB9EB0}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="GdPicturePro5.GdViewer"></comClass>
+	<comClass clsid="{586f435f-8e3e-41b0-8b6c-88c8759b435a}" description="GdPicturePro5.GdViewerCnt" tlbid="{C30AFC8D-43BC-4B49-AA3B-775BDEDB9EB0}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,simpleframe,setclientsitefirst" progid="GdPicturePro5.GdViewerCnt"></comClass>
+	<comClass clsid="{9650bec2-63c5-4103-bdc1-6fed588b8c18}" description="GdPicturePro5.dummy" tlbid="{C30AFC8D-43BC-4B49-AA3B-775BDEDB9EB0}" progid="GdPicturePro5.dummy"></comClass>
+	<comClass clsid="{98dd86c5-41ab-4f46-97da-f758ad460584}" description="GdPicturePro5.Imaging" tlbid="{C30AFC8D-43BC-4B49-AA3B-775BDEDB9EB0}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,nouiactivate,setclientsitefirst" progid="GdPicturePro5.Imaging"></comClass>
+	<comClass clsid="{3e3b6818-dea6-4e5b-b2a3-de436dc842cb}" description="GdPicturePro5.cImaging" tlbid="{C30AFC8D-43BC-4B49-AA3B-775BDEDB9EB0}" threadingModel="Apartment" progid="GdPicturePro5.cImaging"></comClass>
+	<typelib tlbid="{C30AFC8D-43BC-4B49-AA3B-775BDEDB9EB0}" resourceid="1" version="1.1" helpdir=""></typelib>
+</file>

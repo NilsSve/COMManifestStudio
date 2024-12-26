@@ -1,0 +1,17 @@
+// Calendar visual theme Office 2007 object. version=16.2
+<file name="Codejock.Calendar.v16.2.4.ocx">
+	<comClass clsid="{10e1650e-acc2-49e4-bea2-617e38a7ad27}" description="Codejock.CalendarEventCategories.16.2.4" progid="Codejock.CalendarEventCategories.16.2.4"></comClass>
+	<comClass clsid="{5ca92119-747b-4003-84c0-fb07cffa37c6}" description="Codejock.CalendarEventCategory.16.2.4" progid="Codejock.CalendarEventCategory.16.2.4"></comClass>
+	<comClass clsid="{8c1521a2-947e-450f-a2e1-2d193dac4d6f}" description="Codejock.CalendarResources.16.2.4" progid="Codejock.CalendarResources.16.2.4"></comClass>
+	<comClass clsid="{e5feafac-9970-4191-baf9-6865ac6fc2c1}" description="Codejock.CalendarResource.16.2.4" progid="Codejock.CalendarResource.16.2.4"></comClass>
+	<comClass clsid="{a0a49782-e7b6-48d8-b91f-caf76ca1805f}" description="Codejock.CalendarThemeOffice2007.16.2.4" progid="Codejock.CalendarThemeOffice2007.16.2.4"></comClass>
+	<comClass clsid="{8ef78ada-0b5f-48ca-b190-473fccdfdd31}" description="Codejock.CalendarThemeImageList.16.2.4" progid="Codejock.CalendarThemeImageList.16.2.4"></comClass>
+	<comClass clsid="{0d1bdfa6-92ca-4642-b79f-9aab5e29b0a0}" description="Codejock.CalendarThemeRect.16.2.4" progid="Codejock.CalendarThemeRect.16.2.4"></comClass>
+	<comClass clsid="{f2074a93-6abe-4e08-adb1-63856fe1713b}" description="Xtreme Calendar Control" tlbid="{79EB16A5-917F-4145-AB5F-D3AEA60612D8}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.CalendarControl.16.2.4"></comClass>
+	<comClass clsid="{84bc3416-7658-46a8-831a-9162ec237b1e}" description="Xtreme Calendar CaptionBar Control" tlbid="{79EB16A5-917F-4145-AB5F-D3AEA60612D8}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,simpleframe,setclientsitefirst" progid="Codejock.CalendarCaptionBar.16.2.4"></comClass>
+	<comClass clsid="{7083e043-783d-4ca3-bc0a-e063714ef817}" description="Codejock.CalendarResourcesManager.16.2.4" progid="Codejock.CalendarResourcesManager.16.2.4"></comClass>
+	<comClass clsid="{800e6d90-a331-4d03-86db-744dfa5b5f30}" description="Codejock.CalendarDialogs.16.2.4" progid="Codejock.CalendarDialogs.16.2.4"></comClass>
+	<comClass clsid="{61b66af0-a3d7-49f4-ab6d-658f8cf11898}" description="Xtreme DatePicker Control" tlbid="{79EB16A5-917F-4145-AB5F-D3AEA60612D8}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.DatePicker.16.2.4"></comClass>
+	<comClass clsid="{4e805197-55c7-427b-a679-384f6ed7a22b}" description="Codejock.CalendarGlobalSettings.16.2.4" progid="Codejock.CalendarGlobalSettings.16.2.4"></comClass>
+	<typelib tlbid="{79EB16A5-917F-4145-AB5F-D3AEA60612D8}" resourceid="1" version="16.2" helpdir=""></typelib>
+</file>

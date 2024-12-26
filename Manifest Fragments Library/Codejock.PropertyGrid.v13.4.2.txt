@@ -1,6 +1,0 @@
-// Comprehensive, fully customizable VS style grid component.
-<file name="Codejock.PropertyGrid.v13.4.2.ocx">
-	<typelib tlbid="{5B44EC52-B95B-45CF-98FF-A49DFEED5A92}" version="13.4" helpdir=""></typelib>
-	<comClass description="Xtreme PropertyGrid Control" clsid="{3591AA6D-56EA-466D-9EE7-C3883227C806}" progid="Codejock.PropertyGrid.13.4.2" threadingModel="Apartment" tlbid="{5B44EC52-B95B-45CF-98FF-A49DFEED5A92}"/>
-	<comClass description="Codejock.PropertyGridGlobalSettings.13.4.2" clsid="{EA71A4CA-5FF1-4D57-B176-C1A207809F5F}" progid="Codejock.PropertyGridGlobalSettings.13.4.2"/>
-</file>

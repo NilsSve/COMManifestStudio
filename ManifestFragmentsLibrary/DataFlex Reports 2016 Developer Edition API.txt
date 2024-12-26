@@ -1,0 +1,7 @@
+// DataFlex Reports 2016 Developer Edition runtime version=5.0, 
+// This is the runtime OCX, you'll also need to copy the other runtime files.
+// See the DR Deployment topic in the DR help. mwpmullan@gmail.com
+<file name="DataFlex Reports 2016 Developer Edition API.ocx">
+	<comClass clsid="{9476972a-0fca-4ad1-804c-8cf21c8b94b3}" description="DataFlex Reports runtime 5.0" tlbid="{8C3189F8-F282-4857-B39D-D9CDE3158C3E}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="DRAPI.ViewerCtrl.5.0"></comClass>
+	<typelib tlbid="{8C3189F8-F282-4857-B39D-D9CDE3158C3E}" resourceid="1" version="5.0" helpdir=""></typelib>
+</file>

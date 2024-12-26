@@ -1,9 +1,0 @@
-// DataFlex Reports 2014 Developer Edition runtime version=4.0
-<file name="DataFlex Reports 2014 Developer Edition API.ocx">
-	<comClass clsid="{a7afb798-0340-4eac-a42b-6b579529198a}" description="DataFlex Reports runtime 4.0" tlbid="{F42BD268-7069-431B-8DFE-093FF23FEBEA}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="DRAPI.ViewerCtrl.4.0"></comClass>
-	<typelib tlbid="{F42BD268-7069-431B-8DFE-093FF23FEBEA}" resourceid="1" version="4.0" helpdir=""></typelib>
-</file>
-// Dependecies:
-//#=df_collate.cfg
-//#=language.db
-//#=dr.db

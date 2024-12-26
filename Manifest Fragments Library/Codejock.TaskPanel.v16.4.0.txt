@@ -1,6 +1,0 @@
-// Xtreme TaskPanel Control version=16.4
-<file name="Codejock.TaskPanel.v16.4.0.ocx">
-	<comClass clsid="{ebcbd9ce-06d1-423c-861c-d92dfde3f2a0}" description="Xtreme Task Panel Control" tlbid="{B8E5842E-102B-4289-9D57-3B3F5B5E15D3}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,simpleframe,setclientsitefirst" progid="Codejock.TaskPanel.16.4.0"></comClass>
-	<comClass clsid="{0fdabb9e-fec8-4760-89bb-44c189d5fde2}" description="Codejock.TaskPanelGlobalSettings.16.4.0" progid="Codejock.TaskPanelGlobalSettings.16.4.0"></comClass>
-	<typelib tlbid="{B8E5842E-102B-4289-9D57-3B3F5B5E15D3}" resourceid="1" version="16.4" helpdir=""></typelib>
-</file>

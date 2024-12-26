@@ -1,0 +1,11 @@
+// Mail Class version=1.0
+<file name="EASendMailObj.dll">
+	<comClass clsid="{df8a4fe2-221a-4504-987a-3fd4720db929}" description="Mail Class" tlbid="{8B5A2BD0-5638-4CCA-A7FF-91B9E6768AC4}" threadingModel="Apartment" progid="EASendMailObj.Mail.1"></comClass>
+	<comClass clsid="{ff80631d-e750-4c67-afc3-5170ab72518b}" description="FastSender Class" tlbid="{8B5A2BD0-5638-4CCA-A7FF-91B9E6768AC4}" threadingModel="Free" progid="EASendMailObj.FastSender.1"></comClass>
+	<comClass clsid="{eafc4eaa-9390-492a-8e53-e179527780f6}" description="Certificate Class" tlbid="{8B5A2BD0-5638-4CCA-A7FF-91B9E6768AC4}" threadingModel="Apartment" progid="EASendMailObj.Certificate.1"></comClass>
+	<comClass clsid="{036c2f8c-8d3c-4f4b-9b36-3b6f1d29c0b4}" description="CertificateCollection Class" tlbid="{8B5A2BD0-5638-4CCA-A7FF-91B9E6768AC4}" threadingModel="Apartment" progid="EASendMailObj.CertificateCollection.1"></comClass>
+	<comClass clsid="{dd6b3c53-1871-4adf-9c71-24b682012371}" description="SimpleJsonParser Class" tlbid="{8B5A2BD0-5638-4CCA-A7FF-91B9E6768AC4}" threadingModel="Apartment" progid="EASendMailObj.SimpleJsonParser.1"></comClass>
+	<comClass clsid="{6c589c71-6fdc-4859-a9cd-f3a7ea2206d0}" description="SimpleJsonArray Class" tlbid="{8B5A2BD0-5638-4CCA-A7FF-91B9E6768AC4}" threadingModel="Apartment" progid="EASendMailObj.SimpleJsonArray.1"></comClass>
+	<comClass clsid="{60534020-0887-486d-b6b7-0f177d43c00c}" description="OAuthResponseParser class" tlbid="{8B5A2BD0-5638-4CCA-A7FF-91B9E6768AC4}" threadingModel="Apartment" progid="EASendMailObj.OAuthResponseParser.1"></comClass>
+	<typelib tlbid="{8B5A2BD0-5638-4CCA-A7FF-91B9E6768AC4}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

@@ -1,7 +1,0 @@
-// Chilkat Email version=1.0
-<file name="ChilkatMail2.dll">
-	<comClass clsid="{a4643a87-99a0-4404-9bc5-2322bdd61637}" description="Chilkat Email2" tlbid="{1DF3AFED-99E0-4474-9900-954B8FD24E86}" threadingModel="Apartment" progid="ChilkatMail2.ChilkatEmail2.1"></comClass>
-	<comClass clsid="{a46e5261-9956-4767-88ca-dfced050d09e}" description="Chilkat MailMan2" tlbid="{1DF3AFED-99E0-4474-9900-954B8FD24E86}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="ChilkatMail2.ChilkatMailMan2.1"></comClass>
-	<comClass clsid="{a7ec2cd3-9941-4fd4-9d01-105dc16a4313}" description="Chilkat EmailBundle2" tlbid="{1DF3AFED-99E0-4474-9900-954B8FD24E86}" threadingModel="Apartment" progid="ChilkatMail2.ChilkatEmailBundle2.1"></comClass>
-	<typelib tlbid="{1DF3AFED-99E0-4474-9900-954B8FD24E86}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>

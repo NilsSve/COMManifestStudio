@@ -1,7 +1,0 @@
-// Fully customizable VS style dockable pane windows.
-<file name="Codejock.DockingPane.v13.4.2.ocx">
-	<typelib tlbid="{945E8FCC-830E-45CC-AF00-A012D5AE7451}" version="13.4" helpdir=""></typelib>
-	<comClass description="Xtreme Docking Pane Control" clsid="{42FA5EA7-8C8F-464C-9EA9-AE5EB52D0BAA}" progid="Codejock.DockingPane.13.4.2" threadingModel="Apartment" tlbid="{945E8FCC-830E-45CC-AF00-A012D5AE7451}"/>
-	<comClass description="Xtreme Docking Pane Frame Control" clsid="{141A713F-D365-402C-87AE-67730CC99166}" progid="Codejock.DockingPaneFrame.13.4.2" threadingModel="Apartment" tlbid="{945E8FCC-830E-45CC-AF00-A012D5AE7451}"/>
-	<comClass description="Codejock.DockingPaneGlobalSettings.13.4.2" clsid="{A0B0B813-8EC8-4DC4-8382-411946A6E62F}" progid="Codejock.DockingPaneGlobalSettings.13.4.2"/>
-</file>

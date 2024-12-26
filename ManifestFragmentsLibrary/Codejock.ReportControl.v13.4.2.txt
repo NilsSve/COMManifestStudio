@@ -1,0 +1,10 @@
+// Outlook style Reporting grid component.
+// This is a standard CodeJock component that comes with Visual DataFlex 16.0, 16,1 and 17.0
+<file name="Codejock.ReportControl.v13.4.2.ocx">
+	<typelib tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" version="13.4" helpdir=""></typelib>
+	<comClass description="Codejock.ReportRecord.13.4.2" clsid="{5BE2162F-DB30-416B-B623-51F97FA748AF}" progid="Codejock.ReportRecord.13.4.2"></comClass>
+	<comClass description="Xtreme Report Control" clsid="{32669CAA-7106-4723-8FD6-866262387DBA}" progid="Codejock.ReportControl.13.4.2" threadingModel="Apartment" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}"></comClass>
+	<comClass description="Xtreme Track Control" clsid="{B2A660A4-4E20-4E7E-9459-B756FD950B99}" progid="Codejock.TrackControl.13.4.2" threadingModel="Apartment" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}"></comClass>
+	<comClass description="Xtreme Report FieldChooser" clsid="{E6732173-BB19-41E4-9625-23A84594B416}" progid="Codejock.FieldChooser.13.4.2" threadingModel="Apartment" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}"></comClass>
+	<comClass description="Codejock.ReportControlGlobalSettings.13.4.2" clsid="{9D9460C6-EEF1-4AE2-9796-8BB2BB337631}" progid="Codejock.ReportControlGlobalSettings.13.4.2"></comClass>
+</file>

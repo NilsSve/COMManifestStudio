@@ -1,0 +1,7 @@
+// http://www.chilkatsoft.com
+<file name="ChilkatMail2.dll">
+	<typelib tlbid="{9959DADB-D246-49AB-A2CD-8DE719E7BC07}" version="1.0" helpdir="" flags="hasdiskimage"/>
+	<comClass clsid="{126FB030-1E9E-4517-A254-430616582C50}" description="Chilkat MailMan2" tlbid="{9959DADB-D246-49AB-A2CD-8DE719E7BC07}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="ChilkatMail2.ChilkatMailMan2.1"><progid>ChilkatMail2.ChilkatMailMan2</progid><progid>Chilkat.MailMan</progid><progid>Chilkat.MailMan.1</progid><progid>Chilkat.MailMan2</progid><progid>Chilkat.MailMan2.1</progid></comClass>
+	<comClass clsid="{D54033AB-E017-44da-B67E-02DE4B36EA54}" description="Chilkat Email2" tlbid="{9959DADB-D246-49AB-A2CD-8DE719E7BC07}" threadingModel="apartment" progid="ChilkatMail2.ChilkatEmail2.1"><progid>ChilkatMail2.ChilkatEmail2</progid><progid>Chilkat.Email</progid><progid>Chilkat.Email.1</progid><progid>Chilkat.Email2</progid><progid>Chilkat.Email2.1</progid></comClass>
+	<comClass clsid="{F90C76FF-9511-47dd-A9EB-62F1306E84F2}" description="Chilkat EmailBundle2" tlbid="{9959DADB-D246-49AB-A2CD-8DE719E7BC07}" threadingModel="apartment" progid="ChilkatMail2.ChilkatEmailBundle2.1"><progid>ChilkatMail2.ChilkatEmailBundle2</progid><progid>Chilkat.EmailBundle</progid><progid>Chilkat.EmailBundle.1</progid><progid>Chilkat.EmailBundle2</progid><progid>Chilkat.EmailBundle2.1</progid></comClass>
+</file>

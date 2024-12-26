@@ -1,5 +1,0 @@
-// Shockwave Flash version=1.1
-<file name="Flash32_19_0_0_185.ocx">
-	<comClass clsid="{d27cdb6e-ae6d-11cf-96b8-444553540000}" description="Shockwave Flash Object" tlbid="{D27CDB6B-AE6D-11cf-96B8-444553540000}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="ShockwaveFlash.ShockwaveFlash.19"></comClass>
-	<typelib tlbid="{57A0E746-3863-4D20-A811-950C84F1DB9B}" resourceid="2" version="1.1" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>

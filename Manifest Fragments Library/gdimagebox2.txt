@@ -1,6 +1,0 @@
-// GD Image Box
-<file name="gdimagebox2.ocx">
-	<comClass clsid="{1c1b8f5a-5433-462e-a7ba-6e648ba4ac7b}" description="GdImageBox2.dummy" tlbid="{ADB78CB3-BCA7-4E68-AEAF-959F954FF117}" progid="GdImageBox2.dummy"></comClass>
-	<comClass clsid="{db264033-5d89-4ffc-aaf7-f6aa1d1b7f07}" description="GdImageBox2.ImageBox" tlbid="{ADB78CB3-BCA7-4E68-AEAF-959F954FF117}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="GdImageBox2.ImageBox"></comClass>
-	<typelib tlbid="{ADB78CB3-BCA7-4E68-AEAF-959F954FF117}" resourceid="1" version="1.10" helpdir=""></typelib>
-</file>

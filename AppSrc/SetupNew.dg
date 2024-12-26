@@ -666,6 +666,9 @@ Object oConfigureWizardDialog is a cConfigureDbModalPanel
                     // We pass the object id of the oMain object and True to actually save changes.
                     Send DoSaveEnvironment of ghoApplication (Parent(Client_Id(ghoCommandBars))) True
                     Move (Module_Name(Desktop)) to sProgram
+#IFDEF IS$WIN64
+    Append sProgram "64"
+#ENDIF                        
                     // and restart the program.
                     Runprogram (sProgram + ".exe")
                 End

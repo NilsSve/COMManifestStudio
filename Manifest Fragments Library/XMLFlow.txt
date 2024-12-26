@@ -1,5 +1,0 @@
-// XMLFlow Control version=1.0
-<file name="XMLFlow.ocx">
-	<comClass clsid="{6b662919-7c39-477a-aa69-1de655cddc0f}" description="XMLFlow Control" tlbid="{BB7A7401-1445-447B-BCC2-1DF9EB59DACC}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="XMLFLOW.XMLFlowCtrl.1"></comClass>
-	<typelib tlbid="{BB7A7401-1445-447B-BCC2-1DF9EB59DACC}" resourceid="1" version="1.0" helpdir=""></typelib>
-</file>

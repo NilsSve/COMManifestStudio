@@ -1,6 +1,0 @@
-// Xceed Zip Control
-<file name="XceedZip.dll">
-	<comClass clsid="{db797690-40e0-11d2-9bd5-0060082ae372}" description="Xceed Zip Control" tlbid="{DB797681-40E0-11D2-9BD5-0060082AE372}" threadingModel="Both" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="XceedSoftware.XceedZip.5"></comClass>
-	<comClass clsid="{4c836512-bb70-11d2-a5a7-00105a9c91c6}" description="Xceed Compression Control" tlbid="{DB797681-40E0-11D2-9BD5-0060082AE372}" threadingModel="Both" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="XceedSoftware.XceedCompression.5"></comClass>
-	<typelib tlbid="{DB797681-40E0-11D2-9BD5-0060082AE372}" resourceid="1" version="5.4" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>

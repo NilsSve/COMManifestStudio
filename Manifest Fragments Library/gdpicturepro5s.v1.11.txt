@@ -1,9 +1,0 @@
-<file name="gdpicturepro5s.ocx">
-	<typelib tlbid="{2BF24377-96D4-4F0E-BE41-8055403D7DB4}" version="1.11" helpdir=""></typelib>
-	<comClass description="GdPicturePro5S.GdViewer" clsid="{F48DE781-C525-44C9-9529-C5ADE3EF5F70}" progid="GdPicturePro5S.GdViewer" threadingModel="Apartment" tlbid="{2BF24377-96D4-4F0E-BE41-8055403D7DB4}"></comClass>
-	<comClass description="GdPicturePro5S.GdViewerCnt" clsid="{14909A7C-9F5F-4F62-A215-11466CF0A7C9}" progid="GdPicturePro5S.GdViewerCnt" threadingModel="Apartment" tlbid="{2BF24377-96D4-4F0E-BE41-8055403D7DB4}"></comClass>
-	<comClass description="GdPicturePro5S.Imaging" clsid="{1E9EFC03-BF47-4479-8374-7F5D610FF60D}" progid="GdPicturePro5S.Imaging" threadingModel="Apartment" tlbid="{2BF24377-96D4-4F0E-BE41-8055403D7DB4}"></comClass>
-	<comClass description="GdPicturePro5S.cImaging" clsid="{96D0E5D5-076F-4BBD-8D2B-324DD2C39B66}" progid="GdPicturePro5S.cImaging" threadingModel="Apartment" tlbid="{2BF24377-96D4-4F0E-BE41-8055403D7DB4}"></comClass>
-</file>
-// Document Imaging and Image Processing SDK for ActiveX & .NET
-// http://www.gdpicture.com/whats-new-v9.php

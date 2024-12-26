@@ -1,5 +1,0 @@
-<file name="keautoimageview.ocx">
-	<typelib tlbid="{EFE5BE8E-D84F-41FC-BF16-05BD79822165}" version="1.0" helpdir=""></typelib>
-	<comClass description="prjKEImgCallAndView.KEAutoImageView" clsid="{BB26348F-9862-44BE-841A-5B894BA2E590}" progid="prjKEImgCallAndView.KEAutoImageView" threadingModel="Apartment" tlbid="{EFE5BE8E-D84F-41FC-BF16-05BD79822165}"></comClass>
-</file>
- // KE Auto Image View

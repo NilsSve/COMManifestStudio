@@ -1,7 +1,0 @@
-// Outlook style navigation panel component.
-<file name="Codejock.ShortcutBar.v13.4.2.ocx">
-	<typelib tlbid="{C8E5842E-102B-4289-9D57-3B3F5B5E15D3}" version="13.4" helpdir=""></typelib>
-	<comClass description="Xtreme ShortcutBar Control" clsid="{2385BB26-F48B-4BAF-8210-7AD48D773178}" progid="Codejock.ShortcutBar.13.4.2" threadingModel="Apartment" tlbid="{C8E5842E-102B-4289-9D57-3B3F5B5E15D3}"/>
-	<comClass description="Xtreme Shortcut Caption Control" clsid="{459E080F-2E1D-41E3-98EA-BBA9F6E86B54}" progid="Codejock.ShortcutCaption.13.4.2" threadingModel="Apartment" tlbid="{C8E5842E-102B-4289-9D57-3B3F5B5E15D3}"/>
-	<comClass description="Codejock.ShortcutBarGlobalSettings.13.4.2" clsid="{158ABFE9-F2D6-4481-B119-44CCE3E5A435}" progid="Codejock.ShortcutBarGlobalSettings.13.4.2"/>
-</file>

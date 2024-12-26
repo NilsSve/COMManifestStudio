@@ -1,0 +1,6 @@
+// Xtreme FlowGraph Control version=16.3
+<file name="Codejock.FlowGraph.v16.3.1.ocx">
+	<comClass clsid="{b0b154c9-d23d-436e-bd98-51f095d120e4}" description="Xtreme FlowGraph Control" tlbid="{BC70F81F-1155-41DF-8810-266AB291B513}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="Codejock.FlowGraphCtrl.16.3.1"></comClass>
+	<comClass clsid="{12ee31ba-0349-414d-b3a8-b55d6d0c5faa}" description="Codejock.FlowGraphGlobalSettings.16.3.1" progid="Codejock.FlowGraphGlobalSettings.16.3.1"></comClass>
+	<typelib tlbid="{BC70F81F-1155-41DF-8810-266AB291B513}" resourceid="1" version="16.3" helpdir=""></typelib>
+</file>

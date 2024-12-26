@@ -1,0 +1,40 @@
+// Advanced chart library includes bar, bubble, gantt, area, and many more.
+// http://www.codejock.com/products/chart/?2yn6s14z=p1z
+<file name="Codejock.ChartPro.v15.1.3.ocx">
+	<comClass clsid="{98190e6f-92b6-1764-9613-6b2a0fbf80a8}" description="Codejock.ChartDiagram3D.15.1.3" progid="Codejock.ChartDiagram3D.15.1.3"></comClass>
+	<comClass clsid="{98190e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartDiagram2D.15.3.1" progid="Codejock.ChartDiagram2D.15.3.1"></comClass>
+	<comClass clsid="{56a90e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartRadarDiagram.15.3.1" progid="Codejock.ChartRadarDiagram.15.3.1"></comClass>
+	<comClass clsid="{78690e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartPieDiagram.15.3.1" progid="Codejock.ChartPieDiagram.15.3.1"></comClass>
+	<comClass clsid="{24490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartPointSeriesStyle.15.3.1" progid="Codejock.ChartPointSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{a3490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartRadarPointSeriesStyle.15.3.1" progid="Codejock.ChartRadarPointSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{a5490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartRadarLineSeriesStyle.15.3.1" progid="Codejock.ChartRadarLineSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{ab790e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartRadarSplineSeriesStyle.15.3.1" progid="Codejock.ChartRadarSplineSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{77f90e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartRadarAreaSeriesStyle.15.3.1" progid="Codejock.ChartRadarAreaSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{aa590e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartRadarSplineAreaSeriesStyle.15.3.1" progid="Codejock.ChartRadarSplineAreaSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{14490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartLineSeriesStyle.15.3.1" progid="Codejock.ChartLineSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{ed990e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartScatterLineSeriesStyle.15.3.1" progid="Codejock.ChartScatterLineSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{dc190e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartFastLineSeriesStyle.15.3.1" progid="Codejock.ChartFastLineSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{77190e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartStepLineSeriesStyle.15.3.1" progid="Codejock.ChartStepLineSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{23490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartPieSeriesStyle.15.3.1" progid="Codejock.ChartPieSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{47890e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartFunnelSeriesStyle.15.3.1" progid="Codejock.ChartFunnelSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{48890e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartPyramidSeriesStyle.15.3.1" progid="Codejock.ChartPyramidSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{79090e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartPyramid3DSeriesStyle.15.1.3" progid="Codejock.ChartPyramid3DSeriesStyle.15.1.3"></comClass>
+	<comClass clsid="{32490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartBarSeriesStyle.15.3.1" progid="Codejock.ChartBarSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{76590e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartRangeBarSeriesStyle.15.3.1" progid="Codejock.ChartRangeBarSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{f6590e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartGanttSeriesStyle.15.3.1" progid="Codejock.ChartGanttSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{32490e6f-92b6-4671-9613-6b2a0fbf8789}" description="Codejock.ChartStackedBarSeriesStyle.15.3.1" progid="Codejock.ChartStackedBarSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{37490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartSplineSeriesStyle.15.3.1" progid="Codejock.ChartSplineSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{38490e6f-92b6-4671-9613-6b2a0fbf5432}" description="Codejock.ChartStackedAreaSeriesStyle.15.3.1" progid="Codejock.ChartStackedAreaSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{7e790e6f-92b6-4671-9613-6b2a0fbf5432}" description="Codejock.ChartStackedSplineAreaSeriesStyle.15.3.1" progid="Codejock.ChartStackedSplineAreaSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{38490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartAreaSeriesStyle.15.3.1" progid="Codejock.ChartAreaSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{39490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartSplineAreaSeriesStyle.15.3.1" progid="Codejock.ChartSplineAreaSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{40490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartTorus3DSeriesStyle.15.1.3" progid="Codejock.ChartTorus3DSeriesStyle.15.1.3"></comClass>
+	<comClass clsid="{41490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartPie3DSeriesStyle.15.1.3" progid="Codejock.ChartPie3DSeriesStyle.15.1.3"></comClass>
+	<comClass clsid="{42490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartBubbleSeriesStyle.15.3.1" progid="Codejock.ChartBubbleSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{43490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartHighLowSeriesStyle.15.3.1" progid="Codejock.ChartHighLowSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{44490e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartCandleStickSeriesStyle.15.3.1" progid="Codejock.ChartCandleStickSeriesStyle.15.3.1"></comClass>
+	<comClass clsid="{ae910e6f-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartContent.15.3.1" progid="Codejock.ChartContent.15.3.1"></comClass>
+	<comClass clsid="{d3884a15-bb42-485d-ab99-2daedc06bde4}" description="Xtreme Chart Control" tlbid="{C215CB9A-0AE1-499F-A101-48B3C370D3DF}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.ChartControl.15.1.3"></comClass>
+	<comClass clsid="{15a452f5-0711-4089-b0dd-fb2ee2739a91}" description="Codejock.ChartControlGlobalSettings.15.1.3" progid="Codejock.ChartControlGlobalSettings.15.1.3"></comClass>
+	<typelib tlbid="{C215CB9A-0AE1-499F-A101-48B3C370D3DF}" resourceid="1" version="15.1" helpdir=""></typelib>
+</file>

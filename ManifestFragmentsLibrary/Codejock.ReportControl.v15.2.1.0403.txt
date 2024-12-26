@@ -1,0 +1,10 @@
+// Outlook style Reporting grid component.
+// http://www.codejock.com/products/reportcontrol/?2yn6s14z=p1z
+<file name="Codejock.ReportControl.v15.2.1.0403.ocx" hashalg="SHA1">
+	<typelib tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" version="15.2" helpdir="" flags="control,hasdiskimage"/>
+	<comClass clsid="{4779FF1F-822B-4FE0-B2D4-B5BF0C1506C6}" description="Xtreme Report FieldChooser" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.FieldChooser.15.2.1.0403"/>
+	<comClass clsid="{5F29CCCE-AD7F-444B-B99C-DE265648C7DC}" description="Codejock.ReportRecord.15.2.1.0403" progid="Codejock.ReportRecord.15.2.1.0403"/>
+	<comClass clsid="{71E0FA18-C6E2-4386-9EE6-B719A0628B90}" description="Codejock.ReportControlGlobalSettings.15.2.1.0403" progid="Codejock.ReportControlGlobalSettings.15.2.1.0403"/>
+	<comClass clsid="{86AF1178-98FF-4A50-8790-6A7A1898A25D}" description="Xtreme Report Control" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.ReportControl.15.2.1.0403"/>
+	<comClass clsid="{BE39EB31-9AFE-4678-B1EE-7355321F8C28}" description="Xtreme Track Control" tlbid="{7CAC59E5-B703-4CCF-B326-8B956D962F27}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.TrackControl.15.2.1.0403"/>
+</file>

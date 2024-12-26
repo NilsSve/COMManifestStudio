@@ -1,6 +1,0 @@
-// Chilkat Software FTP component.
-// FTP files directly from your application in synchronous or asynchronous mode
-<file name="ChilkatFtp2.dll">
-	<comClass clsid="{302124c4-30a0-484a-9c7a-b51d5ba5306b}" description="Chilkat Ftp2" tlbid="{466E5E1A-67E7-4BE7-899B-A0F438D4BB4E}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="ChilkatFtp2.ChilkatFtp2.1"></comClass>
-	<typelib tlbid="{466E5E1A-67E7-4BE7-899B-A0F438D4BB4E}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>

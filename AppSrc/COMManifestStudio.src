@@ -637,17 +637,18 @@ Object oMain is a Panel
                 End_Procedure
             End_Object
 
-            Object oFragmentShare_MenuItem is a cCJMenuItem
-                Set psCaption to "&Share"
-                Set psToolTip to "Share fragment file (Alt+S)"
-                Set psDescription to "Share Fragment Files. If you have created a new Manifest Fragment File for a COM (OCX/DLL) component and version - you are encouraged to share it with other users of this tool. You do so by e-mailing it/them to the author of this program, who will check it for consistency and make it available for the global repository at VDF-Guidance."
-                Set psShortcut to "Alt+S"
-                Set psImage to "FragmentShare.ico"
-                Procedure OnExecute Variant vCommandBarControl
-                    Forward Send OnExecute vCommandBarControl
-                    Send DoShareManifestFragmentFiles of (Client_Id(ghoCommandBars))
-                End_Procedure
-            End_Object
+// ToDo: This does not seem to work any more. Needs investigation.
+//            Object oFragmentShare_MenuItem is a cCJMenuItem
+//                Set psCaption to "&Share"
+//                Set psToolTip to "Share fragment file (Alt+S)"
+//                Set psDescription to "Share Fragment Files. If you have created a new Manifest Fragment File for a COM (OCX/DLL) component and version - you are encouraged to share it with other users of this tool. You do so by e-mailing it/them to the author of this program, who will check it for consistency and make it available for the global repository at VDF-Guidance."
+//                Set psShortcut to "Alt+S"
+//                Set psImage to "FragmentShare.ico"
+//                Procedure OnExecute Variant vCommandBarControl
+//                    Forward Send OnExecute vCommandBarControl
+//                    Send DoShareManifestFragmentFiles of (Client_Id(ghoCommandBars))
+//                End_Procedure
+//            End_Object
 
         End_Object
 
@@ -982,7 +983,7 @@ Object oMain is a Panel
 
                 Procedure OnExecute Variant vCommandBarControl
                     Forward Send OnExecute vCommandBarControl
-                    Send Popup of (oConfigureWizardDialog(Client_Id(ghoCommandBars)))
+                    Send Popup of (oProgramSetup_Panel(Client_Id(ghoCommandBars)))
                     Send OnStartup of ghoManifestIniFile
                 End_Procedure  
                 
@@ -999,7 +1000,7 @@ Object oMain is a Panel
 //            Object oTestMenuItem is a cCJMenuItem
 //                Set psImage to "Configure.ico" 
 //                Procedure OnExecute Variant vCommandBarControl
-//                    Send Popup of (oConfigureWizardDialog(Client_Id(ghoCommandBars)))
+//                    Send Popup of (oProgramSetup_Panel(Client_Id(ghoCommandBars)))
 //                End_Procedure
 //            End_Object
 
@@ -1145,7 +1146,7 @@ Object oMain is a Panel
         Use CreateNewProject.dg
         Use DigitalCerts.vw
         Use DbMergerViewNew.vw  
-        Use SetupNew.dg
+        Use ProgramSetup.dg
         
         Procedure Activate_About
             Send DoAbout "" "" ("Copyright 2012-2020" * psCompany(ghoApplication)) "Created By: Nils Svedmyr" "COMManifestManager.bmp" "E-mail: mailto:support@rdctools.com" "This is a FREE program. Please make a contribution if you find it useful. Just click the website link below and there click the 'Donate' button." ("Donate:" * (String(CS_DonatePage))) ("This tool was created with DataFlex" * String(C_DFVersion) * "from Data Access Worldwide. Please visit http://www.dataaccess.com for a free personal copy of DataFlex.")

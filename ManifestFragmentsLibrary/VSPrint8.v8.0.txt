@@ -1,0 +1,4 @@
+<file name="VSPrint8.ocx">
+ 	typelib tlbid="{54850C51-14EA-4470-A5E4-8C5DB32DC853}" version="1.0" helpdir="" flags="hasdiskimage"/>
+	<comClass clsid="{819F123A-B24A-4eb8-BED1-B5DFC5CB5194}" description="ComponentOne VSPrinter 8.0" tlbid="{54850C51-14EA-4470-A5E4-8C5DB32DC853}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,simpleframe,setclientsitefirst" progid="VSPrinter8.VSPrinter.1"><progid>VSPrinter8.VSPrinter</progid></comClass>
+</file>

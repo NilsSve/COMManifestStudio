@@ -1,5 +1,0 @@
-// DataFlex Reports 2019 Developer Edition runtime version=7.0
-<file name="DataFlex Reports 2019 Developer Edition API.ocx">
-	<comClass clsid="{0863ff9d-5d97-4171-b060-cf1e4aeaa453}" description="DataFlex Reports runtime 7.0" tlbid="{72D6C01A-51DE-4646-99FF-5B7DAE72482B}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="DRAPI.Developer.7.0"></comClass>
-	<typelib tlbid="{72D6C01A-51DE-4646-99FF-5B7DAE72482B}" resourceid="1" version="7.0" helpdir=""></typelib>
-</file>

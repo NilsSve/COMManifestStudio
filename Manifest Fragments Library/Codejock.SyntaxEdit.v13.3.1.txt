@@ -1,7 +1,0 @@
-// Visual Studio .NET style text editor component.
-// http://www.codejock.com/products/syntaxedit/?2yn6s14z=p1z
-<file name="Codejock.SyntaxEdit.v13.3.1.ocx">
-	<typelib tlbid="{CA73588D-282F-4592-9369-A61CC244FADA}" version="13.3" helpdir=""></typelib>
-	<comClass description="Xtreme Syntax Edit" clsid="{A9868D07-E2D4-44C7-886B-C07779D7DEF0}" progid="Codejock.SyntaxEdit.13.3.1" threadingModel="Apartment" tlbid="{CA73588D-282F-4592-9369-A61CC244FADA}"/>
-	<comClass description="Codejock.SyntaxEditGlobalSettings.13.3.1" clsid="{7345C023-8370-446A-8159-16F36FC8A0BD}" progid="Codejock.SyntaxEditGlobalSettings.13.3.1"/>
-</file>

@@ -1,0 +1,5 @@
+// ThumbnailViewer Control version=1.0
+<file name="ThumbnailViewerXP.ocx">
+	<comClass clsid="{62fae451-8fce-48e4-a193-83ef070b3870}" description="ThumbnailViewer Control" tlbid="{14FA8EC4-F48B-410E-B25B-2D96B809D58C}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="THUMBNAILVIEWER.ThumbnailViewerCtrl.1"></comClass>
+	<typelib tlbid="{14FA8EC4-F48B-410E-B25B-2D96B809D58C}" resourceid="1" version="1.0" helpdir=""></typelib>
+</file>

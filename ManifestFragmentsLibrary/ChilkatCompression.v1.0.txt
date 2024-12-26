@@ -1,0 +1,6 @@
+// Chilkat Software Compression (PPMD, Deflate, Bzip2, LZW) Component Features
+// http://www.chilkatsoft.com/compression-features.asp
+<file name="ChilkatCompression.dll">
+	<comClass clsid="{0cbd21fb-3134-4ad8-9399-6acfee27105a}" description="ChilkatCompression Class" tlbid="{EC76C59A-5CA6-4E59-9EA9-97870BACAFE5}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="Chilkat.Compression.1"></comClass>
+	<typelib tlbid="{EC76C59A-5CA6-4E59-9EA9-97870BACAFE5}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

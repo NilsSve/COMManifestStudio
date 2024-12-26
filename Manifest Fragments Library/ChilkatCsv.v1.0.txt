@@ -1,5 +1,0 @@
-// Easy working with CSV files - www.chilkatsoft.com
-<file name="ChilkatCsv.dll">
-	<comClass clsid="{16c07c39-4114-4177-a569-3ca2844b84a6}" description="ChilkatCsv Class" tlbid="{09DBD948-F56E-421C-AA2E-27B0FA364B73}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="ChilkatCsv.ChilkatCsv.1"></comClass>
-	<typelib tlbid="{09DBD948-F56E-421C-AA2E-27B0FA364B73}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>

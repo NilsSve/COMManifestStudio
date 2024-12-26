@@ -1,0 +1,6 @@
+<file name="grido82.ocx">
+	<typelib tlbid="{891734A0-38C6-4BFD-A98E-1179E4B4EF51}" version="1.0" helpdir=""></typelib>
+	<comClass description="grido82.TransparentImage" clsid="{2520234E-CF19-4B37-B2F6-8CB6367F4326}" progid="grido82.TransparentImage" threadingModel="Apartment" tlbid="{891734A0-38C6-4BFD-A98E-1179E4B4EF51}"></comClass>
+</file>
+// Grido82 Transparent Images OCX. 
+// Free Download http://queuedownload.com/developer-tools/activex/transparent-images-ocx/98511

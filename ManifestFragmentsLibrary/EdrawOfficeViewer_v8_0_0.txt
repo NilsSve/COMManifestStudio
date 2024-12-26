@@ -1,0 +1,9 @@
+<file name="officeviewer.ocx">
+	<typelib tlbid="{9EF5199D-83D8-43DE-98A9-DA5BC5F17836}" version="8.0" helpdir=""/>
+	<comClass description="Edraw Office Viewer Component" clsid="{7677E74E-5831-4C9E-A2DD-9B1EF9DF2DB4}" progid="EDOFFICE.EDOfficeCtrl.1" threadingModel="Apartment" tlbid="{9EF5199D-83D8-43DE-98A9-DA5BC5F17836}"/>
+</file>
+// Edraw Office Viewer Component Acts as an ActiveX document container for embedding Office documents 
+// (including Microsoft Word, Microsoft Excel, Microsoft PowerPoint)
+// in a custom form or Web page. The control is lightweight and flexible,
+// and gives developers new possibilities for using Office in a custom solution.
+// www.edrawsoft.com/officeviewer.php

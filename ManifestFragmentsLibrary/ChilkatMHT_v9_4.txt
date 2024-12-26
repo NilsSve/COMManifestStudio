@@ -1,0 +1,9 @@
+// Converts HTML to self-contained .MHT web archives. Can also convert HTML into a self-contained email
+// with all referenced images embedded within the email. Chilkat MHT can 
+// download HTML from a url, load HTML from a file, or accept HTML passed in 
+// directly as an in-memory string.
+// http://www.chilkatsoft.com
+<file name="ChilkatMHT.dll">
+	<typelib tlbid="{E16E1B4D-346E-436C-B067-8ACA0921EFD0}" version="1.0" helpdir=""/>
+	<comClass description="Chilkat MHT" clsid="{3994A57F-CB6E-4FC8-A6B9-7D5A41C317BF}" progid="ChilkatMHT.ChilkatMHT.1" threadingModel="Apartment" tlbid="{E16E1B4D-346E-436C-B067-8ACA0921EFD0}"/>
+</file>

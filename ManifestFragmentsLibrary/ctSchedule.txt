@@ -1,0 +1,5 @@
+// ctSchedule Control version=7.0
+<file name="ctSchedule.ocx">
+	<comClass clsid="{2d913fcb-9551-4145-b751-7f927d750297}" description="ctSchedule Control 7.0" tlbid="{74256532-87A5-4BD1-9C90-5A1F9B9EE468}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="ctSCHEDULE.ctScheduleCtrl.7"></comClass>
+	<typelib tlbid="{74256532-87A5-4BD1-9C90-5A1F9B9EE468}" resourceid="1" version="7.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

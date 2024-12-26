@@ -1,0 +1,6 @@
+// ComponentOne VSPrinter Control version=8.0
+`// http://www.componentone.com/
+<file name="VSPrint8.ocx">
+	<comClass clsid="{819f123a-b24a-4eb8-bed1-b5dfc5cb5194}" description="ComponentOne VSPrinter 8.0" tlbid="{54850C51-14EA-4470-A5E4-8C5DB32DC853}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,simpleframe,setclientsitefirst" progid="VSPrinter8.VSPrinter.1"></comClass>
+	<typelib tlbid="{54850C51-14EA-4470-A5E4-8C5DB32DC853}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

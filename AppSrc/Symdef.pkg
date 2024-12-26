@@ -1,14 +1,14 @@
-Use cDigitalSoftwareCertificate.pkg
+ï»¿Use cDigitalSoftwareCertificate.pkg
 
 Define CR_LF                   for (Character(13) + Character(10))
 Define CS_DQ                   for (Character(34) + Character(34)) // Double-quotation mark (")
 Define CS_VDFComment           for (Character(47) + Character(47)) // VDF standard comment (two forward slash'es)
 Define CS_DependencyStart      for (CS_VDFComment + "#=")          // Start string in fragment files for dependency files.
 Define CS_AppManifestFile      for "Manifest File"
-Define CS_ManifestFolder       for "Manifest Fragments Library"
+Define CS_ManifestFolder       for "ManifestFragmentsLibrary"
 Define CS_IniFileFolder        for (psHome(phoWorkspace(ghoApplication)))
 Define CS_ManifestTextFolder   for (CS_IniFileFolder + CS_ManifestFolder)
-Define CS_CommonCOMFolderName  for "Common COM Library"
+Define CS_CommonCOMFolderName  for "CommonCOMLibrary"
 Define CS_CommonCOMFolderPath  for (CS_IniFileFolder + CS_CommonCOMFolderName)
 Define CS_MtExeProgram         for "Mt.exe"
 Define CS_MtOutputSource       for "-outputresource:"
@@ -92,7 +92,7 @@ Define CS_Name                 for "Name"
 Define CS_Separator            for "Separator"
 
 // Swedish:
-//Define CS_VisitUsOnLine        for "Bes”k oss p† Internet"
+//Define CS_VisitUsOnLine        for "BesÃ¶k oss pÃ¥ Internet"
 
 //Define CS_ExportCertificateHelp for "http://blog.ksoftware.net/2011/07/exporting-your-code-signing-certificate-to-a-pfx-file/"
 Define CS_ExportCertificateHelp for "https://support.ksoftware.net/support/solutions/articles/17153-what-is-a-code-signing-certificate-"

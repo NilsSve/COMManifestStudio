@@ -1,6 +1,0 @@
-// Chilkat FTP component
-// http://www.chilkatsoft.com/
-<file name="ChilkatFTP.dll">
-	<typelib tlbid="{5B7759CE-C04E-4C5D-993B-8297E30D9065}" version="1.0" helpdir="" flags="hasdiskimage"/>
-	<comClass clsid="{3B598BD0-AF50-48C6-B6A5-63261A48B054}" description="ChilkatFTP Class" tlbid="{5B7759CE-C04E-4C5D-993B-8297E30D9065}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="ChilkatFTP.ChilkatFTP.1"> <progid>ChilkatFTP.ChilkatFTP</progid></comClass>
-</file>

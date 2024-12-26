@@ -1,9 +1,0 @@
-// Helper component for the Exontrol's exG2antt component 
-// http://www.exontrol.com/exg2antt.jsp
-<file name="ExPropertiesList.dll">
-	<comClass clsid="{A703DF80-DFF3-48D7-A4C7-47CF6A48425C}" tlbid="{35D28C93-F7DB-423A-B1FB-3A7B80B7D7F4}" description="PropertiesList Class"></comClass>
-	<comClass clsid="{898B9D06-4A41-434B-A514-6A78274998F7}" tlbid="{35D28C93-F7DB-423A-B1FB-3A7B80B7D7F4}" description="Property Class"></comClass>
-	<comClass clsid="{9728819B-8E5F-48A7-A2DE-4BCB39210EB9}" tlbid="{35D28C93-F7DB-423A-B1FB-3A7B80B7D7F4}" description="TemplatePage Class"></comClass>
-	<comClass clsid="{35534DC0-655B-4BC8-8A23-949410F6BE7F}" tlbid="{35D28C93-F7DB-423A-B1FB-3A7B80B7D7F4}" description="Appearance Class"></comClass>
-	<typelib tlbid="{35D28C93-F7DB-423A-B1FB-3A7B80B7D7F4}" resourceid="1" version="1.0" helpdir=""></typelib>
-</file>

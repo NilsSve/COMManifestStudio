@@ -1,7 +1,0 @@
-// Sophisticated application skinning framework technology.
-// http://www.codejock.com/products/skinframework/?2yn6s14z=p1z
-<file name="Codejock.SkinFramework.v15.1.3.ocx"">
-	<typelib tlbid="{BD0C1912-66C3-49CC-8B12-7B347BF6C846}" version="15.1" helpdir="" flags="control,hasdiskimage"/>
-	<comClass clsid="{5766E8D4-5125-47EB-AE99-091C36806175}" description="Codejock.SkinFrameworkGlobalSettings.15.1.3" progid="Codejock.SkinFrameworkGlobalSettings.15.1.3"/>
-	<comClass clsid="{6B45BE5A-A8AC-4FE7-B84F-54B45F7DB0D4}" description="Xtreme SkinFramework Control" tlbid="{BD0C1912-66C3-49CC-8B12-7B347BF6C846}" threadingModel="apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,nouiactivate,setclientsitefirst" progid="Codejock.SkinFramework.15.1.3"/>
-</file>

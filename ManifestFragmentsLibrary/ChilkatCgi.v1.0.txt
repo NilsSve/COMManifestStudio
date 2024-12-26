@@ -1,0 +1,5 @@
+// Chilkat Software. Unsure on what this component does!
+<file name="ChilkatCgi.dll">
+	<comClass clsid="{e391727f-90a2-41cb-99e1-feac8edc3cad}" description="ChilkatCgi Class" tlbid="{787D8E08-2DFF-4E1C-A3E4-15356B2C9921}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,invisibleatruntime,setclientsitefirst" progid="Chilkat.Cgi.1"></comClass>
+	<typelib tlbid="{787D8E08-2DFF-4E1C-A3E4-15356B2C9921}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
+</file>

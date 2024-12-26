@@ -1,5 +1,0 @@
-// Lassalle AddFlow 4 ActiveX Control version=4.2
-<file name="AddFlow4.ocx">
-	<comClass clsid="{83b0e426-d4ee-11d4-bedf-bab7f1eea455}" description="AddFlow 4 ActiveX Control" tlbid="{83B0E423-D4EE-11D4-BEDF-BAB7F1EEA455}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,simpleframe,setclientsitefirst" progid="ADDFLOW.AddFlowCtrl.1"></comClass>
-	<typelib tlbid="{83B0E423-D4EE-11D4-BEDF-BAB7F1EEA455}" resourceid="1" version="4.2" helpdir=""></typelib>
-</file>

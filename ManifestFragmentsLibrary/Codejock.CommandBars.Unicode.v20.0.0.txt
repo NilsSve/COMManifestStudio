@@ -1,0 +1,14 @@
+// Xtreme CommandBars Control version=20.0
+<file name="Codejock.CommandBars.Unicode.v20.0.0.ocx">
+	<comClass clsid="{c0de2000-1c4d-4de8-bc4a-5240617d4930}" description="Xtreme CommandBars Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,invisibleatruntime,nouiactivate" progid="Codejock.CommandBars.20.0.0"></comClass>
+	<comClass clsid="{c0de2000-148b-45f5-9679-3e0dbbc92c13}" description="Xtreme CommandBars Frame Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="Codejock.CommandBarsFrame.20.0.0"></comClass>
+	<comClass clsid="{c0de2000-3949-47b3-b687-85e8dda2aedb}" description="Xtreme ImageManager Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,invisibleatruntime,setclientsitefirst" progid="Codejock.ImageManager.20.0.0"></comClass>
+	<comClass clsid="{c0de2000-62ef-44e0-8471-69e91c8b026c}" description="ImageManager Property Page"></comClass>
+	<comClass clsid="{c0de2000-7f9d-4b69-95d0-249fc10aef31}" description="Xtreme PrintPreview Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.PrintPreview.20.0.0"></comClass>
+	<comClass clsid="{c0de2000-add1-404b-9432-25becba0755f}" description="Xtreme Backstage Button Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,actslikebutton,setclientsitefirst" progid="Codejock.BackstageButton.20.0.0"></comClass>
+	<comClass clsid="{c0de2000-3ce1-4c9b-b764-d85c63dbec21}" description="PushButton General Property Page"></comClass>
+	<comClass clsid="{c0de2000-c3cb-4192-b015-bff56164ed07}" description="Xtreme Backstage Separator Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,actslikelabel,setclientsitefirst" progid="Codejock.BackstageSeparator.20.0.0"></comClass>
+	<comClass clsid="{c0de2000-52d8-4364-bfdc-c828980023b0}" description="Xtreme Backstage ListBox Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.BackstageListBox.20.0.0"></comClass>
+	<comClass clsid="{c0de2000-d18f-4f58-8647-38f1ad3314c3}" description="Codejock.CommandBarsGlobalSettings.20.0.0" progid="Codejock.CommandBarsGlobalSettings.20.0.0"></comClass>
+	<typelib tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" resourceid="1" version="20.0" helpdir=""></typelib>
+</file>
