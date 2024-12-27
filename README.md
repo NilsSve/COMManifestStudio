@@ -1,3 +1,5 @@
+Purpose: Managing Registration Free COM (OCX/DLL) Components for Isolated Applications. This is a DataFlex project.
+
 ## Initializing the cloned repository:
 
 After cloning the repository, start the Studio with Administrator rights and compile the "VmdCmdUtil.src" program. Then restart the Studio without Administrator rights and compile "WriteDateTimeHeaderFile.src", "DoTouchExeFile.src" and lastly the main app: "COMManifestStudio.src".
