@@ -27,6 +27,7 @@ loginEncryptionkey.inc
 **/Data/**/*.cch
 **/Data/**/*.cfg
 **/Data/**/*.tag
+**/Data/**/CompileHeader.h
 
 # DDSrc
 **/DdSrc/**/*.def
