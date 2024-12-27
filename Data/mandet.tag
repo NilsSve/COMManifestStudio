@@ -1,3 +1,0 @@
-ID
-ManHdrID
-ManifestFragmentFile
