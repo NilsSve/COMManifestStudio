@@ -42,7 +42,7 @@ loginEncryptionkey.inc
 **/Programs/*.exe
 **/Programs/*.exe.manifest
 **/Programs/*.log
-**/Programs/COMManifestStudio.ini
+**/Programs/*.ini
 
 # Workspace specific
 **/Data/compileheader.h
@@ -50,5 +50,7 @@ loginEncryptionkey.inc
 **/Help/**/Assets
 **/Help/**/Online Help
 **/HelpText**/*.*
+
 **/Install
+
 **/Capture
