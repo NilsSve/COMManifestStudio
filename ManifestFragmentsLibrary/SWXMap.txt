@@ -1,0 +1,8 @@
+// SWX Map Control
+<file name="SWXMap.ocx">
+	<comClass clsid="{d9ea077f-4e5f-4bbd-9acd-02e7021cdefe}" description="SWXMap Control" tlbid="{7493F856-8B5B-47C2-8336-71D5CA8433D9}" threadingModel="Apartment" miscStatusContent="insideout,activatewhenvisible,renderingisdeviceindependent,setclientsitefirst,ignoreactivatewhenvisible" progid="SWXMap.SWXMapCtrl.1"></comClass>
+	<typelib tlbid="{7493F856-8B5B-47C2-8336-71D5CA8433D9}" resourceid="1" version="1.0" helpdir=""></typelib>
+</file>
+Dependecies:
+#=libcef.dll
+#=icudt.dll
