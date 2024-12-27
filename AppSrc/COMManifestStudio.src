@@ -1149,7 +1149,7 @@ Object oMain is a Panel
         Use ProgramSetup.dg
         
         Procedure Activate_About
-            Send DoAbout "" "" ("Copyright 2012-2020" * psCompany(ghoApplication)) "Created By: Nils Svedmyr" "COMManifestManager.bmp" "E-mail: mailto:support@rdctools.com" "This is a FREE program. Please make a contribution if you find it useful. Just click the website link below and there click the 'Donate' button." ("Donate:" * (String(CS_DonatePage))) ("This tool was created with DataFlex" * String(C_DFVersion) * "from Data Access Worldwide. Please visit http://www.dataaccess.com for a free personal copy of DataFlex.")
+            Send DoAbout "" "" ("Copyright 2012-2025" * psCompany(ghoApplication)) "Created By: Nils Svedmyr" "COMManifestManager.bmp" "E-mail: mailto:support@rdctools.com" "This is a FREE program. Please make a contribution if you find it useful. Just click the website link below and there click the 'Donate' button." ("Donate:" * (String(CS_DonatePage))) ("This tool was created with DataFlex" * String(C_DFVersion) * "from Data Access Worldwide. Please visit http://www.dataaccess.com for a free personal copy of DataFlex.")
         End_Procedure
 
         On_Key Key_Ctrl+Key_O Send DoShowMainPromptList of (Client_Id(ghoCommandBars))
