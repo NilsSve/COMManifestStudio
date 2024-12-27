@@ -26,8 +26,6 @@ loginEncryptionkey.inc
 **/Data/**/*.hdr
 **/Data/**/*.cch
 **/Data/**/*.cfg
-/Data/*
-!/Data/.keep
 
 # DDSrc
 **/DdSrc/**/*.def
