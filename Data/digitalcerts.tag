@@ -1,0 +1,9 @@
+ID
+FileName
+Pw
+Description
+WebLocation
+AddTimeStamp
+TimeStampServiceSHA1
+TimeStampServiceSHA256
+DefaultDigitalCert
