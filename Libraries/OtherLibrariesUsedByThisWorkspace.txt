@@ -1,0 +1,17 @@
+The workspace uses the DUF (The Database Update Framework) project as a library.
+Both DUF and COMManifestStudio uses the following three libraries:
+- DFAbout
+- RDCToolsLib
+- vwin32fh
+
+Using libraries in GIT is the same as using submodules. However, 
+if those three libraries/submodules would be used/defined by the COMManifestStudio as well,
+GIT would get very confused and it would lead to an update/commit nightmare.
+
+For that reason the three libraries/submodules "DFAbout", "RDCToolsLib" and "vwin32fh",
+are ONLY used once and that is in the DUF library.
+If you check the DUF library it also has a folder named "Libraries" and there the three
+libraries/submodules resides.
+
+For the DataFlex compiler this doesn't really matter, as it will still find everything it needs
+to be able to compile properly.
