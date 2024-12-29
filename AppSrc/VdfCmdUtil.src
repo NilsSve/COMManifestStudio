@@ -1,4 +1,4 @@
-//****************************************************************************
+﻿//****************************************************************************
 // $Module type: Program
 // $Module name: VDFCmdUtil.src
 // $Author     : Nils G. Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
@@ -56,7 +56,7 @@ Object oDigitalSoftwareCertificate is a cDigitalSoftwareCertificate
     // This message does the actual checking for a valid digital certificate.
     // If the program has been tampered with e.g. it has been infected by a virus,
     // the user will get a warning and the program will be aborted.
-    Send ValidateProgramOnStartup
+//    Send ValidateProgramOnStartup
 
 End_Object
 

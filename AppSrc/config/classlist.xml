@@ -5,7 +5,7 @@
 	<libraries>
 		<library>
 			<libraryPath>Libraries\DUF\DUF24.0.sws</libraryPath>
-			<libraryTimeStamp>2024-12-29T13:10:05</libraryTimeStamp>
+			<libraryTimeStamp>2024-12-29T15:31:31</libraryTimeStamp>
 			<libraryID>Lib3</libraryID>
 		</library>
 		<library>
@@ -1290,20 +1290,6 @@
 			<image>ControlCOM.ico</image>
 			<package>cMapComponent.pkg</package>
 			<groupName>Map Component</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cComSWXMap</className>
-			<image>ControlCOM.ico</image>
-			<package>cComSWXMap.pkg</package>
-			<groupName>ActiveX</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cMapComponent</className>
-			<image>ControlCOM.ico</image>
-			<package>cMapComponent.pkg</package>
-			<groupName>Map Component</groupName>
 			<libraryID>Lib4</libraryID>
 		</class>
 		<class>
@@ -1333,6 +1319,20 @@
 			<package>cComSWXMap.pkg</package>
 			<groupName>ActiveX</groupName>
 			<libraryID>Lib4</libraryID>
+		</class>
+		<class>
+			<className>cMapComponent</className>
+			<image>ControlCOM.ico</image>
+			<package>cMapComponent.pkg</package>
+			<groupName>Map Component</groupName>
+			<libraryID>Lib3</libraryID>
+		</class>
+		<class>
+			<className>cComSWXMap</className>
+			<image>ControlCOM.ico</image>
+			<package>cComSWXMap.pkg</package>
+			<groupName>ActiveX</groupName>
+			<libraryID>Lib3</libraryID>
 		</class>
 	</classes>
 </classList>
