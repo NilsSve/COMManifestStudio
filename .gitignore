@@ -28,6 +28,7 @@ loginEncryptionkey.inc
 **/Data/**/*.cfg
 **/Data/**/*.tag
 **/Data/**/Deploy/**
+**/Data/compileheader.h
 
 # DDSrc
 **/DdSrc/**/*.def
@@ -45,12 +46,13 @@ loginEncryptionkey.inc
 **/Programs/*.ini
 
 # Workspace specific
-**/Data/compileheader.h
 **/Help/**/*.hnd
 **/Help/**/Assets
 **/Help/**/Online Help
 **/HelpText**/*.*
 
-**/Install
+**/DFRefactor_Backup/**
 
-**/Capture
+**/Install/**
+
+**/Capture/**
