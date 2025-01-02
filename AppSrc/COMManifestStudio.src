@@ -1173,5 +1173,17 @@ Procedure OnStartup
 End_Procedure
 Send OnStartup
 
-// If there is a compile error for a missing resource. Make a copy of the Data\Filelist.cfg to Data\FilelistBackupFile.cfg
+// Program *must* be compiled as 32-bit.
+#IFDEF IS$WIN64
+    "No, that won't work - the program needs to be compiled as 32-bit"
+#ENDIF
+
+// *** Note: If you get a compile error: 
+//     - "Can't include the resource COMPILEHEADER.H",
+//       you will need to compile the "WriteDateTimeHeaderFile" program.
+//     - If there is a compile error for a missing FilelistBackupFile resource,
+//       make a copy of the Data\Filelist.cfg to Data\FilelistBackupFile.cfg
+//     - If you get a compile error: "Can't include resource ..\HELP\ABOUT.RTF",
+//       you need to create a "About.rtf" file in the Help folder.
+//       Note that it can be empty, but it needs to exist for the About dialog.
 Start_UI
