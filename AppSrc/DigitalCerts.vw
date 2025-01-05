@@ -1,4 +1,4 @@
-// C:\Projects\DF18\ManifestSideBySide\AppSrc\DigitalCerts.dg
+﻿// C:\Projects\DF18\ManifestSideBySide\AppSrc\DigitalCerts.dg
 // DigitalCerts
 //
 Use Dfclient.pkg
@@ -26,7 +26,7 @@ Object oDigitalCerts_vw is a dbView
     Set Size to 209 372
     Set Label to "Edit Digital Certificates"
     Set Auto_Clear_DEO_State to False
-    Set Icon to "DigitalCert.ico"
+//    Set Icon to "DigitalCert.ico"
     Set pbAutoActivate to True
 
     Object oDigitalCerts_DD is a cDigitalCertsDataDictionary

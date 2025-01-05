@@ -41,7 +41,8 @@ Activate_View Activate_oDbMerger_vw for oDbMerger_vw
 Object oDbMerger_vw is a dbView
     Set Size to 279 400
     Set Location to 0 0 
-    Set Label to "Main view"
+    Set Label to "Main view"  
+//    Set Icon to "COMManifestManager.ico"
     // Saves in header should not clear the view
     Set Auto_Clear_DEO_State to False
     Set Verify_Save_Msg to (RefFunc(No_Confirmation))
