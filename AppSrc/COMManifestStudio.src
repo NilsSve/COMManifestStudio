@@ -35,11 +35,8 @@
 //******************************************************************************
 Use DFAllEnt.pkg
 Use cCJCommandBarSystem.pkg
-Use cMyApplication.pkg
 
 Use cDigitalSoftwareCertificate.pkg
-Use cDbUpdateHandler.pkg
-
 Object oDigitalSoftwareCertificate is a cDigitalSoftwareCertificate
     Move Self to ghoDigitalSoftwareCertificate
 
@@ -67,6 +64,11 @@ Object oHtmlHelp is a cHtmlHelp
     Set pbAlwaysOnTop to False
 End_Object
 
+// The package for DataFlex tables, contains the CheckCollatingSequence 
+// procedure used in the OnWorkspaceOpened in oApplication event.
+Use cDataBaseFunctions.pkg
+
+Use cMyApplication.pkg
 Object oApplication is a cMyApplication
     Set peHelpType to htHtmlHelp   
     Set psHelpFile to "COMManifestStudio.chm"
@@ -89,9 +91,6 @@ Object oApplication is a cMyApplication
     Property Handle phoManifestPathObject
     Property Handle phoManifest_grid
 
-    // The package contains the DoCheckCollatingSequence procedure used in the DoOpenWorkspace procedure.
-    Use DoCheckCollatingSequence.pkg
-
     // Check that the 'correct' DF_Collate.cfg is used when the program is
     // started. The data in the database was entered with an english (standard)
     // collating sequence. If another df_collate.cfg is encountered at runtime,
@@ -99,13 +98,13 @@ Object oApplication is a cMyApplication
     // Note: We cannot use the event OnCreate for this, because the psDataPath
     // et. al. is set after that event. Instead we augment the
     // predefined cApplication's DoOpenworkSpace message.
-    Procedure DoOpenWorkspace String sWorkspace
+    Procedure OnWorkspaceOpened
         String sParam
         Handle hoCmdLine
 
-        Forward Send DoOpenWorkspace sWorkspace
+        Forward Send OnWorkspaceOpened
         // Needs to be send right after the forward send...
-        Send DoCheckCollatingSequence ManHdr.File_Number Field ManHdr.ManifestFileName // Pass file- & field-number for an ASCII field
+        Send CheckCollatingSequence of ghoDatabaseFunctions ManHdr.File_Number Field ManHdr.ManifestFileName // Pass file- & field-number for an ASCII field
         
         Forward Send OnWorkspaceOpened
         
@@ -161,6 +160,7 @@ Object oApplication is a cMyApplication
 
 End_Object 
 
+Use cDbUpdateHandler.pkg
 Object oDbUpdateHandler is a cDbUpdateHandler
     Set piDbVersionFileNumber  to 9
     Set piDbVersionFieldNumber to 1
