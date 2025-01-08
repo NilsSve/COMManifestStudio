@@ -5,7 +5,7 @@
 	<libraries>
 		<library>
 			<libraryPath>Libraries\DUF\DUF24.0.sws</libraryPath>
-			<libraryTimeStamp>2025-01-02T13:37:33</libraryTimeStamp>
+			<libraryTimeStamp>2025-01-07T17:51:28</libraryTimeStamp>
 			<libraryID>Lib3</libraryID>
 		</library>
 		<library>
@@ -1230,62 +1230,6 @@
 			<libraryID>0</libraryID>
 		</class>
 		<class>
-			<className>cSkinComboBoxCJMenuItem</className>
-			<image>ControlCJSkinFramework.ico</image>
-			<package>cSkinComboBoxCJMenuItem.pkg</package>
-			<groupName>Menus and Toolbars</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cDbUpdateHandler</className>
-			<image>ControlObject.ico</image>
-			<package>cDbUpdateHandler.pkg</package>
-			<groupName>Database Update Framework</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cDbUpdateVersion</className>
-			<image>ControlObject.ico</image>
-			<package>cDbUpdateVersion.pkg</package>
-			<groupName>Database Update Framework</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cButton</className>
-			<image>ControlButton.ico</image>
-			<package>cButton.pkg</package>
-			<groupName>Base Controls</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cHeaderGroup</className>
-			<image>ControlContainer3D.ico</image>
-			<package>cHeaderGroup.pkg</package>
-			<groupName>Base Containers</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cSuggestionForm</className>
-			<image>ControlForm.ico</image>
-			<package>cSuggestionForm.pkg</package>
-			<groupName>Base Controls</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cRDCHeaderGroup</className>
-			<image>ControlGroup.ico</image>
-			<package>cRDCHeaderGroup.pkg</package>
-			<groupName>Base Containers</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cMyApplication</className>
-			<image>ControlApplication.ico</image>
-			<package>cMyApplication.pkg</package>
-			<groupName>Database Update Framework</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
 			<className>cMapComponent</className>
 			<image>ControlCOM.ico</image>
 			<package>cMapComponent.pkg</package>
@@ -1298,20 +1242,6 @@
 			<package>cComSWXMap.pkg</package>
 			<groupName>ActiveX</groupName>
 			<libraryID>Lib4</libraryID>
-		</class>
-		<class>
-			<className>cMapComponent</className>
-			<image>ControlCOM.ico</image>
-			<package>cMapComponent.pkg</package>
-			<groupName>Map Component</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cComSWXMap</className>
-			<image>ControlCOM.ico</image>
-			<package>cComSWXMap.pkg</package>
-			<groupName>ActiveX</groupName>
-			<libraryID>Lib3</libraryID>
 		</class>
 		<class>
 			<className>cSkinComboBoxCJMenuItem</className>
@@ -1333,6 +1263,41 @@
 			<package>cDbUpdateVersion.pkg</package>
 			<groupName>Database Update Framework</groupName>
 			<libraryID>Lib4</libraryID>
+		</class>
+		<class>
+			<className>cMapComponent</className>
+			<image>ControlCOM.ico</image>
+			<package>cMapComponent.pkg</package>
+			<groupName>Map Component</groupName>
+			<libraryID>Lib3</libraryID>
+		</class>
+		<class>
+			<className>cSkinComboBoxCJMenuItem</className>
+			<image>ControlCJSkinFramework.ico</image>
+			<package>cSkinComboBoxCJMenuItem.pkg</package>
+			<groupName>Menus and Toolbars</groupName>
+			<libraryID>Lib3</libraryID>
+		</class>
+		<class>
+			<className>cDbUpdateHandler</className>
+			<image>ControlObject.ico</image>
+			<package>cDbUpdateHandler.pkg</package>
+			<groupName>Database Update Framework</groupName>
+			<libraryID>Lib3</libraryID>
+		</class>
+		<class>
+			<className>cDbUpdateVersion</className>
+			<image>ControlObject.ico</image>
+			<package>cDbUpdateVersion.pkg</package>
+			<groupName>Database Update Framework</groupName>
+			<libraryID>Lib3</libraryID>
+		</class>
+		<class>
+			<className>cComSWXMap</className>
+			<image>ControlCOM.ico</image>
+			<package>cComSWXMap.pkg</package>
+			<groupName>ActiveX</groupName>
+			<libraryID>Lib3</libraryID>
 		</class>
 	</classes>
 </classList>
