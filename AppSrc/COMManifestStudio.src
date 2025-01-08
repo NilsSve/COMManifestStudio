@@ -141,7 +141,7 @@ Object oApplication is a cMyApplication
                 // Allow passing argument "Reindex" on the command line
                 // to the program. It will show the repair/reindex dialog.
                 If (Lowercase(sArgument) contains "reindex") Begin
-                    Send DoRepairFiles
+                    Send ReindexAll of ghoDatabaseFunctions
                 End
             End
         End
