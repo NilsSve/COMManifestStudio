@@ -1,4 +1,4 @@
-//****************************************************************************
+﻿//****************************************************************************
 // $Module type: Utility program
 // $Module name: DoTouchExeFile
 // $Author     : Nils Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
@@ -45,12 +45,12 @@ Object oDigitalSoftwareCertificate is a cDigitalSoftwareCertificate
     // Set pbWarnIfNotDigitallySigned = True if you like to have a warning when the
     // program is started, but the program has not been digitally signed.
     // Only applies when run outside the Studio.
-    Set pbWarnIfNotDigitallySigned to True
+    Set pbWarnIfNotDigitallySigned to False
 
     // This message does the actual checking for a valid digital certificate.
     // If the program has been tampered with e.g. it has been infected by a virus,
     // the user will get a warning and the program will be aborted.
-    Send ValidateProgramOnStartup
+//    Send ValidateProgramOnStartup
 
 End_Object
 
