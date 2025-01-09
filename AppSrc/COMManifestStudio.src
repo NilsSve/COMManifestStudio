@@ -106,8 +106,6 @@ Object oApplication is a cMyApplication
         // Needs to be send right after the forward send...
         Send CheckCollatingSequence of ghoDatabaseFunctions ManHdr.File_Number Field ManHdr.ManifestFileName // Pass file- & field-number for an ASCII field
         
-        Forward Send OnWorkspaceOpened
-        
         Get phoCommandLine to hoCmdLine
         Get Argument of hoCmdLine 1 to sParam
         If (lowercase(sParam) = "/h" or Lowercase(sParam) = "-h" or Lowercase(sParam) = "f1" or Lowercase(sParam) contains "help") Begin
