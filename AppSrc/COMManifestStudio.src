@@ -187,10 +187,10 @@ Use cManifestFunctionLibrary.pkg
 
 Object oMain is a Panel
     Set Label to (psProduct(ghoApplication) * "- Managing Registration Free COM (OCX/DLL) Components for Isolated Applications")
-    Set Icon to "COMManifestManager.ico"
     Set Location to 5 0
     Set Size to 357 564
     Set piMinSize to 357 500
+    Set Icon to "COMManifestManager.ico"  
 
     Object oCJCommandBarSystem is a cCJCommandBarSystem
         Set pbTimerUpdate to True
@@ -1139,6 +1139,10 @@ Procedure OnStartup
     If (CS_BooleanYes = sValue) Begin
         Send Popup of (oFirstTimeUsage_Dialog(oClientArea(oMain(Self))))
     End
+    // Weird voodoo! This setting under "Object oMain..." does
+    // not show the ico in Windows toolbar (at bottom of screen)
+    // but if we repeat the setting here, it works!
+    Set Icon of (oMain(Self)) to "COMManifestManager.ico"  
 End_Procedure
 Send OnStartup
 
