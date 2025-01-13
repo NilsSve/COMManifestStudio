@@ -197,6 +197,7 @@ Object oMain is a Panel
         Set piLayoutBuild to 7
         Set pbToolBarAccelTips to True
         Set pbLargeIcons to True
+        Set pbTabbedWorkspaces to True
 
         Property Handle phoTabWorkspace
         Property Handle phoTabPaintManager
@@ -219,7 +220,7 @@ Object oMain is a Panel
 
             Get OptionsObject to hoOptions
 
-            Move xtpThemeOffice2016Publisher to eTheme
+            Move xtpThemeOffice2013Outlook to eTheme
             Send SetTheTheme eTheme
             // How the icons should be shown in toolbars;
             // 1) Icons only.
@@ -293,7 +294,6 @@ Object oMain is a Panel
 
         End_Procedure
 
-        Set pbTabbedWorkspaces to True
         Procedure OnCreateTabbedWorkspace Handle hoTabWorkspace Handle hoTabPaintManager
             Set phoTabWorkspace     to hoTabWorkspace
             Set phoTabPaintManager  to hoTabPaintManager

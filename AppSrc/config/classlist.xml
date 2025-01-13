@@ -5,7 +5,7 @@
 	<libraries>
 		<library>
 			<libraryPath>Libraries\DUF\DUF24.0.sws</libraryPath>
-			<libraryTimeStamp>2025-01-07T17:51:28</libraryTimeStamp>
+			<libraryTimeStamp>2025-01-09T21:04:55</libraryTimeStamp>
 			<libraryID>Lib3</libraryID>
 		</library>
 		<library>
@@ -1272,6 +1272,13 @@
 			<libraryID>Lib3</libraryID>
 		</class>
 		<class>
+			<className>cComSWXMap</className>
+			<image>ControlCOM.ico</image>
+			<package>cComSWXMap.pkg</package>
+			<groupName>ActiveX</groupName>
+			<libraryID>Lib3</libraryID>
+		</class>
+		<class>
 			<className>cSkinComboBoxCJMenuItem</className>
 			<image>ControlCJSkinFramework.ico</image>
 			<package>cSkinComboBoxCJMenuItem.pkg</package>
@@ -1290,13 +1297,6 @@
 			<image>ControlObject.ico</image>
 			<package>cDbUpdateVersion.pkg</package>
 			<groupName>Database Update Framework</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cComSWXMap</className>
-			<image>ControlCOM.ico</image>
-			<package>cComSWXMap.pkg</package>
-			<groupName>ActiveX</groupName>
 			<libraryID>Lib3</libraryID>
 		</class>
 	</classes>
