@@ -446,8 +446,6 @@ Object oMain is a Panel
                 Set psImage to "Build.ico"
                 Set psShortcut to "Alt+B"
                 Set peControlStyle to xtpButtonIconAndCaption 
-                Set pbChecked to True
-                Set pbActiveUpdate to True
 
                 Procedure OnExecute Variant vCommandBarControl
                     String sFileName
@@ -464,9 +462,13 @@ Object oMain is a Panel
                     Integer iItems
                     Get ItemCount of (phoManifest_grid(ghoApplication)) to iItems
                     Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile  
-                    Set pbChecked to (sManifestFile <> "" and iItems > 0)
                     Function_Return (sManifestFile <> "" and iItems > 0)
                 End_Function
+
+                Procedure OnCreateControl Handle hoObj
+                    Set ComDefaultItem of hoObj to True
+                End_Procedure
+
             End_Object
 
             Object oCopyComponents_MenuItem is a cCJMenuItem
