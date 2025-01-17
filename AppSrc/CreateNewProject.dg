@@ -1,4 +1,4 @@
-Use Windows.pkg
+﻿Use Windows.pkg
 Use DFClient.pkg
 Use dfBitmap.pkg
 Use dfLine.pkg
@@ -584,7 +584,7 @@ Object oCreateNewProject_Dg is a cDbModalPanelWizard
 
                     Object oOpenProgramsFolder_MenuItem is a cCJMenuItem
                         Set psCaption to "Open Programs Fol&der"
-                        Set psDescription to "Open the manifest file's Programs folder in Windows explorer"
+                        Set psDescription to "Open the manifest file's Programs folder in Windows Explorer"
                         Set psImage to "OpenProgramsFolder032N32.ico"
                         Set psShortcut to "Ctrl+D"
                         Procedure OnExecute Variant vCommandBarControl
@@ -602,7 +602,7 @@ Object oCreateNewProject_Dg is a cDbModalPanelWizard
 
                     Object oOpenFragmentLibrary_MenuItem is a cCJMenuItem
                         Set psCaption to "Open Manifest Fragment &Library"
-                        Set psDescription to "Open the local Manifest Fragment Library in Windows explorer"
+                        Set psDescription to "Open the local Manifest Fragment Library in Windows Explorer"
                         Set psImage to "FragmentLibrary032N32.ico"
                         Set psShortcut to "Ctrl+L"
                         Procedure OnExecute Variant vCommandBarControl
@@ -615,7 +615,7 @@ Object oCreateNewProject_Dg is a cDbModalPanelWizard
 
                     Object oOpenCOMLibrary_MenuItem is a cCJMenuItem
                         Set psCaption to "Open Common COM Li&brary"
-                        Set psDescription to "Open the local Common COM Library in Windows explorer"
+                        Set psDescription to "Open the local Common COM Library in Windows Explorer"
                         Set psImage to "COMLibrary032N32.ico"
                         Set psShortcut to "Ctrl+B"
                         Procedure OnExecute Variant vCommandBarControl

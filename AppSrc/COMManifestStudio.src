@@ -729,7 +729,7 @@ Object oMain is a Panel
             Object oOpenProgramsFolder_MenuItem is a cCJMenuItem
                 Set psCaption to "Open Fol&der"
                 Set psToolTip to "Programs Folder (Ctrl+D)"
-                Set psDescription to "Opens the application manifest file's folder in Windows explorer"
+                Set psDescription to "Opens the application manifest file's folder in Windows Explorer"
                 Set psImage to "OpenProgramsFolder.ico"
                 Set psShortcut to "Ctrl+D"
                 Set pbActiveUpdate to True
