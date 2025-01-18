@@ -5,12 +5,12 @@
 	<libraries>
 		<library>
 			<libraryPath>Libraries\DUF\DUF24.0.sws</libraryPath>
-			<libraryTimeStamp>2025-01-09T21:04:55</libraryTimeStamp>
+			<libraryTimeStamp>2025-01-17T16:20:13</libraryTimeStamp>
 			<libraryID>Lib3</libraryID>
 		</library>
 		<library>
 			<libraryPath>Libraries\DUF\Libraries\DFAbout\DFAbout24.0.sws</libraryPath>
-			<libraryTimeStamp>2024-12-29T13:10:27</libraryTimeStamp>
+			<libraryTimeStamp>2025-01-17T15:03:56</libraryTimeStamp>
 			<libraryID>Lib4</libraryID>
 		</library>
 		<library>
@@ -1244,27 +1244,6 @@
 			<libraryID>Lib4</libraryID>
 		</class>
 		<class>
-			<className>cSkinComboBoxCJMenuItem</className>
-			<image>ControlCJSkinFramework.ico</image>
-			<package>cSkinComboBoxCJMenuItem.pkg</package>
-			<groupName>Menus and Toolbars</groupName>
-			<libraryID>Lib4</libraryID>
-		</class>
-		<class>
-			<className>cDbUpdateHandler</className>
-			<image>ControlObject.ico</image>
-			<package>cDbUpdateHandler.pkg</package>
-			<groupName>Database Update Framework</groupName>
-			<libraryID>Lib4</libraryID>
-		</class>
-		<class>
-			<className>cDbUpdateVersion</className>
-			<image>ControlObject.ico</image>
-			<package>cDbUpdateVersion.pkg</package>
-			<groupName>Database Update Framework</groupName>
-			<libraryID>Lib4</libraryID>
-		</class>
-		<class>
 			<className>cMapComponent</className>
 			<image>ControlCOM.ico</image>
 			<package>cMapComponent.pkg</package>
@@ -1276,27 +1255,6 @@
 			<image>ControlCOM.ico</image>
 			<package>cComSWXMap.pkg</package>
 			<groupName>ActiveX</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cSkinComboBoxCJMenuItem</className>
-			<image>ControlCJSkinFramework.ico</image>
-			<package>cSkinComboBoxCJMenuItem.pkg</package>
-			<groupName>Menus and Toolbars</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cDbUpdateHandler</className>
-			<image>ControlObject.ico</image>
-			<package>cDbUpdateHandler.pkg</package>
-			<groupName>Database Update Framework</groupName>
-			<libraryID>Lib3</libraryID>
-		</class>
-		<class>
-			<className>cDbUpdateVersion</className>
-			<image>ControlObject.ico</image>
-			<package>cDbUpdateVersion.pkg</package>
-			<groupName>Database Update Framework</groupName>
 			<libraryID>Lib3</libraryID>
 		</class>
 	</classes>
