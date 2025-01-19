@@ -212,9 +212,9 @@ Object oDbMerger_vw is a dbView
         Get Confirm "Delete entire header and all details?" to bFail
         Function_Return bFail
     End_Function
-    Set Verify_Delete_MSG     to (RefFunc(ConfirmDeleteHeader))
+    Set Verify_Delete_MSG to (RefFunc(ConfirmDeleteHeader))
 
-    Object oManifestFragmentFileGrid_grp is a cRDCHeaderDbGroup //cRDCDbGroup
+    Object oManifestFragmentFileGrid_grp is a cRDCHeaderDbGroup
         Set Size to 94 376
         Set Location to 92 12
         Set Label to "Manifest Fragment Files"                 
