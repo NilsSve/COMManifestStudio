@@ -1,19 +1,19 @@
-# COMManifestStudio
+# **COMManifestStudio**
 
-**Purpose:** Managing Registration-Free COM (OCX/DLL) Components for Isolated Applications. The program COMManifestStudio creates .manifest project files for selected COM/DLL components. This is a DataFlex project.
+**Purpose:** This tool is designed for managing Registration-Free COM (OCX/DLL) components for isolated applications. COMManifestStudio creates .manifest project files for selected COM/DLL components and is built as a DataFlex project.
 
 ## Initializing the Cloned Repository
 
 After cloning the repository, follow these steps:
 
-1. Start the Studio with Administrator rights and compile the `VmdCmdUtil.src` program.
-2. Restart the Studio with normal rights and compile the following programs in order:
+1. Launch the Studio with Administrator rights and compile the `VmdCmdUtil.src` program.
+2. Restart the Studio with normal user rights and compile the following programs in this order:
    - `WriteDateTimeHeaderFile.src`
    - `DoTouchExeFile.src`
-   - `COMManifestStudio.src` (main app)
+   - `COMManifestStudio.src` (main application)
 
 ![Sample: COM Manifest Studio Program Interface](Bitmaps/COMManifestStudio.png)
 
-**IMPORTANT NOTE:** These programs need to be compiled as 32-bit! Otherwise, the intercommunication with COM components won't work.
+**IMPORTANT NOTE:** These programs must be compiled as 32-bit. If not, intercommunication with COM components will not function correctly.
 
-The workspace also uses other libraries that are published on [NilsSve's GitHub page](https://github.com/NilsSve). This should not be of any concern as it should all be automatic when cloning this repository. These libraries are used as submodules in git.
+The workspace also utilizes other libraries published on [NilsSve's GitHub page](https://github.com/NilsSve). However, this should not be a concern, as these libraries will be automatically handled when cloning the repository. They are included as git submodules.
