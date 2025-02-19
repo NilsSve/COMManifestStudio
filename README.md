@@ -1,6 +1,8 @@
-**COMManifestStudio**
+**COM Manifest Studio**
 
-**Purpose:** COMManifestStudio is a specialized tool designed for the efficient management of Registration-Free Component Object Model (COM) components, specifically OCX and DLL files, which are used in isolated applications. The primary function of this software is to create .manifest project files tailored for selected COM/DLL components. This tool is developed using DataFlex, a highly efficient programming language known for its data handling capabilities.
+**Program Purpose:**
+
+COMManifestStudio is a specialized tool designed for the efficient management of Registration-Free Component Object Model (COM) components, specifically OCX and DLL files, which are used in isolated applications. The primary function of this software is to create .manifest project files tailored for selected COM/DLL components. This tool is developed using DataFlex, a highly efficient programming language known for its data handling capabilities.
 
 ![Sample: COMManifestStudio Program Interface](Bitmaps/COMManifestStudio.png)
 
