@@ -105,7 +105,7 @@ Object oApplication is a cApplication
         End
         
         Get Module_Name to sValue
-        Send DoCheckFile (sValue + ".exe.manifest") "Resource:res_Install_ManifestFile" False
+//        Send DoCheckFile (sValue + ".exe.manifest") "Resource:res_Install_ManifestFile" False
 
         // Because we allow to pass arguments in any order we need loop through the array
         // of arguments and look for the predefined flags.
@@ -234,7 +234,7 @@ Object oApplication is a cApplication
 
     // Dummy message. To tell the compiler to embed a file into the program as a resource.
     Procedure DummyEmbedFile
-        Include_Resource ..\Programs\VdfCmdUtil.exe.manifest as res_Install_ManifestFile Type DF_RESOURCE_TYPE_BINARY
+        Include_Resource ..\AppSrc\VdfCmdUtil.exe.manifest as res_Install_ManifestFile Type DF_RESOURCE_TYPE_BINARY
     End_Procedure
 
 End_Object
