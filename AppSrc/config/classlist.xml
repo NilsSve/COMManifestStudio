@@ -8,16 +8,6 @@
 			<libraryTimeStamp>2025-02-22T09:39:20</libraryTimeStamp>
 			<libraryID>Lib3</libraryID>
 		</library>
-		<library>
-			<libraryPath>Libraries\DUF\Libraries\DFAbout\DFAbout24.0.sws</libraryPath>
-			<libraryTimeStamp>2025-01-17T15:03:56</libraryTimeStamp>
-			<libraryID>Lib4</libraryID>
-		</library>
-		<library>
-			<libraryPath>Libraries\DUF\Libraries\vwin32fh\StudioLibrary\vWin32fh-Library-DF24.0.sws</libraryPath>
-			<libraryTimeStamp>2024-12-29T13:10:27</libraryTimeStamp>
-			<libraryID>Lib6</libraryID>
-		</library>
 	</libraries>
 	<classes>
 		<class>
@@ -1228,20 +1218,6 @@
 			<package>cDbLocalWebControlHost.pkg</package>
 			<groupName>Data Containers</groupName>
 			<libraryID>0</libraryID>
-		</class>
-		<class>
-			<className>cMapComponent</className>
-			<image>ControlCOM.ico</image>
-			<package>cMapComponent.pkg</package>
-			<groupName>Map Component</groupName>
-			<libraryID>Lib4</libraryID>
-		</class>
-		<class>
-			<className>cComSWXMap</className>
-			<image>ControlCOM.ico</image>
-			<package>cComSWXMap.pkg</package>
-			<groupName>ActiveX</groupName>
-			<libraryID>Lib4</libraryID>
 		</class>
 		<class>
 			<className>cMapComponent</className>
