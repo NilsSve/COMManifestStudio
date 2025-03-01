@@ -1,9 +1,8 @@
-// ManHdr.sl
+﻿// ManHdr.sl
 // ManHdr Lookup List
 Use cRDCDbModalPanel.pkg
-Use cDbCJGridPromptList.pkg
+Use cRDCDbCJGridPromptList.pkg
 Use cDbCJGridColumn.pkg   
-Use cRDCDbCJGridColumn.pkg
 Use cRDCButton.pkg
 
 Use cManHdrDataDictionary.dd
@@ -20,11 +19,10 @@ Object oManHdr_sl is a cRDCDbModalPanel
     Set Main_DD To oManHdr_DD
     Set Server  To oManHdr_DD
 
-    Object oSelList is a cDbCJGridPromptList
+    Object oSelList is a cRDCDbCJGridPromptList
         Set Size to 139 477
         Set Location to 5 5
         Set peAnchors to anAll
-        Set psLayoutSection to "oManHdr_sl_oSelList"
         Set Ordering to 1
         Set pbAutoServer to True
 

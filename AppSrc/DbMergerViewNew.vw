@@ -1,5 +1,4 @@
-﻿Use DFClient.pkg
-Use cCJCommandBarSystem.pkg
+﻿Use cRDCDbView.pkg
 Use cCJGridColumnRowIndicator.pkg
 Use cCJGridColumn.pkg
 Use dfTabDlg.pkg
@@ -26,7 +25,6 @@ Use vWin32fh.pkg
 Use oRichEditFind.dg
 Use oRichEditFindReplace.dg
 Use COMComponents.dg
-//Use Setup2.dg
 Use ProgramSetup.dg
 Use DownloadFiles.dg
 
@@ -38,11 +36,11 @@ Register_Object oManHdrManifestFileName_fm
 Register_Object oManHdrPath_fm
 
 Activate_View Activate_oDbMerger_vw for oDbMerger_vw
-Object oDbMerger_vw is a dbView
+Object oDbMerger_vw is a cRDCDbView
     Set Size to 279 400
     Set Location to 0 0 
     Set Label to "Main view"  
-//    Set Icon to "COMManifestManager.ico"
+    Set Icon to "COMManifestManager.ico"
     // Saves in header should not clear the view
     Set Auto_Clear_DEO_State to False
     Set Verify_Save_Msg to (RefFunc(No_Confirmation))
@@ -70,7 +68,7 @@ Object oDbMerger_vw is a dbView
         Set FontWeight to fw_Bold
     End_Object
 
-    Object oAppManifest_grp is a cRDCHeaderDbGroup //cRDCDbGroup
+    Object oAppManifest_grp is a cRDCHeaderDbGroup
         Set Size to 68 376
         Set Location to 16 12
         Set Label to "Manifest File"
@@ -100,11 +98,11 @@ Object oDbMerger_vw is a dbView
                 Forward Send ShowSuggestion SuggestionData sSearch
             End_Procedure
 
-            Procedure Refresh Integer notifyMode
+            Procedure Refresh Integer NotifyMode
                 String sManifestFile sPath
                 Boolean bExists
 
-                Forward Send Refresh notifyMode
+                Forward Send Refresh NotifyMode
                 Get Field_Current_Value of oManHdr_DD Field ManHdr.Path             to sPath
                 Get vFolderFormat sPath to sPath
                 Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sManifestFile
@@ -513,13 +511,6 @@ Object oDbMerger_vw is a dbView
                 Get SelectedItems of oManifest_grid to sFilesArray
                 Send BuildManifestFile of ghoManifestFunctionLibrary sFileName sFilesArray
             End_Procedure
-
-            // Make mouse double-click of left button open the current
-            // grid item.
-//            Procedure OnComRowDblClick Variant llRow Variant llItem
-//                Forward Send OnComRowDblClick llRow llItem
-//                Send OpenCurrentGridItem of ghoManifestFunctionLibrary
-//            End_Procedure
 
             Function OnPostEntering Returns Boolean
                 Boolean bRetVal
@@ -1033,7 +1024,6 @@ Register_Object oViewContextMenu
     On_Key kClear         Send Clear_All
     On_Key Key_Ctrl+Key_F4 Send None
     On_Key Key_F3          Send None
-//    On_Key Key_F3 send None
 End_Object
 
 Procedure DoLoadDbMergerViewFromApplicationObject

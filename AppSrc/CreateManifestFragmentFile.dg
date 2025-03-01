@@ -1,4 +1,4 @@
-Use Windows.pkg
+﻿Use Windows.pkg
 Use cTextEdit.pkg
 Use cRDCButton.pkg
 Use cRDCModalPanel.pkg
@@ -251,5 +251,4 @@ Object oCreateManifestFragmentFile is a cRDCModalPanel
     On_Key Key_Alt+Key_C  Send KeyAction of oCreate_btn
     On_Key Key_Ctrl+Key_C Send KeyAction of oCreate_btn
     On_Key kCancel        Send KeyAction of oCancel_Btn
-
 End_Object

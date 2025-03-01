@@ -267,7 +267,6 @@ Object oFragmentFiles_sl is a cRDCModalPanel
     Object oComment_edt is a cRDCRichEditor
         Set Size to 32 349
         Set Location to 240 10
-//        Set OEM_Translate_State to False
         Set Read_Only_State to True
         Set psToolTip to "Read only comment. Manifest Fragment Files can contain comments that describes what the component does etcetera. Each comment row must start with two forward slashes, the same as the Visual DataFlex language uses for code comments. Note: You need to open the file in the editor (double-click the file) to make changes to it."
         Set peAnchors to anBottomLeftRight
@@ -329,7 +328,6 @@ Object oFragmentFiles_sl is a cRDCModalPanel
         Procedure OnClick
             Set SelectItems of oFragmentFiles_Grid to cx_Select_All
         End_Procedure
-
     End_Object
 
     Object oDeSelectAll_btn is a cRDCButton
@@ -342,7 +340,6 @@ Object oFragmentFiles_sl is a cRDCModalPanel
         Procedure OnClick
             Set SelectItems of oFragmentFiles_Grid to cx_Select_None
         End_Procedure
-
     End_Object
 
     Object oInvertSelection_btn is a cRDCButton
@@ -355,7 +352,6 @@ Object oFragmentFiles_sl is a cRDCModalPanel
         Procedure OnClick
             Set SelectItems of oFragmentFiles_Grid to cx_Select_Invert
         End_Procedure
-
     End_Object
 
     Object oRefresh_btn is a cRDCButton
@@ -365,11 +361,9 @@ Object oFragmentFiles_sl is a cRDCModalPanel
         Set Status_Help to "Refresh the grid with Manifest Fragment files. Click if the Manifest Fragment Library has been updated after the program was started (F5)"
         Set psImage to "Refresh.ico"
         Set peAnchors to anTopRight
-        
         Procedure OnClick
             Send RefreshGrid of oFragmentFiles_Grid
         End_Procedure
-
     End_Object
 
     Object oOk_Btn is a cRDCButton
@@ -377,12 +371,10 @@ Object oFragmentFiles_sl is a cRDCModalPanel
         Set Location to 240 366
         Set peAnchors to anBottomRight
         Set Default_State to True
-
         Procedure OnClick
             Set pbOkButton to True
             Send Close_Panel
         End_Procedure
-
     End_Object
 
     Object oCancel_Btn is a cRDCButton

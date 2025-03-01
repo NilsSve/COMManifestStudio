@@ -1,11 +1,9 @@
 ﻿// C:\Projects\DF18\ManifestSideBySide\AppSrc\DigitalCerts.dg
 // DigitalCerts
 //
-Use Dfclient.pkg
+Use cRDCDbView.pkg
 Use DFEntry.pkg
 Use DFEnChk.pkg
-Use cCJStandardCommandBarSystem.pkg
-Use cCJCommandBarSystem.pkg
 Use cRDCIniFileCheckbox.pkg
 Use cRDCDbForm.pkg
 Use cRDCButton.pkg
@@ -21,12 +19,12 @@ End_Procedure
 // NOTE: We cannot use the cRDCDbModal panel class here
 // as it alreay is using a cCJCommandbarSystem!
 Activate_View Activate_oDigitalCerts_vw for oDigitalCerts_vw
-Object oDigitalCerts_vw is a dbView
+Object oDigitalCerts_vw is a cRDCDbView
     Set Location to 5 6
     Set Size to 209 372
     Set Label to "Edit Digital Certificates"
     Set Auto_Clear_DEO_State to False
-//    Set Icon to "DigitalCert.ico"
+    Set Icon to "DigitalCert.ico"
     Set pbAutoActivate to True
 
     Object oDigitalCerts_DD is a cDigitalCertsDataDictionary
@@ -300,10 +298,5 @@ Object oDigitalCerts_vw is a dbView
     Procedure Activating
         Send FindFirstDefaultCertificate of oDigitalCerts_DD
     End_Procedure
-
-//    Procedure Page Integer iPageObject
-//        Set Icon to "DigitalCert.ico"
-//        Forward Send Page iPageObject
-//    End_Procedure
 
 End_Object

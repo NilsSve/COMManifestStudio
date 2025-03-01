@@ -149,7 +149,7 @@ Object oApplication is a cRDCApplication
         If (CallbackType <> DF_MESSAGE_PROGRESS_VALUE) ;
             Send Update_StatusPanel of ghoStatusPanel CallbackMsg
         Else ;
-            Send UpdateStatusBar   of ghoStatusPanel
+            Send UpdateStatusBar of ghoStatusPanel
         Function_Return False
     End_Function
 
