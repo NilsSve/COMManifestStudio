@@ -1,0 +1,35 @@
+Libraries used by this workspace
+================================
+
+COMManifestStudio uses six libraries:
+
+    DigitalCert, Filesystem, DUF, DFAbout, RDCToolsLib, vwin32fh
+
+All six are declared FLAT in COMManifestStudio25.0.sws - each one listed once,
+side by side under Libraries\. DUF is one of them; DUF's own dependencies
+(DFAbout, RDCToolsLib, vwin32fh) are declared here too, because this workspace's
+own source uses them directly as well (cRDC* classes, vWin32fh.pkg and the About
+dialog).
+
+They are not stored in this repository. setup.bat provides them - see README.md.
+
+
+Why flat, and not nested inside DUF
+-----------------------------------
+
+This file previously described the opposite arrangement: DFAbout, RDCToolsLib
+and vwin32fh were defined ONLY inside DUF, and this workspace reached them
+through Libraries\DUF\Libraries\... . The reasoning was that declaring them in
+both places would confuse git and lead to an update/commit nightmare.
+
+That reasoning was sound for submodules, but the nesting caused a worse problem.
+Every consumer ended up with its own physical copy of each library on disk, and
+the Studio navigates by disk: Go-to-Definition would open whichever copy it found
+first, so a library fix could be made in one copy while the build compiled
+another - silently diverging, and needing manual propagation afterwards.
+
+The libraries are no longer submodules of this repository at all, so there is
+nothing for git to get confused about. setup.bat either junctions Libraries\ to
+a shared library pool (one editable copy for every workspace on the machine) or
+clones the six into this workspace's own Libraries\ folder, isolated. Declaring
+them flat is what keeps exactly one copy of each on the compiler's search path.
