@@ -43,22 +43,7 @@ Use Dfcursor.pkg
 Use vWin32fh.pkg
 Use StartProg.pkg
 
-Use cDigitalSoftwareCertificate.pkg
-
-Object oDigitalSoftwareCertificate is a cDigitalSoftwareCertificate
-    Move Self to ghoDigitalSoftwareCertificate
-
-    // Set pbWarnIfNotDigitallySigned = True if you like to have a warning when the
-    // program is started, but the program has not been digitally signed.
-    // Only applies when run outside the Studio.
-    Set pbWarnIfNotDigitallySigned to False
-
-    // This message does the actual checking for a valid digital certificate.
-    // If the program has been tampered with e.g. it has been infected by a virus,
-    // the user will get a warning and the program will be aborted.
-//    Send ValidateProgramOnStartup
-
-End_Object
+Use cRDCFileFunctions.pkg
 
 Define CS_VdfCmdUtil   for "VdfCmdUtil"
 Define CS_FlagCommand  for "/c"
@@ -95,7 +80,7 @@ Object oApplication is a cApplication
         // If no workspace file exists; set all paths to the current directory.
         Get OpenWorkspaceFile of (phoWorkspace(ghoApplication)) "config.ws" to eOpened
         If (eOpened <> wsWorkspaceOpened) Begin   
-            Get ApplicationPath of ghoDigitalSoftwareCertificate  to sPath
+            Get ApplicationPath of ghoRDCFileFunctions  to sPath
             Set psHome          of (phoWorkspace(ghoApplication)) to "."
             Set psProgramPath   of (phoWorkspace(ghoApplication)) to "."
             Set psDataPath      of (phoWorkspace(ghoApplication)) to "."
@@ -218,7 +203,7 @@ Object oApplication is a cApplication
         String sPath sDataPath
         Boolean bExists
 
-        Get ApplicationPath of ghoDigitalSoftwareCertificate to sPath
+        Get ApplicationPath of ghoRDCFileFunctions to sPath
         If (bDataFile = True) Begin
             Get psDataPath of (phoWorkspace(ghoApplication)) to sPath
         End
@@ -228,7 +213,7 @@ Object oApplication is a cApplication
 
         If (bExists = False) Begin
             // Read from memory & create file on disk.
-            Send CreateFileFromMemory of ghoDigitalSoftwareCertificate sResourceName sFileName
+            Send CreateFileFromMemory of ghoRDCFileFunctions sResourceName sFileName
         End
     End_Procedure
 

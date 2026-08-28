@@ -13,7 +13,7 @@ REM      ..\Libraries folder carrying the marker file .rdc-library-pool), it
 REM      makes Libraries\ a JUNCTION to that pool. One shared, editable copy:
 REM      a fix made in a library here is a fix in the pool.
 REM
-REM    * Otherwise it CLONES the libraries it needs (DigitalCert, Filesystem,
+REM    * Otherwise it CLONES the libraries it needs (Filesystem,
 REM      DUF, DFAbout, RDCToolsLib, vwin32fh) into this workspace's own
 REM      Libraries\ folder - isolated, self-contained, and it never writes
 REM      anywhere outside this workspace, so it cannot disturb libraries you
@@ -68,7 +68,6 @@ if exist "..\Libraries\.rdc-library-pool" (
     REM No shared pool. Clone the flat library set into this workspace's own
     REM Libraries\ - never writes outside this workspace. Note the folder name
     REM and the repo name differ for Filesystem (repo is Library-cFilesystem).
-    call :CloneLib DigitalCert  Library-DigitalCert
     call :CloneLib Filesystem   Library-cFilesystem
     call :CloneLib DUF          Library-DUF
     call :CloneLib DFAbout      Library-DFAbout

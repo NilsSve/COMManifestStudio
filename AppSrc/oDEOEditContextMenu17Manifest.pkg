@@ -2,7 +2,6 @@ Use Windows.pkg
 Use cCJStandardMenuItemClasses.pkg
 Use cCJDeoMenuItemClasses.pkg
 Use cManifestFunctionLibrary.pkg
-Use cDigitalSoftwareCertificate.pkg
 
 Object oDEOEditContextMenuManifest is a cCJContextMenu
 
@@ -125,56 +124,6 @@ Object oDEOEditContextMenuManifest is a cCJContextMenu
             Forward Send OnExecute vCommandBarControl
             Send CompressExeFile of ghoManifestFunctionLibrary
         End_Procedure
-        Function IsEnabled Returns Boolean
-            String sManifestFile
-            Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
-            Function_Return (sManifestFile <> "")
-        End_Function
-    End_Object
-
-    Object oValidateFile_MenuItem is a cCJMenuItem
-        Set psCaption to "Check"
-        Set psToolTip to "Check if file signed"
-        Set psDescription to "Checks if the file contains a valid digital certificate"
-        Set psImage to "DigitalVerification.ico"
-        Set psShortcut to "Ctrl+Y"
-        Procedure OnExecute Variant vCommandBarControl
-            String sYes
-            tCertificateParams CertificateParams
-
-            Forward Send OnExecute vCommandBarControl
-            Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath
-            Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
-            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState   "" to sYes
-            Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
-
-            Send ValidateFile of ghoDigitalSoftwareCertificate CertificateParams
-        End_Procedure
-
-        Function IsEnabled Returns Boolean
-            String sManifestFile
-            Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
-            Function_Return (sManifestFile <> "")
-        End_Function
-    End_Object
-
-    Object oSignFile_MenuItem is a cCJMenuItem
-        Set psCaption to "Sign Digitally"
-        Set psToolTip to "Sign file with a digital certificate"
-        Set psDescription to "Sign the file with a digital certificate. The best digital certificate available on the machine will be automatically selected."
-        Set psImage to "DigitallySign.ico"
-        Set psShortcut to "Ctrl+G"
-        Procedure OnExecute Variant vCommandBarControl
-            String sYes
-            tCertificateParams CertificateParams
-
-            Forward Send OnExecute vCommandBarControl
-
-            // We send the message to the ghoManifestFunctionLibrary object because we need to setup
-            // the tCertificateCredentials struct first.
-            Send SignFileDigitally of ghoManifestFunctionLibrary
-        End_Procedure
-
         Function IsEnabled Returns Boolean
             String sManifestFile
             Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile

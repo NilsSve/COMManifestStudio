@@ -73,10 +73,9 @@ Use vWin32fh.pkg
 Use Symdef.pkg
 Use StartProg.pkg
 Use cManifestIniFile.pkg
-Use cDigitalSoftwareCertificate.pkg
+Use cRDCFileFunctions.h.pkg
 Use cRDCExternalProgramResult.pkg
 
-Use cDigitalCertsDataDictionary.dd
 
 #IFNDEF ghoManifestFunctionLibrary
     Global_Variable Integer ghoManifestFunctionLibrary
@@ -3226,59 +3225,6 @@ Class cManifestFunctionLibrary is a cObject
         Move (Win32SetConsoleMode(hConsole, (ENABLE_LINE_INPUT ior ENABLE_WINDOW_INPUT ior ENABLE_PROCESSED_INPUT))) to iRetval
         Function_Return iRetval
     End_Function
-
-    // Signs an executable with a digital software certificate.
-    // It uses the CS_CredentialsProgram command line program to do the actual signing.
-    Procedure SignFileDigitally //tCertificateParams CertificateParams
-        Handle hoCryptoGrapher
-        String sYes sCredentialsPath sCredentialsFile
-        String sOurWebSite sDescription sURLTimeStamp
-        Boolean bChecked bUseCertificateStore
-        Handle hoDD
-        tCertificateParams CertificateParams CertificateParams2
-        tCertificateCredentials CertificateCredentials
-        tCertificateResult CertificateResult
-
-        Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseCertificateStore "" to sYes
-        Move (CS_BooleanYes = sYes) to bUseCertificateStore
-
-        // Query the ini-file for some values:
-        Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath
-        Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
-        Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState "" to sYes
-        Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
-
-        // Then query the cDigitalCertsDataDictionary class and see if there is data to be used in the DigitalCerts table:
-        Get Create (RefClass(cDigitalCertsDataDictionary)) to hoDD
-        Send FirstDefaultDigitalCert of hoDD (&CertificateParams2) (&CertificateCredentials)
-        Send Destroy of hoDD
-        // This value might have been changed by the FirstDefaultDigitalCert procedure.
-        // It makes sure the logic works for old program versions where the DigitalCerts table didn't exist.
-        Move CertificateParams.bUseCertificateStore to bUseCertificateStore
-        If (bUseCertificateStore = False) Begin
-            Move CertificateParams2 to CertificateParams
-            // We need to reinitialize some values that got overwritten by the line above.
-//            Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath 
-            Get psExeFilePath of ghoManifestFunctionLibrary      to CertificateParams.sProgramPath
-            Get psExeFileName of ghoManifestFunctionLibrary      to CertificateParams.sFileName
-//            Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
-            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState "" to sYes
-            Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
-        End
-
-        // Note that we don't use an "Else Begin" construct here as the bUseCertificateStore might have changed by the FirstDefaultDigitalCert message
-        If (bUseCertificateStore = True) Begin
-            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CredentialsWebTimeStamp "" to CertificateParams.sURLTimeStamp
-            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CredentialsWebTimeStampSHA256 "" to CertificateParams.sSHA256URLTimeStamp
-            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CredentialsWebSite      "" to CertificateParams.sOurWebSite
-            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CredentialsDescription  "" to CertificateParams.sDescription
-        End
-
-
-        //  We are using the cDigitalSoftwareCertificate class to do the actual signing.
-        Send SignFile of ghoDigitalSoftwareCertificate CertificateParams CertificateCredentials
-
-    End_Procedure
 
     // This is the opposiste of the FileStructArrayAsStringArray function.
     // See that function for explanation.

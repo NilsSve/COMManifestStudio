@@ -36,22 +36,6 @@
 Use DFAllEnt.pkg
 Use cRDCCJCommandBarSystem.pkg
 
-Use cDigitalSoftwareCertificate.pkg
-Object oDigitalSoftwareCertificate is a cDigitalSoftwareCertificate
-    Move Self to ghoDigitalSoftwareCertificate
-
-    // Set pbWarnIfNotDigitallySigned = True if you like to have a warning when the
-    // program is started, but the program has not been digitally signed.
-    // Only applies when run outside the Studio.
-    Set pbWarnIfNotDigitallySigned to False
-
-    // This message does the actual checking for a valid digital certificate.
-    // If the program has been tampered with e.g. it has been infected by a virus,
-    // the user will get a warning and the program will be aborted.
-//    Send ValidateProgramOnStartup
-
-End_Object
-
 // This is for the proversion only. It uses certain external classes the
 // standard versions does not, for the wizard functionality.
 Define C_ProVersion
@@ -719,175 +703,6 @@ Object oMain is a Panel
 
         End_Object
 
-        Object oDigitalSigning_Toolbar is a cCJToolbar
-            Set psTitle to "Digital Signing Toolbar"
-            Set pbCustomizable to False
-
-            Object oVerifyDigitalSigningApp_MenuItem is a cCJMenuItem
-                Set psCaption to "Check if signed"
-                Set psToolTip to "Check if file signed (Ctrl+Y)"
-                Set psDescription to "Checks if the file contains a valid digital certificate"
-                Set psImage to "DigitalVerification.ico"
-                Set psShortcut to "Ctrl+Y"
-                Set pbActiveUpdate to True       
-                
-                Procedure OnExecute Variant vCommandBarControl
-                    String sYes
-                    tCertificateParams CertificateParams
-
-                    Forward Send OnExecute vCommandBarControl
-                    Get psExeFilePath of ghoManifestFunctionLibrary      to CertificateParams.sProgramPath
-                    Get psExeFileName of ghoManifestFunctionLibrary      to CertificateParams.sFileName
-                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState "" to sYes
-                    Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
-
-                    Send ValidateFile of ghoDigitalSoftwareCertificate CertificateParams
-                End_Procedure
-
-                Function IsEnabled Returns Boolean
-                    String sManifestFile
-                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
-                    Function_Return (sManifestFile <> "")
-                End_Function
-            End_Object
-
-            Object oDigitallySignApp_MenuItem is a cCJMenuItem
-                Set psCaption to "Digitally Sign"
-                Set psToolTip to "Sign file digitally (Ctrl+G)"
-                Set psDescription to "Sign the file with a digital certificate. The best digital certificate available on the machine will be automatically selected, if not changed from the program setup dialog."
-                Set psImage to "DigitallySign.ico"
-                Set psShortcut to "Ctrl+G"
-                Set pbActiveUpdate to True
-
-                Procedure OnExecute Variant vCommandBarControl
-                    String sYes
-                    tCertificateParams CertificateParams
-
-                    Forward Send OnExecute vCommandBarControl
-
-                    // We send the message to the ghoManifestFunctionLibrary object because we need to setup
-                    // the tDigitalCertificateCredentials struct.
-                    Send SignFileDigitally of ghoManifestFunctionLibrary
-                End_Procedure
-
-                Function IsEnabled Returns Boolean
-                    String sManifestFile
-                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
-                    Function_Return (sManifestFile <> "")
-                End_Function
-
-            End_Object
-
-//            Object oDigitallyTimeStampInfo_MenuItem is a cCJMenuItem
-//                Set psCaption to "Check Timestamp"
-//                Set psToolTip to "Check time stamp"
-//                Set psDescription to "Validates if a file contains a valid time stamp (and a valid digital certificate)"
-//                Set psImage to "DigitalTimeStampInfo032N32.ico"
-//                Set pbActiveUpdate to True
-//                Set pbControlBeginGroup to True
-//
-//                Procedure OnExecute Variant vCommandBarControl
-//                    String sYes
-//                    tCertificateParams CertificateParams
-//
-//                    Forward Send OnExecute vCommandBarControl
-//                    Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath
-//                    Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
-//                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState   "" to sYes
-//                    Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
-//
-//                    Send ValidateTimeStamp of ghoDigitalSoftwareCertificate CertificateParams
-//                End_Procedure
-//
-//                Function IsEnabled Returns Boolean
-//                    String sManifestFile
-//                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
-//                    Function_Return (sManifestFile <> "")
-//                End_Function
-//
-//            End_Object
-
-//            Object oDigitallyTimeStamp_MenuItem is a cCJMenuItem
-//                Set psCaption to "Timestamp"
-//                Set psToolTip to "Add time stamp"
-//                Set psDescription to ("Adds a time stamp to a digitally signed executable. By default the time-stamp authority used is:" * CS_URLTimeStampDefaultSHA1)
-//                Set psImage to "DigitalTimeStamp032N32.ico"
-//                Set pbActiveUpdate to True
-//
-//                Procedure OnExecute Variant vCommandBarControl
-//                    String sYes
-//                    tCertificateParams CertificateParams
-//
-//                    Forward Send OnExecute vCommandBarControl
-//                    Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath
-//                    Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
-//                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState   "" to sYes
-//                    Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
-//
-//                    Send TimeStampFile of ghoDigitalSoftwareCertificate CertificateParams
-//                End_Procedure
-//
-//                Function IsEnabled Returns Boolean
-//                    String sManifestFile
-//                    Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
-//                    Function_Return (sManifestFile <> "")
-//                End_Function
-//            End_Object
-
-            Object oVerboseState_ToolButton is a cCJMenuItem
-                Set peControlType to xtpControlCheckBox
-                Set psCaption to "Verbose"
-                Set psToolTip to "Verbose State"
-                Set psDescription to "Controls the amount of info displayed for a digital certificate action"
-                Set pbActiveUpdate to True
-
-                Procedure OnExecute Variant vCommandBarControl
-                    Boolean bChecked
-                    Forward Send OnExecute vCommandBarControl
-                    Get pbChecked to bChecked
-                    Set pbChecked to (not(bChecked))
-                    Send WriteDword of ghoApplication "Preferences" "VerboseState" (not(bChecked))
-                    Set IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState to (If(bChecked = False, CS_BooleanYes, CS_BooleanNo))
-                End_Procedure
-
-                Function IsEnabled Returns Boolean
-                    String sPath sFilename
-                    Boolean bExists
-
-                    Get Value of (phoManifestPathObject(ghoApplication)) to sPath
-                    Get Value of (phoMainPromptObject(ghoApplication))   to sFilename
-                    Get vFolderFormat sPath to sPath
-                    Get vFilePathExists (sPath + sFilename) to bExists
-
-                    Function_Return (bExists = True)
-                End_Function
-
-                Procedure OnCreateControl Handle hoObj
-                    DWord dwVerbose
-                    Forward Send OnCreateControl hoObj
-                    Get ReadDword of ghoApplication "Preferences" "VerboseState" 0 to dwVerbose
-                    Set pbChecked to dwVerbose
-                    Set IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState to (If(dwVerbose = 1, CS_BooleanYes, CS_BooleanNo))
-                End_Procedure
-
-            End_Object
-
-//            Object oDigitalCertificates_MenuItem is a cCJMenuItem
-//                Set psCaption to "Digital Certs"
-//                Set psToolTip to "Digital Certificates"
-//                Set psDescription to "Maintain database for file based Digital Certificates"
-//                Set psImage to "DigitalCertConfig.ico"
-////                Set pbControlBeginGroup to True
-//
-//                Procedure OnExecute Variant vCommandBarControl
-//                    Forward Send OnExecute vCommandBarControl
-//                    Send Popup of (oDigitalCerts_dg(Client_Id(ghoCommandBars)))
-//                End_Procedure
-//
-//            End_Object
-
-        End_Object
-
         Object oHelp_Toolbar is a cCJToolbar
             Set psTitle to "Help ToolBar"
             Set pbCustomizable to False
@@ -1031,7 +846,6 @@ Object oMain is a Panel
         Use ImageViewer.dg
         Use CreateManifestFragmentFile.dg
         Use CreateNewProject.dg
-        Use DigitalCerts.vw
         Use DbMergerViewNew.vw  
         Use ProgramSetup.dg
         

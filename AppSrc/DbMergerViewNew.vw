@@ -918,7 +918,7 @@ Register_Object oViewContextMenu
         String sArgument sManifestFileName sPath
         Integer iRetval
         Handle ho
-        Boolean bAutoSign bFound
+        Boolean bFound
 
         Forward Send Page iPageObject
 
@@ -953,12 +953,6 @@ Register_Object oViewContextMenu
             Move (Found and sPath = Lowercase(ManHdr.Path) and sManifestFileName = Lowercase(ManHdr.ManifestFileName)) to bFound
             If (bFound = True) Begin
                 Send Request_Assign of oManHdr_DD
-                // If true we will automatically digitally sign the executable file
-                // for the found record.
-                Get pbAutoSign of ghoApplication to bAutoSign
-                If (bAutoSign = True) Begin
-                    Send SignFileDigitally of ghoManifestFunctionLibrary
-                End
             End
             Else Begin
                 Send Clear of oManHdr_DD
@@ -987,19 +981,6 @@ Register_Object oViewContextMenu
 
     End_Procedure
 
-    // ToDo: Redo in cManifestFunctionLibrary the same way as SignFileDigitally and subcall function in the cDigitalSoftwareCertificate class.
-    Procedure ValidateDigitalCertificate
-        String sYes
-        tCertificateParams CertificateParams
-
-        Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath
-        Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
-        Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState "" to sYes
-        Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
-
-        Send ValidateFile of ghoDigitalSoftwareCertificate CertificateParams
-    End_Procedure
-
     On_Key Key_Alt+Key_O  Send Prompt                         of (phoMainPromptObject(ghoApplication))
     On_Key Key_Ctrl+Key_O Send KeyAction                      of oSelectManifest_btn
     On_Key Key_Alt+Key_E  Send EditAppManifestFile            of ghoManifestFunctionLibrary
@@ -1011,8 +992,6 @@ Register_Object oViewContextMenu
     On_Key Key_Ctrl+Key_D Send OpenProgramsFolder             of ghoManifestFunctionLibrary
     On_Key Key_Ctrl+Key_B Send OpenCommonCOMFolder            of ghoManifestFunctionLibrary
     On_Key Key_Ctrl+Key_Z Send CompressExeFile                of ghoManifestFunctionLibrary
-    On_Key Key_Ctrl+Key_G Send SignFileDigitally              of ghoManifestFunctionLibrary
-    On_Key Key_Ctrl+Key_Y Send ValidateDigitalCertificate
     On_Key Key_Alt+Key_D  Send DownloadManifestFragmentFiles  of ghoManifestFunctionLibrary
     On_Key Key_Alt+Key_R  Send Popup                          of (oCreateManifestFragmentFile(Client_Id(ghoCommandBars)))
     On_Key Key_Alt+Key_S  Send DoShareManifestFragmentFiles   of ghoApplication
