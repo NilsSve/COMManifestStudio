@@ -1,6 +1,4 @@
-﻿Use cDigitalSoftwareCertificate.pkg
-
-Define CR_LF                   for (Character(13) + Character(10))
+﻿Define CR_LF                   for (Character(13) + Character(10))
 Define CS_DQ                   for (Character(34) + Character(34)) // Double-quotation mark (")
 Define CS_VDFComment           for (Character(47) + Character(47)) // VDF standard comment (two forward slash'es)
 Define CS_DependencyStart      for (CS_VDFComment + "#=")          // Start string in fragment files for dependency files.
@@ -195,8 +193,8 @@ Define ENABLE_PROCESSED_INPUT  for 1
 #ENDIF
 
 // Structure to store the WinAPI file time.
-#IFNDEF _struct_tWinFileTime
-    Struct tWinFileTime
+#IFNDEF _struct_tWinFileTimeCS
+    Struct tWinFileTimeCS
        Integer dwLowDateTime
        Integer dwHighDateTime
        Integer iError

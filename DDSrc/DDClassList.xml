@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <DataDictionaryList xmlns="http://www.dataaccess.com/VisualDataFlex/2008/DataDictionaryList/">
 	<Tables>
 		<Table>
@@ -18,17 +19,6 @@
 				<DDClass>
 					<className>cManDetManDataDictionary</className>
 					<classFile>cManDetManDataDictionary.dd</classFile>
-					<preferred>true</preferred>
-				</DDClass>
-			</DDClasses>
-		</Table>
-		<Table>
-			<tableNumber>3</tableNumber>
-			<tableName>DigitalCerts</tableName>
-			<DDClasses>
-				<DDClass>
-					<className>cDigitalCertsDataDictionary</className>
-					<classFile>cDigitalCertsDataDictionary.dd</classFile>
 					<preferred>true</preferred>
 				</DDClass>
 			</DDClasses>

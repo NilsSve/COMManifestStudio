@@ -148,10 +148,26 @@ Object oDbMerger_vw is a cRDCDbView
             Set psImage to "FolderOpen.ico"
 
             Procedure OnClick
-                Handle ho hoPath
+                Handle ho hoPath 
+                String sManifestFile sPath
+                
                 Get phoMainPromptObject    of ghoApplication to ho
                 Get phoManifestPathObject  of ghoApplication to hoPath
                 Send SelectAppManifestFile of ghoManifestFunctionLibrary ho hoPath
+                
+                // Finally auto-find record, if exists.
+                Get Value of ho to sManifestFile
+                Get Value of hoPath to sPath
+                Move sManifestFile to ManHdr.ManifestFileName
+                Find Ge ManHdr by 2 
+                If (ManHdr.ManifestFileName = sManifestFile) Begin
+                    Send Request_Assign of (Main_DD(Self))
+                End
+                Else Begin
+                    Send Clear of (Main_DD(Self))    
+                    Set Changed_Value of ho 0 to sManifestFile
+                    Set Changed_Value of hoPath 0 to sPath
+                End
             End_Procedure
         End_Object
 
@@ -189,6 +205,7 @@ Object oDbMerger_vw is a cRDCDbView
     Procedure Refresh Integer eMode
         String sPath sFileName
         Boolean bExists
+        
         Forward Send Refresh eMode
         Get Field_Current_Value of oManHdr_DD Field ManHdr.Path to sPath
         Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFileName
@@ -955,10 +972,10 @@ Register_Object oViewContextMenu
                 Send Request_Assign of oManHdr_DD
                 // If true we will automatically digitally sign the executable file
                 // for the found record.
-                Get pbAutoSign of ghoApplication to bAutoSign
-                If (bAutoSign = True) Begin
-                    Send SignFileDigitally of ghoManifestFunctionLibrary
-                End
+//                Get pbAutoSign of ghoApplication to bAutoSign
+//                If (bAutoSign = True) Begin
+//                    Send SignFileDigitally of ghoManifestFunctionLibrary
+//                End
             End
             Else Begin
                 Send Clear of oManHdr_DD
@@ -987,19 +1004,6 @@ Register_Object oViewContextMenu
 
     End_Procedure
 
-    // ToDo: Redo in cManifestFunctionLibrary the same way as SignFileDigitally and subcall function in the cDigitalSoftwareCertificate class.
-    Procedure ValidateDigitalCertificate
-        String sYes
-        tCertificateParams CertificateParams
-
-        Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath
-        Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
-        Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState "" to sYes
-        Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
-
-        Send ValidateFile of ghoDigitalSoftwareCertificate CertificateParams
-    End_Procedure
-
     On_Key Key_Alt+Key_O  Send Prompt                         of (phoMainPromptObject(ghoApplication))
     On_Key Key_Ctrl+Key_O Send KeyAction                      of oSelectManifest_btn
     On_Key Key_Alt+Key_E  Send EditAppManifestFile            of ghoManifestFunctionLibrary
@@ -1011,8 +1015,6 @@ Register_Object oViewContextMenu
     On_Key Key_Ctrl+Key_D Send OpenProgramsFolder             of ghoManifestFunctionLibrary
     On_Key Key_Ctrl+Key_B Send OpenCommonCOMFolder            of ghoManifestFunctionLibrary
     On_Key Key_Ctrl+Key_Z Send CompressExeFile                of ghoManifestFunctionLibrary
-    On_Key Key_Ctrl+Key_G Send SignFileDigitally              of ghoManifestFunctionLibrary
-    On_Key Key_Ctrl+Key_Y Send ValidateDigitalCertificate
     On_Key Key_Alt+Key_D  Send DownloadManifestFragmentFiles  of ghoManifestFunctionLibrary
     On_Key Key_Alt+Key_R  Send Popup                          of (oCreateManifestFragmentFile(Client_Id(ghoCommandBars)))
     On_Key Key_Alt+Key_S  Send DoShareManifestFragmentFiles   of ghoApplication

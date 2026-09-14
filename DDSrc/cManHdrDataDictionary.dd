@@ -51,7 +51,7 @@ Class cManHdrDataDictionary is a cManDataDictionary
         
         Get Field_Changed_State iField to iChanged
         If (iChanged=0 and dDate=0) Begin
-            Sysdate dDate
+            Move (Date(CurrentDateTime())) to dDate
             Set Field_Changed_Value iField to dDate
         End
     End_Procedure     

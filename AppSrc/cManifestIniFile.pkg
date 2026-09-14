@@ -1,8 +1,8 @@
-//****************************************************************************
+﻿//****************************************************************************
 // $Module type: Package
 // $Module name: ManifestIniFile.pkg
 //
-// $Author     : Nils G. Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
+// $Author     : Nils Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
 // Web-site    : http://www.rdctools.com
 // Created     : 2012-09-20 @ 18:04 (Military date format - Year-Month-Day)
 //
@@ -35,6 +35,26 @@ Use Base64Functions.pkg
 #ENDIF
 #IFNDEF CS_SectionName
     Define CS_SectionName           for "Settings"
+#ENDIF
+
+#IFNDEF get_WritePrivateProfileStringW
+External_Function WritePrivateProfileStringW "WritePrivateProfileStringW" Kernel32.dll ;
+    WString sSection ;
+    WString sKeyName ;
+    WString sValue ;
+    WString sFileName ;
+    Returns Integer
+#ENDIF
+
+#IFNDEF get_GetPrivateProfileStringW
+External_Function GetPrivateProfileStringW "GetPrivateProfileStringW" Kernel32.dll ;
+    Pointer lpSection ;
+    Pointer lpKeyName ;
+    Pointer lpDefault ;
+    Pointer lpsValue ;
+    Integer nSize ;
+    WString lpFileName ;
+    Returns Integer
 #ENDIF
 
 Class cManifestIniFile is a cRDCProjectIniFile
@@ -118,7 +138,7 @@ Class cManifestIniFile is a cRDCProjectIniFile
             Error DFERR_INI_FILE "Ini file name not defined"
             Procedure_Return
         End
-        Move (WritePrivateProfileString(Utf8ToAnsi(sSection), Utf8ToAnsi(sKey), sValue, Utf8ToAnsi(psFilename(Self)))) to bSuccess
+        Move (WritePrivateProfileStringW(Utf8ToAnsi(sSection), Utf8ToAnsi(sKey), sValue, Utf8ToAnsi(psFilename(Self)))) to bSuccess
         If (bSuccess = False) Begin
             Error DFERR_INI_FILE C_$CannotWriteToTheIniFile
         End
@@ -140,7 +160,7 @@ Class cManifestIniFile is a cRDCProjectIniFile
             Error DFERR_INI_FILE "Ini file name not defined"
             Function_Return ""
         End
-        Move (GetPrivateProfileString(AddressOf(sSection), AddressOf(sKey), AddressOf(sDefault), lpsValue, iSizeValue, Utf8ToAnsi(psFilename(Self)))) to iNumChars
+        Move (GetPrivateProfileStringW(AddressOf(sSection), AddressOf(sKey), AddressOf(sDefault), lpsValue, iSizeValue, Utf8ToAnsi(psFilename(Self)))) to iNumChars
         Function_Return  (CString(sValue))
     End_Function
 

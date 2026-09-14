@@ -62,3 +62,24 @@ loginEncryptionkey.inc
 **/Install/**
 
 **/Capture/**
+
+# DataFlex 26 package cache. The Studio's package handler fills DfPkg\ from the
+# dependencies listed in COMManifestStudio.sws, the same way setup.bat provides
+# Libraries\. Local-only, never committed.
+/DfPkg/
+
+# Studio workspace lock file
+*.sws.lock
+
+# Local copies of DataFlex system packages that were retired by renaming.
+# The originals are kept on disk on purpose; they are not repository content.
+*.shadowed
+*.shadowed[0-9]
+*.shadowed[0-9][0-9]
+
+# Timestamped manifest snapshots written beside the embedded exe manifest
+**/AppSrc/**/*.exe-*.manifest
+
+# Third-party ActiveX controls are licensed separately and are not
+# redistributed from this repository.
+**/Programs/*.ocx

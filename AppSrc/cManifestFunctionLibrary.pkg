@@ -2,7 +2,7 @@
 // $Module type: Class Package
 // $Module name: cManifestFunctionLibrary.pkg
 //
-// $Author     : Nils G. Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
+// $Author     : Nils Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
 // Web-site    : http://www.rdctools.com
 // Created     : 2012-09-20 @ 19:04 (Military date format - Year-Month-Day)
 //
@@ -63,6 +63,7 @@ Use cRegistry.pkg
 Use cHttpTransfer.pkg
 Use Flexml.pkg
 Use Dfcursor.pkg
+Use tWinStructs.pkg
 Use cCryptographerEx.pkg
 
 CompilerWarnings Suspend 
@@ -73,10 +74,7 @@ Use vWin32fh.pkg
 Use Symdef.pkg
 Use StartProg.pkg
 Use cManifestIniFile.pkg
-Use cDigitalSoftwareCertificate.pkg
 Use cRDCExternalProgramResult.pkg
-
-Use cDigitalCertsDataDictionary.dd
 
 #IFNDEF ghoManifestFunctionLibrary
     Global_Variable Integer ghoManifestFunctionLibrary
@@ -1168,7 +1166,7 @@ Class cManifestFunctionLibrary is a cObject
         Integer i iFiles iDuplicates iRetval iChIn iChOut
         String sValue sTabChar sComment sCompare
         Boolean bCommentRow bOfInterest
-        tWinFileTimeDC stFileTime
+        tWinFileTimeCS stFileTime
         String[] sSelectedFileNames
 
         Get pbApplicationStringsOk to bApplicationStringsOk
@@ -1323,7 +1321,11 @@ Class cManifestFunctionLibrary is a cObject
         Set_Attribute DF_DATE_FORMAT    to DF_DATE_MILITARY
         Set_Attribute DF_DATE_SEPARATOR to (Ascii("-"))
 
-        Sysdate dDate iHour iMinute iSecond
+//        Sysdate dDate iHour iMinute iSecond
+        Move (Date(CurrentDateTime())) to dDate
+        Move (DateGetHour(CurrentDateTime())) to iHour
+        Move (DateGetMinute(CurrentDateTime())) to iMinute
+        Move (DateGetSecond(CurrentDateTime())) to iSecond
         Move ( (If(iHour < 10, "0", "")) + String(iHour) + (If(iMinute < 10, "0", "")) + String(iMinute) + (If(iSecond < 10, "0", "")) + String(iSecond) ) to sTime
         Move dDate to sDate
         Move (Replaces("-", sDate, "")) to sDate
@@ -1575,7 +1577,7 @@ Class cManifestFunctionLibrary is a cObject
         String[] sOutputArray
         Boolean bExist bBusy
         Integer iRetval iItems iCount
-        tWinFileTimeDC stFileTime
+        tWinFileTimeCS stFileTime
 
         Get psManifestFileName to sManifestFileName
         Get psTargetPath       to sPath
@@ -1979,8 +1981,8 @@ Class cManifestFunctionLibrary is a cObject
     // to reset the file date value. This is used by e.g. the "CreateAppManifestFile" message.
     // NOTE: To get the file datetime as a DataFlex DateTime value; use the
     //       "WinAPIFileTimeToDateTime" function.
-    Function FileTimeWinApi String sFileName Returns tWinFileTimeDC
-        tWinFileTimeDC stFileTime
+    Function FileTimeWinApi String sFileName Returns tWinFileTimeCS
+        tWinFileTimeCS stFileTime
         Handle hFileName
         Integer iRetval
 
@@ -1998,7 +2000,7 @@ Class cManifestFunctionLibrary is a cObject
     End_Function
 
     // Please see: Function FileTimeWinApi for usage.
-    Procedure Set FileTimeWinApi String sFileName tWinFileTimeDC stFileTime
+    Procedure Set FileTimeWinApi String sFileName tWinFileTimeCS stFileTime
         Handle hFileName
         Integer iRetval
 
@@ -3227,59 +3229,6 @@ Class cManifestFunctionLibrary is a cObject
         Function_Return iRetval
     End_Function
 
-    // Signs an executable with a digital software certificate.
-    // It uses the CS_CredentialsProgram command line program to do the actual signing.
-    Procedure SignFileDigitally //tCertificateParams CertificateParams
-        Handle hoCryptoGrapher
-        String sYes sCredentialsPath sCredentialsFile
-        String sOurWebSite sDescription sURLTimeStamp
-        Boolean bChecked bUseCertificateStore
-        Handle hoDD
-        tCertificateParams CertificateParams CertificateParams2
-        tCertificateCredentials CertificateCredentials
-        tCertificateResult CertificateResult
-
-        Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseCertificateStore "" to sYes
-        Move (CS_BooleanYes = sYes) to bUseCertificateStore
-
-        // Query the ini-file for some values:
-        Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath
-        Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
-        Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState "" to sYes
-        Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
-
-        // Then query the cDigitalCertsDataDictionary class and see if there is data to be used in the DigitalCerts table:
-        Get Create (RefClass(cDigitalCertsDataDictionary)) to hoDD
-        Send FirstDefaultDigitalCert of hoDD (&CertificateParams2) (&CertificateCredentials)
-        Send Destroy of hoDD
-        // This value might have been changed by the FirstDefaultDigitalCert procedure.
-        // It makes sure the logic works for old program versions where the DigitalCerts table didn't exist.
-        Move CertificateParams.bUseCertificateStore to bUseCertificateStore
-        If (bUseCertificateStore = False) Begin
-            Move CertificateParams2 to CertificateParams
-            // We need to reinitialize some values that got overwritten by the line above.
-//            Get Value of (phoManifestPathObject(ghoApplication)) to CertificateParams.sProgramPath 
-            Get psExeFilePath of ghoManifestFunctionLibrary      to CertificateParams.sProgramPath
-            Get psExeFileName of ghoManifestFunctionLibrary      to CertificateParams.sFileName
-//            Get Value of (phoMainPromptObject(ghoApplication))   to CertificateParams.sFileName
-            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_UseVerboseState "" to sYes
-            Move (CS_BooleanYes = sYes)                          to CertificateParams.bVerbose
-        End
-
-        // Note that we don't use an "Else Begin" construct here as the bUseCertificateStore might have changed by the FirstDefaultDigitalCert message
-        If (bUseCertificateStore = True) Begin
-            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CredentialsWebTimeStamp "" to CertificateParams.sURLTimeStamp
-            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CredentialsWebTimeStampSHA256 "" to CertificateParams.sSHA256URLTimeStamp
-            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CredentialsWebSite      "" to CertificateParams.sOurWebSite
-            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_CredentialsDescription  "" to CertificateParams.sDescription
-        End
-
-
-        //  We are using the cDigitalSoftwareCertificate class to do the actual signing.
-        Send SignFile of ghoDigitalSoftwareCertificate CertificateParams CertificateCredentials
-
-    End_Procedure
-
     // This is the opposiste of the FileStructArrayAsStringArray function.
     // See that function for explanation.
     Function StringArrayToFileStructArray String[] sFilesArray Returns tFileStruct[]
@@ -3491,11 +3440,11 @@ Class cManifestFunctionLibrary is a cObject
     // Second parameter is optional and is a boolean (True/Fale) to denote if to convert to local time or not.
     // It is very uncommon _not_ to pass a TRUE here (if you pass the second parameter.
     // This function code is courtesy of Vincent Oorsprong.
-    Function WinAPIFileTimeToDateTime tWinFileTimeDC WinFileTime Boolean bConvertToLocalFileTimexx Returns DateTime
+    Function WinAPIFileTimeToDateTime tWinFileTimeCS WinFileTime Boolean bConvertToLocalFileTimexx Returns DateTime
         String sFormattedTime sFormattedDate
         Integer iSuccess iDataLength
         tWinSystemTime WinSystemTime
-        tWinFileTimeDC WinLocalFileTime
+        tWinFileTimeCS WinLocalFileTime
         DateTime dtResult
         Boolean bConvertToLocalFileTime
 
@@ -3526,8 +3475,8 @@ Class cManifestFunctionLibrary is a cObject
     End_Function
 
     { Visibility=Private MethodType=Event  NoDoc=True }
-    Function _WinAPIGetFileTime Handle hFileName Returns tWinFileTimeDC
-        tWinFileTimeDC stFileTime
+    Function _WinAPIGetFileTime Handle hFileName Returns tWinFileTimeCS
+        tWinFileTimeCS stFileTime
         Integer iRetval
 
         Move (fGetFileTime (hFileName, C_SimpleNullMember, C_SimpleNullMember, AddressOf(stFileTime))) to iRetval
@@ -3535,7 +3484,7 @@ Class cManifestFunctionLibrary is a cObject
     End_Function
 
     { Visibility=Private MethodType=Event  NoDoc=True }
-    Function _WinAPISetFileTime Handle hFileName tWinFileTimeDC stFileTime Returns Integer
+    Function _WinAPISetFileTime Handle hFileName tWinFileTimeCS stFileTime Returns Integer
         Integer iRetval
 
         Move (fSetFileTime (hFileName, C_SimpleNullMember, C_SimpleNullMember, AddressOf(stFileTime))) to iRetval

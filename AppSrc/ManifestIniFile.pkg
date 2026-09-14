@@ -20,6 +20,26 @@ Use Base64Functions.pkg
     Global_Variable Integer ghoManifestIniFile
 #ENDIF
 
+#IFNDEF get_WritePrivateProfileStringW
+External_Function WritePrivateProfileStringW "WritePrivateProfileStringW" Kernel32.dll ;
+    WString sSection ;
+    WString sKeyName ;
+    WString sValue ;
+    WString sFileName ;
+    Returns Integer
+#ENDIF
+
+#IFNDEF get_GetPrivateProfileStringW
+External_Function GetPrivateProfileStringW "GetPrivateProfileStringW" Kernel32.dll ;
+    Pointer lpSection ;
+    Pointer lpKeyName ;
+    Pointer lpDefault ;
+    Pointer lpsValue ;
+    Integer nSize ;
+    WString lpFileName ;
+    Returns Integer
+#ENDIF
+
 Class cManifestIniFile is a cIniFile
     Procedure Construct_Object
         Forward Send Construct_Object
@@ -131,8 +151,7 @@ Class cManifestIniFile is a cIniFile
             Error DFERR_INI_FILE "Ini file name not defined"
             Procedure_Return
         End
-//        Move (WritePrivateProfileString(ToAnsi(sSection), ToAnsi(sKey), ToAnsi(sValue), ToAnsi(psFilename(self)))) To bSuccess
-        Move (WritePrivateProfileString(ToAnsi(sSection), ToAnsi(sKey), sValue, ToAnsi(psFilename(Self)))) to bSuccess
+        Move (WritePrivateProfileStringW(Utf8ToAnsi(sSection), Utf8ToAnsi(sKey), sValue, Utf8ToAnsi(psFilename(Self)))) to bSuccess
         If (bSuccess = False) ;
             Error DFERR_INI_FILE C_$CannotWriteToTheIniFile
     End_Procedure
@@ -142,21 +161,19 @@ Class cManifestIniFile is a cIniFile
         Pointer lpsValue
         String sValue
 
-        Move (ToAnsi(sSection)) to sSection
-//        Move (ToAnsi(sKey))     to sKey
-        Move (ToAnsi(sDefault)) to sDefault
+        Move (Utf8ToAnsi(sSection)) to sSection
+        Move (Utf8ToAnsi(sDefault)) to sDefault
 
         Move 2047 to iSizeValue
 
-        Pad " " to sValue iSizeValue
-        GetAddress of sValue to lpsValue
+        Move (Pad(" ", iSizeValue)) to sValue
+        Move (AddressOf(sValue)) to lpsValue
 
         If (trim(psFileName(Self))="") Begin
             Error DFERR_INI_FILE "Ini file name not defined"
             Function_Return ''
         End
-        Move (GetPrivateProfileString(AddressOf(sSection), AddressOf(sKey), AddressOf(sDefault), lpsValue, iSizeValue, ToAnsi(psFilename(Self)))) to iNumChars
-//        Function_Return  (ToOem(CString(sValue)))
+        Move (GetPrivateProfileStringW(AddressOf(sSection), AddressOf(sKey), AddressOf(sDefault), lpsValue, iSizeValue, Utf8ToAnsi(psFilename(Self)))) to iNumChars
         Function_Return  (CString(sValue))
     End_Function
 

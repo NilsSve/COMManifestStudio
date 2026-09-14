@@ -1,10 +1,10 @@
-Use cCJStandardMenuItemClasses.pkg
+﻿Use cCJStandardMenuItemClasses.pkg
 Use Colr_Dlg.Pkg
 Use cCJRTFToolbar.pkg
 Use cCJRTFMenuItem.Pkg
 Use cCJRTFToolBarButton.Pkg
 Use cRDCFontDialog.pkg
-Use cRDCCJChangeColorMenuItem.pkg
+//Use cRDCCJChangeColorMenuItem.pkg
 Use cRDCDbRichEditor.pkg
 Use cRichEdit.pkg
 // This dialog must be USEd at the Client_Area level!
@@ -298,152 +298,152 @@ Object oRTFButtonBand is a cCJRTFToolbar
         End_Function
     End_Object
 
-    Object oColorButton is a cCJRTFMenuItem
-        Set pbControlBeginGroup to True
-        Set psCaption to "Text color"
-        Set psDescription to "Change the text color"
-        Set psImage to "FontColor.ico"
-        Set peControlType to xtpControlSplitButtonPopup
-
-        Object oBlackMenuItem is a cRDCCJChangeColorMenuItem
-            Set psImage to "Black40x12.ico"
-            Set psCaption to "Black"
-            Set psDescription to "Change the Color to Black"
-            Set peColor to clBlack
-        End_Object
-
-        Object oMaroonMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clMaroon
-            Set psImage to "Maroon40x12.ico"
-            Set psCaption to "Maroon"
-            Set psDescription to "Change the Color to Maroon"
-        End_Object
-
-        Object oGreenMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clGreen
-            Set psImage to "Green40x12.ico"
-            Set psCaption to "Green"
-            Set psDescription to "Change the Color to Green"
-        End_Object
-
-        Object oOliveMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clOlive
-            Set psImage to "Olive40x12.ico"
-            Set psCaption to "Olive"
-            Set psDescription to "Change the Color to Olive"
-        End_Object
-
-        Object oNavyMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clNavy
-            Set psImage to "Navy40x12.ico"
-            Set psCaption to "Navy"
-            Set psDescription to "Change the Color to Navy"
-        End_Object
-
-        Object oPurpleMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clPurple
-            Set psImage to "Purple40x12.ico"
-            Set psCaption to "Purple"
-            Set psDescription to "Change the Color to Purple"
-        End_Object
-
-        Object oTealMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clTeal
-            Set psImage to "Teal40x12.ico"
-            Set psCaption to "Teal"
-            Set psDescription to "Change the Color to Teal"
-        End_Object
-
-        Object oGrayMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clGray
-            Set psImage to "Gray40x12.ico"
-            Set psCaption to "Gray"
-            Set psDescription to "Change the Color to Gray"
-        End_Object
-
-        Object oSilverMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clSilver
-            Set psImage to "Silver40x12.ico"
-            Set psCaption to "Silver"
-            Set psDescription to "Change the Color to Silver"
-        End_Object
-
-        Object oRedMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clRed
-            Set psImage to "Red40x12.ico"
-            Set psCaption to "Red"
-            Set psDescription to "Change the Color to Red"
-        End_Object
-
-        Object oLimeMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clLime
-            Set psImage to "Lime40x12.ico"
-            Set psCaption to "Lime"
-            Set psDescription to "Change the Color to Lime"
-        End_Object
-
-        Object oYellowMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clYellow
-            Set psImage to "Yellow40x12.ico"
-            Set psCaption to "Yellow"
-            Set psDescription to "Change the Color to Yellow"
-        End_Object
-
-        Object oBlueMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clBlue
-            Set psImage to "Blue40x12.ico"
-            Set psCaption to "Blue"
-            Set psDescription to "Change the Color to Blue"
-        End_Object
-
-        Object oFuchsiaMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clFuchsia
-            Set psImage to "Fuchsia40x12.ico"
-            Set psCaption to "Fuchsia"
-            Set psDescription to "Change the Color to Fuchsia"
-        End_Object
-
-        Object oAquaMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clAqua
-            Set psImage to "Aqua40x12.ico"
-            Set psCaption to "Aqua"
-            Set psDescription to "Change the Color to Aqua"
-        End_Object
-
-        Object oWhiteMenuItem is a cRDCCJChangeColorMenuItem
-            Set peColor to clWhite
-            Set psImage to "White40x12.ico"
-            Set psCaption to "White"
-            Set psDescription to "Change the Color to White"
-        End_Object
-
-        //****************************************************************************
-        //  Send a message to open the color selector dialog
-        //****************************************************************************
-        Procedure OnExecute Variant vCommandBarControl
-            Handle hoFocus hoColorSelector
-            Integer rgbTextColor
-            Boolean bColorSelected bIsRichEdit
-
-            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
-            If (bIsRichEdit) Begin
-                Get TextColor of hoFocus to rgbTextColor
-
-                Get Create U_ColorDialog to hoColorSelector
-                If (hoColorSelector > 0) Begin
-                    Set SelectedColor of hoColorSelector to rgbTextColor
-
-                    Get Show_Dialog of hoColorSelector to bColorSelected
-                    If (bColorSelected) Begin
-                        Get SelectedColor of hoColorSelector to rgbTextColor
-                        Set TextColor of hoFocus to rgbTextColor
-                    End
-
-                    Send Destroy of hoColorSelector
-                End
-            End
-        End_Procedure
-    End_Object
+//    Object oColorButton is a cCJRTFMenuItem
+//        Set pbControlBeginGroup to True
+//        Set psCaption to "Text color"
+//        Set psDescription to "Change the text color"
+//        Set psImage to "FontColor.ico"
+//        Set peControlType to xtpControlSplitButtonPopup
+//
+//        Object oBlackMenuItem is a cRDCCJChangeColorMenuItem
+//            Set psImage to "Black40x12.ico"
+//            Set psCaption to "Black"
+//            Set psDescription to "Change the Color to Black"
+//            Set peColor to clBlack
+//        End_Object
+//
+//        Object oMaroonMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clMaroon
+//            Set psImage to "Maroon40x12.ico"
+//            Set psCaption to "Maroon"
+//            Set psDescription to "Change the Color to Maroon"
+//        End_Object
+//
+//        Object oGreenMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clGreen
+//            Set psImage to "Green40x12.ico"
+//            Set psCaption to "Green"
+//            Set psDescription to "Change the Color to Green"
+//        End_Object
+//
+//        Object oOliveMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clOlive
+//            Set psImage to "Olive40x12.ico"
+//            Set psCaption to "Olive"
+//            Set psDescription to "Change the Color to Olive"
+//        End_Object
+//
+//        Object oNavyMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clNavy
+//            Set psImage to "Navy40x12.ico"
+//            Set psCaption to "Navy"
+//            Set psDescription to "Change the Color to Navy"
+//        End_Object
+//
+//        Object oPurpleMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clPurple
+//            Set psImage to "Purple40x12.ico"
+//            Set psCaption to "Purple"
+//            Set psDescription to "Change the Color to Purple"
+//        End_Object
+//
+//        Object oTealMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clTeal
+//            Set psImage to "Teal40x12.ico"
+//            Set psCaption to "Teal"
+//            Set psDescription to "Change the Color to Teal"
+//        End_Object
+//
+//        Object oGrayMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clGray
+//            Set psImage to "Gray40x12.ico"
+//            Set psCaption to "Gray"
+//            Set psDescription to "Change the Color to Gray"
+//        End_Object
+//
+//        Object oSilverMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clSilver
+//            Set psImage to "Silver40x12.ico"
+//            Set psCaption to "Silver"
+//            Set psDescription to "Change the Color to Silver"
+//        End_Object
+//
+//        Object oRedMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clRed
+//            Set psImage to "Red40x12.ico"
+//            Set psCaption to "Red"
+//            Set psDescription to "Change the Color to Red"
+//        End_Object
+//
+//        Object oLimeMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clLime
+//            Set psImage to "Lime40x12.ico"
+//            Set psCaption to "Lime"
+//            Set psDescription to "Change the Color to Lime"
+//        End_Object
+//
+//        Object oYellowMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clYellow
+//            Set psImage to "Yellow40x12.ico"
+//            Set psCaption to "Yellow"
+//            Set psDescription to "Change the Color to Yellow"
+//        End_Object
+//
+//        Object oBlueMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clBlue
+//            Set psImage to "Blue40x12.ico"
+//            Set psCaption to "Blue"
+//            Set psDescription to "Change the Color to Blue"
+//        End_Object
+//
+//        Object oFuchsiaMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clFuchsia
+//            Set psImage to "Fuchsia40x12.ico"
+//            Set psCaption to "Fuchsia"
+//            Set psDescription to "Change the Color to Fuchsia"
+//        End_Object
+//
+//        Object oAquaMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clAqua
+//            Set psImage to "Aqua40x12.ico"
+//            Set psCaption to "Aqua"
+//            Set psDescription to "Change the Color to Aqua"
+//        End_Object
+//
+//        Object oWhiteMenuItem is a cRDCCJChangeColorMenuItem
+//            Set peColor to clWhite
+//            Set psImage to "White40x12.ico"
+//            Set psCaption to "White"
+//            Set psDescription to "Change the Color to White"
+//        End_Object
+//
+//        //****************************************************************************
+//        //  Send a message to open the color selector dialog
+//        //****************************************************************************
+//        Procedure OnExecute Variant vCommandBarControl
+//            Handle hoFocus hoColorSelector
+//            Integer rgbTextColor
+//            Boolean bColorSelected bIsRichEdit
+//
+//            Get IsFocusRichEditControl (&hoFocus) to bIsRichEdit
+//            If (bIsRichEdit) Begin
+//                Get TextColor of hoFocus to rgbTextColor
+//
+//                Get Create U_ColorDialog to hoColorSelector
+//                If (hoColorSelector > 0) Begin
+//                    Set SelectedColor of hoColorSelector to rgbTextColor
+//
+//                    Get Show_Dialog of hoColorSelector to bColorSelected
+//                    If (bColorSelected) Begin
+//                        Get SelectedColor of hoColorSelector to rgbTextColor
+//                        Set TextColor of hoFocus to rgbTextColor
+//                    End
+//
+//                    Send Destroy of hoColorSelector
+//                End
+//            End
+//        End_Procedure
+//    End_Object
 
     Object oFontSelectorButton is a cCJRTFToolBarButton
         Set psCaption to "Select Font"

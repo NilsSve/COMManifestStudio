@@ -37,23 +37,6 @@ Use seq_chnl.pkg
 Use Dfcursor.pkg
 Use vWin32fh.pkg
 
-Use cDigitalSoftwareCertificate.pkg   
-
-Object oDigitalSoftwareCertificate is a cDigitalSoftwareCertificate
-    Move Self to ghoDigitalSoftwareCertificate
-
-    // Set pbWarnIfNotDigitallySigned = True if you like to have a warning when the
-    // program is started, but the program has not been digitally signed.
-    // Only applies when run outside the Studio.
-    Set pbWarnIfNotDigitallySigned to False
-
-    // This message does the actual checking for a valid digital certificate.
-    // If the program has been tampered with e.g. it has been infected by a virus,
-    // the user will get a warning and the program will be aborted.
-//    Send ValidateProgramOnStartup
-
-End_Object
-
 Object oApplication is a cApplication
     Set psCompany to "RDC Tools International"
     Set psProduct to (Module_Name(Self))
@@ -80,7 +63,7 @@ Object oApplication is a cApplication
             Get Argument of hoCmdLine 1 to sFileName
             Move (Trim(sFileName))      to sFileName
 
-            Get ApplicationPath of ghoDigitalSoftwareCertificate to sPath
+            Get GetApplicationPath to sPath
             Get vFolderFormat sPath to sPath
             Move (sPath + sFileName) to sFileName
             Get vFilePathExists sFileName to bExists
@@ -88,15 +71,6 @@ Object oApplication is a cApplication
                 Send Stop_Box ("Cannot find the file to 'touch':\n" * sFileName)
                 Send Exit_Application
             End
-             // Change the file date stamp
-            Get FileTimeWinApi of ghoDigitalSoftwareCertificate sFileName to stFileTime
-            // Change the modified time of the exe file:
-            Move (stFileTime.dwHighDateTime + 10) to stFileTime.dwHighDateTime
-            Set FileTimeWinApi of ghoDigitalSoftwareCertificate sFileName to stFileTime
-            // Start the program (passed program name).
-            Runprogram Shell Background sFileName
-            // ...and we're out of here.
-            Send Exit_Application
         End
 
         Else Begin

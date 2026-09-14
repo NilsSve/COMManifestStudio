@@ -2,7 +2,7 @@
 // ManHdr Lookup List
 Use cRDCDbModalPanel.pkg
 Use cRDCDbCJGridPromptList.pkg
-Use cDbCJGridColumn.pkg   
+Use cRDCDbCJGridColumn.pkg
 Use cRDCButton.pkg
 
 Use cManHdrDataDictionary.dd
