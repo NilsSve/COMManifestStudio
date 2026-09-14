@@ -9,10 +9,12 @@
         "github.com/NilsSve/Library-RDCToolsLib.git/RDCToolsLibLibrary26.0": {
             "ref": "e8c3253decf27ffdd91deaf1ec778aa197d823ce"
         },
+        "github.com/NilsSve/Library-cFilesystem.git/Filesystem26.0": {
+            "ref": "f78c91adca8827911fc5583300c44c05661e2eab"
+        },
         "github.com/NilsSve/Library-vwin32fh.git/StudioLibrary/vWin32fh-Library-DF26.0": {
             "ref": "5432741c37c80be755e78f5f9d45ba8329fddcaf"
-        },
-        "local/Filesystem26.0": {}
+        }
     },
     "lockVersion": "1.0.0"
 }

@@ -1,6 +1,10 @@
 {
     "dependencies": [
-        "Libraries/Filesystem/Filesystem26.0.sws",
+        {
+            "source": "https://github.com/NilsSve/Library-cFilesystem.git",
+            "sws": "Filesystem26.0.sws",
+            "version": "f78c91adca8827911fc5583300c44c05661e2eab"
+        },
         {
             "source": "https://github.com/NilsSve/Library-DUF.git",
             "sws": "DUFLibrary26.0.sws",

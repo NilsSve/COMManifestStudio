@@ -5,37 +5,36 @@ COMManifestStudio uses five libraries:
 
     Filesystem, DUF, DFAbout, RDCToolsLib, vwin32fh
 
-This is a DataFlex 26 workspace, and they do not all arrive the same way.
-
-COMManifestStudio.sws declares two dependencies. Filesystem is a local one,
-read from Libraries\. DUF is a git one, pinned by commit. DataFlex 26 unions a
-dependency's own dependencies into the workspace, so DFAbout, RDCToolsLib and
-vwin32fh come along with DUF without being named here, even though this
+None of them is stored in this repository, and none of them has to be fetched
+by hand. This is a DataFlex 26 workspace: COMManifestStudio.sws names
+Filesystem and DUF as git dependencies, each pinned to a commit, and DataFlex 26
+unions a dependency's own dependencies into the workspace - so DFAbout,
+RDCToolsLib and vwin32fh arrive with DUF without being named, even though this
 workspace's own source uses all three directly (cRDC* classes, vWin32fh.pkg and
 the About dialog).
 
-The Studio's package handler unpacks the git ones into DfPkg\ and records the
-exact commit of each in COMManifestStudio.sws.lock, which IS committed - it is
-what makes a clone build the same library versions as the machine it came from.
-DfPkg\ itself is not committed, any more than Libraries\ is.
+The Studio's package handler unpacks all five into DfPkg\ the first time it
+opens the workspace, and COMManifestStudio.sws.lock records the exact commit of
+each. That lock file IS committed - it is what makes a fresh clone build the
+same library versions as the machine it came from. DfPkg\ itself is not
+committed.
 
-setup.bat provides Libraries\ - see README.md.
+So there is no setup step before opening the workspace, and nothing to forget.
 
 
-One copy on the search path, and only one
------------------------------------------
+Why not a folder of clones, as before
+-------------------------------------
 
-An older arrangement declared DFAbout, RDCToolsLib and vwin32fh only inside
-DUF, and reached them through Libraries\DUF\Libraries\ . The reasoning was
-that declaring them in two places would confuse git. That was sound for
-submodules, and it caused a worse problem: every consumer ended up with its own
+Until 2026-09-14 the five were expected under Libraries\, provided by setup.bat
+as either a junction to the shared RDC library pool or a set of clones. Before
+that, three of them were reached through DUF's own nested Libraries\ folder.
+Both arrangements had the same flaw: every consumer ended up with its own
 physical copy of each library on disk, and the Studio navigates by disk.
 Go-to-Definition would open whichever copy it found first, so a library fix
 could be made in one copy while the build compiled another - silently
 diverging, and needing manual propagation afterwards.
 
-That is the reason setup.bat clones Filesystem and nothing else. The other four
-live in DfPkg\, the compiler reads them there, and a second copy under
-Libraries\ would only be a place for a fix to get lost. On a machine with the
-shared RDC library pool next door, Libraries\ is a junction to it, so even
-Filesystem is one editable copy shared by every workspace on the machine.
+Pinned packages end that. There is one copy per commit, the handler marks it
+read-only, and the compiler and the editor are looking at the same bytes. The
+trade is that you no longer edit a library in place from here: you edit it in
+its own workspace, push, and move the pin in COMManifestStudio.sws.

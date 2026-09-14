@@ -1,9 +1,10 @@
 # Files to be ignored by git in a DataFlex workspace
 
-# Libraries are NOT stored in this repo. setup.bat provides them: on a machine
-# with the shared RDC library pool it makes Libraries\ a junction to it (one
-# shared, editable copy); otherwise it clones isolated copies inside. Either
-# way the folder is local-only, never committed. (Do not git clean -x it.)
+# Libraries are NOT stored in this repo, and this workspace no longer reads
+# them from here either - every one of them is a pinned dependency of
+# COMManifestStudio.sws and lives in DfPkg\. Libraries\ is kept ignored because
+# a maintainer's checkout may still carry one, often as a junction to the shared
+# RDC library pool. (Do not git clean -x it.)
 /Libraries/
 
 # AppHtml
@@ -64,8 +65,8 @@ loginEncryptionkey.inc
 **/Capture/**
 
 # DataFlex 26 package cache. The Studio's package handler fills DfPkg\ from the
-# dependencies listed in COMManifestStudio.sws, the same way setup.bat provides
-# Libraries\. Local-only, never committed.
+# dependencies listed in COMManifestStudio.sws, pinned by COMManifestStudio.sws.lock.
+# Local-only, never committed - it is rebuilt from the lock file on any machine.
 /DfPkg/
 
 # Local copies of DataFlex system packages that were retired by renaming.
