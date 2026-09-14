@@ -12,7 +12,7 @@ The workspace of COMManifestStudio leverages various additional libraries that a
 
 ## Setup after cloning
 
-The libraries this workspace uses (DigitalCert, Filesystem, DUF, DFAbout, RDCToolsLib, vwin32fh)
+The libraries this workspace uses (Filesystem, DUF, DFAbout, RDCToolsLib, vwin32fh)
 are **not** stored in this repository (they are gitignored). Run **`setup.bat`** once from the
 repository root and it provides them, behaving differently by machine so one arrangement serves
 both maintainer and user:

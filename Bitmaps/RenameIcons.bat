@@ -58,10 +58,6 @@ Copy data-import.ico EmbedCode.ico
 Copy zip.ico Compress.ico
 Copy directions-run.ico RunProgram.ico
 
-Copy certificate-business-filled-database.ico DigitalCertConfig.ico
-Copy certificate-business-filled-info.ico DigitalVerification.ico
-Copy certificate-business-filled-add.ico DigitallySign.ico
-Copy certificate-business-filled.ico DigitalCert.ico
 
 Copy project-add.ico ProjectNew.ico
 Copy project-find.ico ProjectOpen.ico

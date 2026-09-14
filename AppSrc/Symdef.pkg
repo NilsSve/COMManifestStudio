@@ -92,8 +92,6 @@ Define CS_Separator            for "Separator"
 // Swedish:
 //Define CS_VisitUsOnLine        for "Besök oss på Internet"
 
-//Define CS_ExportCertificateHelp for "http://blog.ksoftware.net/2011/07/exporting-your-code-signing-certificate-to-a-pfx-file/"
-Define CS_ExportCertificateHelp for "https://support.ksoftware.net/support/solutions/articles/17153-what-is-a-code-signing-certificate-"
 Define CS_DonatePage           for "https://www.rdctools.com/donate/"
 Define CS_VideoStdCodeJockComp for "https://www.youtube.com/watch?v=dTHBTAsINFI"  //"http://www.screencast.com/t/lL99WLdXzh"
 Define CS_VideoCodeJockDemo    for "http://www.screencast.com/t/a3n3zxHdoxIY"

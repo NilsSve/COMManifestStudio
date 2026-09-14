@@ -3,7 +3,7 @@ Libraries used by this workspace
 
 COMManifestStudio uses six libraries:
 
-    DigitalCert, Filesystem, DUF, DFAbout, RDCToolsLib, vwin32fh
+    Filesystem, DUF, DFAbout, RDCToolsLib, vwin32fh
 
 All six are declared FLAT in COMManifestStudio25.0.sws - each one listed once,
 side by side under Libraries\. DUF is one of them; DUF's own dependencies

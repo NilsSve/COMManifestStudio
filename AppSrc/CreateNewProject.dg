@@ -8,6 +8,7 @@ Use cRDCDbForm.pkg
 Use cDbWizardWinXPStyle.pkg
 Use cManifestFunctionLibrary.pkg
 Use cRDCDbCJGrid.pkg
+Use cRDCDbCJGridColumn.pkg
 Use cRDCCheckbox.pkg
 
 Use cManHdrDataDictionary.dd

@@ -935,7 +935,7 @@ Register_Object oViewContextMenu
         String sArgument sManifestFileName sPath
         Integer iRetval
         Handle ho
-        Boolean bAutoSign bFound
+        Boolean bFound
 
         Forward Send Page iPageObject
 
