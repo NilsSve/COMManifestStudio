@@ -68,9 +68,6 @@ loginEncryptionkey.inc
 # Libraries\. Local-only, never committed.
 /DfPkg/
 
-# Studio workspace lock file
-*.sws.lock
-
 # Local copies of DataFlex system packages that were retired by renaming.
 # The originals are kept on disk on purpose; they are not repository content.
 *.shadowed

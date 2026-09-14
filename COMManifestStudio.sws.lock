@@ -1,0 +1,18 @@
+{
+    "dependencies": {
+        "github.com/NilsSve/Library-DFAbout.git/DFAbout26.0": {
+            "ref": "4f7edbe139ebe6f55d3ce76479c42970aa2d6519"
+        },
+        "github.com/NilsSve/Library-DUF.git/DUFLibrary26.0": {
+            "ref": "9f627e528576a4d10501aa185f5ed5f33a9ef1b6"
+        },
+        "github.com/NilsSve/Library-RDCToolsLib.git/RDCToolsLibLibrary26.0": {
+            "ref": "e8c3253decf27ffdd91deaf1ec778aa197d823ce"
+        },
+        "github.com/NilsSve/Library-vwin32fh.git/StudioLibrary/vWin32fh-Library-DF26.0": {
+            "ref": "5432741c37c80be755e78f5f9d45ba8329fddcaf"
+        },
+        "local/Filesystem26.0": {}
+    },
+    "lockVersion": "1.0.0"
+}

@@ -970,12 +970,6 @@ Register_Object oViewContextMenu
             Move (Found and sPath = Lowercase(ManHdr.Path) and sManifestFileName = Lowercase(ManHdr.ManifestFileName)) to bFound
             If (bFound = True) Begin
                 Send Request_Assign of oManHdr_DD
-                // If true we will automatically digitally sign the executable file
-                // for the found record.
-//                Get pbAutoSign of ghoApplication to bAutoSign
-//                If (bAutoSign = True) Begin
-//                    Send SignFileDigitally of ghoManifestFunctionLibrary
-//                End
             End
             Else Begin
                 Send Clear of oManHdr_DD
