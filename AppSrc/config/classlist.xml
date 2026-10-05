@@ -4,11 +4,6 @@
 	<DFLibraryVersion>2</DFLibraryVersion>
 	<libraries>
 		<library>
-			<libraryPath>..\Libraries\Filesystem\Filesystem26.0.sws</libraryPath>
-			<libraryTimeStamp>2025-05-02T09:38:39</libraryTimeStamp>
-			<libraryID>local/Filesystem26.0</libraryID>
-		</library>
-		<library>
 			<libraryPath>DfPkg\NilsSve_DUFLibrary26.0-9f627e528576a4d10501aa185f5ed5f33a9ef1b6\DUFLibrary26.0.sws</libraryPath>
 			<libraryTimeStamp>2026-09-11T11:43:50</libraryTimeStamp>
 			<libraryID>github.com/NilsSve/Library-DUF.git/DUFLibrary26.0</libraryID>
