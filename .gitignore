@@ -81,3 +81,6 @@ loginEncryptionkey.inc
 # Third-party ActiveX controls are licensed separately and are not
 # redistributed from this repository.
 **/Programs/*.ocx
+
+# Installed into the workspace folder by df-cli from the DUF package
+/BuildDUFUtilities.bat

@@ -7,8 +7,8 @@
         },
         {
             "source": "https://github.com/NilsSve/Library-DUF.git",
-            "sws": "DUFLibrary26.0.sws",
-            "version": "9f627e528576a4d10501aa185f5ed5f33a9ef1b6"
+            "sws": "RDC-DUF-Library.sws",
+            "version": "1.0.7"
         }
     ],
     "description": "COM Manifest Studio",

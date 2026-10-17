@@ -78,7 +78,7 @@ Class cManifestIniFile is a cRDCProjectIniFile
         Set psFileName to sIniFile
 
         If (sValue <> "") Begin
-            Get EncodeString of oBase64Functions sValue to sValue
+            Get EncodeString of ghoBase64Functions sValue to sValue
         End
         Send WriteString sSection sValueName sValue
     End_Procedure
@@ -98,7 +98,7 @@ Class cManifestIniFile is a cRDCProjectIniFile
 
         Get ReadString sSection sValueName sDefaultValue to sValue
         If (sValue <> "") Begin
-            Get DecodeString of oBase64Functions sValue to sValue
+            Get DecodeString of ghoBase64Functions sValue to sValue
         End
         Function_Return sValue
     End_Function
