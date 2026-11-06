@@ -1,6 +1,11 @@
 {
     "dependencies": [
         {
+            "source": "https://github.com/NilsSve/Library-RDCToolsLib.git",
+            "sws": "RDC-Windows-Sub-Classes-Library.sws",
+            "version": "1.0.16"
+        },
+        {
             "source": "https://github.com/NilsSve/Library-cFilesystem.git",
             "sws": "Filesystem26.0.sws",
             "version": "f78c91adca8827911fc5583300c44c05661e2eab"
