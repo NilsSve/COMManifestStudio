@@ -61,6 +61,7 @@ Use Winkern.pkg
 Use cWorkspace.pkg
 Use cRegistry.pkg
 Use cHttpTransfer.pkg
+Use cJsonHttpTransfer.pkg
 Use Flexml.pkg
 Use Dfcursor.pkg
 Use tWinStructs.pkg
@@ -213,6 +214,9 @@ Class cManifestFunctionLibrary is a cObject
         Property String psExeFilePath
         Property String psExeFileName
         Property Boolean pbApplicationStringsOk False
+        // The files of the global Manifest Fragment Library on GitHub, as last listed by
+        // CheckForNewManifestFragmentFiles. DownloadNewFiles finds each file's address here.
+        Property tRemoteFragmentFile[] pRemoteFragmentFiles
     End_Procedure
 
     // Adds the ManifestSideBySide program to the VDF Studio's Tools menu.
@@ -428,7 +432,7 @@ Class cManifestFunctionLibrary is a cObject
         End
         Get CheckLocalManifestFragmentFiles (&sFilesArray) to bExists
         If (bExists = False) Begin
-            Send Info_Box "Not all selected Manifest Fragment files exists in your local Manifest Fragment Library. Those files missing are marked with red in the grid.\n\nYou could try to press the 'Download New Fragment Files' button to download the missing file(s) from VDF-Guidance."
+            Send Info_Box "Not all selected Manifest Fragment files exists in your local Manifest Fragment Library. Those files missing are marked with red in the grid.\n\nYou could try to press the 'Download New Fragment Files' button to download the missing file(s) from the global library on GitHub."
             Procedure_Return
         End
 
@@ -486,41 +490,205 @@ Class cManifestFunctionLibrary is a cObject
         Function_Return iRetval
     End_Function
 
-    // Function returns an array with new Manifest Fragment Files that exists
-    // remotely in the VDF-Guidance global repository, but is missing from the local 'Manifest Fragment Library'.
-    // It also returns True if the download went OK via a ByRef param.
-    Function CheckForNewManifestFragmentFiles Boolean ByRef bOk String[] ByRef sNewFragmentFilesArray Returns Boolean
-        String[] sLocalFragmentFilesArray sRemoteFragmentFilesArray
-        String sDataPath sValue
-        Integer i iItems iItem iIndex
+    // Returns the files of the global Manifest Fragment Library on GitHub that the local 'Manifest Fragment
+    // Library' does not have, or has with other content. The GitHub listing gives each file's git blob SHA-1,
+    // and the local file's is worked out the same way (LocalFileMatchesBlob) - so a corrected file is offered
+    // too, not only new names. bExistsLocally tells the two apart.
+    // Returns False when the library could not be listed; the user has then been told why.
+    Function CheckForNewManifestFragmentFiles tRemoteFragmentFile[] ByRef NewFiles Returns Boolean
+        tRemoteFragmentFile[] RemoteFiles
+        String sLibrary sMessage sFileName sBlobSha
+        Integer i iItems iCount
+        Boolean bExists bSame
 
-        Get psDataPath of (phoWorkspace(ghoApplication)) to sDataPath
-        Get PathAtIndex of (phoWorkspace(ghoApplication)) sDataPath 1 to sDataPath
-        Get vFolderFormat sDataPath to sDataPath
-        Get DownloadFile CS_VdfGuidanceSVN CS_VdfGuidanceLibrary (sDataPath + CS_TempHTHMLPage) to bOk
-        If (bOk = True) Begin
-            Get ParseManifestLibraryHTMLPage (sDataPath - CS_TempHTHMLPage) to sRemoteFragmentFilesArray
-            Get AllManifestFragmentFiles to sLocalFragmentFilesArray
-            Move (SortArray(sRemoteFragmentFilesArray))   to sRemoteFragmentFilesArray
-            Move (SortArray(sLocalFragmentFilesArray))    to sLocalFragmentFilesArray
-            Move (SizeOfArray(sRemoteFragmentFilesArray)) to iItems
-            Decrement iItems
-            For i from 0 to iItems
-                // As the arrays can have different sizes we need to check
-                // that the i value exists in the array - else runtime error "Array value out of bounce" gets triggered,
-                // which we want to avoid.
-                Move sRemoteFragmentFilesArray[i] to sValue
-                Move (SearchArray(sValue, sLocalFragmentFilesArray)) to iIndex
-                // If iIndex = -1 the file doesn't exist locally.
-                If (iIndex = -1) Begin
-                    Move sValue to sNewFragmentFilesArray[iItem]
-                    Increment iItem
+        Move (ResizeArray(NewFiles, 0)) to NewFiles
+        Get RemoteManifestFragmentFiles (&sMessage) to RemoteFiles
+        Set pRemoteFragmentFiles to RemoteFiles
+        If (sMessage <> "") Begin
+            Send Info_Box sMessage
+            Function_Return False
+        End
+
+        Send Cursor_Wait of Cursor_Control
+        Get psManifestFragmentLibrary to sLibrary
+        Get vFolderFormat sLibrary to sLibrary
+        Move (SizeOfArray(RemoteFiles)) to iItems
+        For i from 0 to (iItems - 1)
+            Move RemoteFiles[i].sFileName to sFileName
+            Move RemoteFiles[i].sBlobSha  to sBlobSha
+            Get vFilePathExists (sLibrary + sFileName) to bExists
+            Move False to bSame
+            If (bExists = True) Begin
+                Get LocalFileMatchesBlob (sLibrary + sFileName) sBlobSha to bSame
+            End
+            If (bSame = False) Begin
+                Move (SizeOfArray(NewFiles)) to iCount
+                Move RemoteFiles[i] to NewFiles[iCount]
+                Move bExists        to NewFiles[iCount].bExistsLocally
+            End
+        Loop
+        Send Cursor_Ready of Cursor_Control
+        Function_Return True
+    End_Function
+
+    // Lists the global Manifest Fragment Library: one request to GitHub's API for the folder listing (JSON).
+    // Without signing in, GitHub allows 60 such requests per hour from one computer.
+    // sMessage returns why the list could not be read; "" when it could.
+    Function RemoteManifestFragmentFiles String ByRef sMessage Returns tRemoteFragmentFile[]
+        tRemoteFragmentFile[] RemoteFiles
+        Handle hoHttp hoJson hoItem
+        Integer i iItems iCount
+        String sName sType sValue
+        Boolean bOk bHasAll
+
+        Move "" to sMessage
+        Get Create (RefClass(cJsonHttpTransfer)) to hoHttp
+        Set piRemotePort      of hoHttp to rpHttpSSL
+        Set peTransferFlags   of hoHttp to ifSecure
+        Set psAgent           of hoHttp to CS_HttpUserAgent
+        Set pbShowErrorDialog of hoHttp to False
+        Send Cursor_Wait of Cursor_Control
+        Get HttpGetJson of hoHttp CS_GitHubApiHost CS_GitHubLibraryListing (&bOk) to hoJson
+        Send Cursor_Ready of Cursor_Control
+        Send Destroy of hoHttp
+
+        If (hoJson = 0) Begin
+            Move "The global Manifest Fragment Library on GitHub could not be reached. Please check the internet connection and try again later." to sMessage
+            Function_Return RemoteFiles
+        End
+        // An error comes back as an object with a message - e.g. when the 60 requests of the hour are used up.
+        If (JsonType(hoJson) <> jsonTypeArray) Begin
+            Move "GitHub did not send the list of the global Manifest Fragment Library." to sMessage
+            If (HasMember(hoJson, "message")) Begin
+                Get MemberValue of hoJson "message" to sValue
+                Move (sMessage + "\n\nGitHub says:" * sValue) to sMessage
+            End
+            Send Destroy of hoJson
+            Function_Return RemoteFiles
+        End
+
+        Get MemberCount of hoJson to iItems
+        For i from 0 to (iItems - 1)
+            Get Member of hoJson i to hoItem
+            If (hoItem <> 0) Begin
+                Move (HasMember(hoItem, "type") and HasMember(hoItem, "name") and HasMember(hoItem, "sha") and HasMember(hoItem, "download_url")) to bHasAll
+                If (bHasAll = True) Begin
+                    Get MemberValue of hoItem "type" to sType
+                    Get MemberValue of hoItem "name" to sName
+                    If (sType = "file" and Lowercase(Right(sName, 4)) = ".txt") Begin
+                        Move (SizeOfArray(RemoteFiles)) to iCount
+                        Move sName to RemoteFiles[iCount].sFileName
+                        Get MemberValue of hoItem "sha" to sValue
+                        Move (Lowercase(sValue)) to RemoteFiles[iCount].sBlobSha
+                        Get MemberValue of hoItem "download_url" to sValue
+                        Move sValue to RemoteFiles[iCount].sDownloadUrl
+                    End
                 End
-            Loop
+                Send Destroy of hoItem
+            End
+        Loop
+        Send Destroy of hoJson
+
+        If (SizeOfArray(RemoteFiles) = 0) Begin
+            Move "The global Manifest Fragment Library on GitHub has no fragment files." to sMessage
         End
-        Else Begin
-            Send Info_Box "The VDF-Guidance site couldn't be contacted. Please try again later."
+        Function_Return RemoteFiles
+    End_Function
+
+    // True when the local file sFileName has the content of the git blob sBlobSha, as GitHub lists it.
+    // Git may keep the file with LF line ends while the local copy has CRLF, so the file is checked both
+    // as it is and with each CRLF turned into LF.
+    Function LocalFileMatchesBlob String sFileName String sBlobSha Returns Boolean
+        String sData sSha
+
+        Get FileContentAsString sFileName to sData
+        Get GitBlobSha sData to sSha
+        If (sSha = Lowercase(sBlobSha)) Begin
+            Function_Return True
         End
+        Get GitBlobSha (Replaces((Character(13) + Character(10)), sData, Character(10))) to sSha
+        Function_Return (sSha = Lowercase(sBlobSha))
+    End_Function
+
+    // Returns git's name for a file's content, in lowercase hex: the SHA-1 of "blob <size in bytes>",
+    // a zero byte, and the content.
+    Function GitBlobSha String sData Returns String
+        UChar[] ucData ucHeader ucHash
+        Handle hoCrypt hProv hHash
+        Integer i iByte iHigh iLow
+        String sHex sDigits
+        Boolean bOk
+
+        Move (StringToUCharArray(sData)) to ucData
+        Move (StringToUCharArray("blob " + String(SizeOfArray(ucData)))) to ucHeader
+        Move 0 to ucHeader[SizeOfArray(ucHeader)]
+
+        Move False to bOk
+        Get Create (RefClass(cCryptographerEx)) to hoCrypt
+        Set piHash of hoCrypt to CALG_SHA1
+        Get AcquireContext of hoCrypt to hProv
+        If (hProv <> 0) Begin
+            Get CreateHash of hoCrypt hProv to hHash
+            If (hHash <> 0) Begin
+                Get HashData of hoCrypt hHash ucHeader to bOk
+                If (bOk = True and SizeOfArray(ucData) > 0) Begin
+                    Get HashData of hoCrypt hHash ucData to bOk
+                End
+                If (bOk = True) Begin
+                    Get HashValue of hoCrypt hHash to ucHash
+                End
+                Get DestroyHash of hoCrypt hHash to bOk
+            End
+            Get ReleaseContext of hoCrypt hProv to bOk
+        End
+        Send Destroy of hoCrypt
+
+        Move "" to sHex
+        Move "0123456789abcdef" to sDigits
+        For i from 0 to (SizeOfArray(ucHash) - 1)
+            // In an expression a UChar of 128 or more reads as negative (206 as -50), so the byte goes
+            // through an Integer first. Measured: without this, "ce" came out as "e".
+            Move ucHash[i] to iByte
+            If (iByte < 0) Begin
+                Move (iByte + 256) to iByte
+            End
+            Move (Mod(iByte, 16))        to iLow
+            Move ((iByte - iLow) / 16)   to iHigh
+            Move (sHex + Mid(sDigits, 1, (iHigh + 1)) + Mid(sDigits, 1, (iLow + 1))) to sHex
+        Loop
+        Function_Return sHex
+    End_Function
+
+    // Returns a file's bytes as they are (read in binary mode); "" when it cannot be read.
+    Function FileContentAsString String sFileName Returns String
+        Integer iCh iSize
+        String sData
+
+        Move "" to sData
+        Get Seq_Open_Input_Channel ("binary: " + sFileName) to iCh
+        If (iCh >= 0) Begin
+            Get_Channel_Size iCh to iSize
+            If (iSize > 0) Begin
+                Read_Block channel iCh sData iSize
+            End
+            Send Seq_Close_Channel iCh
+        End
+        Function_Return sData
+    End_Function
+
+    // Writes sData to sFileName with CRLF line ends, the way the local library's files are kept.
+    // Returns False when the file could not be written.
+    Function WriteFileWithCRLF String sFileName String sData Returns Boolean
+        Integer iCh
+
+        Move (Replaces((Character(13) + Character(10)), sData, Character(10))) to sData
+        Move (Replaces(Character(10), sData, (Character(13) + Character(10)))) to sData
+        Get Seq_Open_Output_Channel ("binary: " + sFileName) to iCh
+        If (iCh < 0) Begin
+            Function_Return False
+        End
+        Write channel iCh sData
+        Send Seq_Close_Channel iCh
         Function_Return True
     End_Function
 
@@ -1498,10 +1666,13 @@ Class cManifestFunctionLibrary is a cObject
     // Returns:
     //   True if success.
     // Sample usage:
-    //   Get DownloadFile CS_VdfGuidanceSVN CS_VdfGuidanceLibrary "c:\temp.htm" to bSuccess
+    //   Get DownloadFile "raw.githubusercontent.com" "/NilsSve/COMManifestStudio/main/README.md" "c:\temp\README.md" to bSuccess
+    // The request goes over HTTPS. It counts as a success only when the server answers 200 OK: else a
+    // "404: Not Found" page would be saved as the file. On a failure no file is left at sFileName.
     Function DownloadFile String sHost String sPage String sFileName Returns Boolean
         Handle hoHttpTransfer
         Boolean bOk bExists
+        String sStatus
 
         Get vFilePathExists sFileName to bExists
         If (bExists = True) Begin
@@ -1511,59 +1682,113 @@ Class cManifestFunctionLibrary is a cObject
         Move False to bOk
         Get Create U_cHttpTransfer to hoHttpTransfer
         If (hoHttpTransfer <> 0) Begin
-            Set psAcceptTypes  of hoHttpTransfer to "*/*"
-            Set psRemoteHost   of hoHttpTransfer to sHost
-            Set psSaveAsFile   of hoHttpTransfer to sFileName
-            Get HTTPGetRequest of hoHttpTransfer sPage to bOk
+            Set psAcceptTypes     of hoHttpTransfer to "*/*"
+            Set psRemoteHost      of hoHttpTransfer to sHost
+            Set piRemotePort      of hoHttpTransfer to rpHttpSSL
+            Set peTransferFlags   of hoHttpTransfer to ifSecure
+            Set psAgent           of hoHttpTransfer to CS_HttpUserAgent
+            Set pbShowErrorDialog of hoHttpTransfer to False
+            Set psSaveAsFile      of hoHttpTransfer to sFileName
+            Get HTTPGetRequest    of hoHttpTransfer sPage to bOk
+            If (bOk = True) Begin
+                Get QueryInfo of hoHttpTransfer HTTP_QUERY_STATUS_CODE to sStatus
+                Move (Trim(sStatus) = "200") to bOk
+            End
             Send Destroy of hoHttpTransfer
         End
 
+        If (bOk = False and vFilePathExists(sFileName)) Begin
+            Get vDeleteFile sFileName to bExists
+        End
         Function_Return bOk
     End_Function
 
+    // Lists the files of the global Manifest Fragment Library on GitHub that are new, or that differ from
+    // the local copy, in the download dialog.
     Procedure DownloadManifestFragmentFiles
-        String[] sNewFilesArray
+        tRemoteFragmentFile[] NewFiles
         tFileStruct[] FileStructArray
-        Integer iItems
+        Integer i iItems
         Boolean bOk
 
-        Send Cursor_Wait of Cursor_Control
-        Get CheckForNewManifestFragmentFiles (&bOk) (&sNewFilesArray) to bOk
-        // bOk = False an error occured when contacting the web-site; and we're done.
-        If (bOk = True) Begin
-            Move (SizeOfArray(sNewFilesArray)) to iItems
-            If (iItems > 0) Begin
-                Get StringArrayToFileStructArray sNewFilesArray to FileStructArray
-                Send Cursor_Ready of Cursor_Control
-                Send Activate_oDownloadFiles_dg of (Client_Id(ghoCommandBars)) FileStructArray
+        Get CheckForNewManifestFragmentFiles (&NewFiles) to bOk
+        // bOk = False: GitHub could not be asked, and the user has been told why.
+        If (bOk = False) Begin
+            Procedure_Return
+        End
+
+        Move (SizeOfArray(NewFiles)) to iItems
+        If (iItems = 0) Begin
+            Send Info_Box "Your local 'Manifest Fragment Library' already has all the files of the global library on GitHub, and with the same content."
+            Procedure_Return
+        End
+
+        // The download dialog's grid: the file name, and whether it is new or differs from the local copy.
+        For i from 0 to (iItems - 1)
+            Move NewFiles[i].sFileName      to FileStructArray[i].sFileNameFirstCol
+            Move NewFiles[i].bExistsLocally to FileStructArray[i].bExists
+            If (NewFiles[i].bExistsLocally = True) Begin
+                Move "Differs from your copy" to FileStructArray[i].sFileNameSecondCol
             End
             Else Begin
-                Send Info_Box "You already have all the latest 'Manifest Fragment' files from the global repository at VDF-Guidance installed in your local repository."
+                Move "New" to FileStructArray[i].sFileNameSecondCol
             End
-        End
-        Send Cursor_Ready of Cursor_Control
+        Loop
+        Send Activate_oDownloadFiles_dg of (Client_Id(ghoCommandBars)) FileStructArray
     End_Procedure
 
-    // Helper function that downloads the files in the passed array
-    // to the local Manifest Fragment Library.
+    // Downloads the files in the passed array (names without path) from the global Manifest Fragment Library
+    // on GitHub to the local Manifest Fragment Library. Each file is saved with CRLF line ends, like the
+    // local files. A local file of the same name is replaced - but only after its download has worked.
+    // Returns False if at least one file could not be downloaded.
     Function DownloadNewFiles String[] ByRef sFilesArray Returns Boolean
-        Integer i iItems
-        Boolean bOk bRetval
-        String sFileName sManifestFragmentLibrary
+        tRemoteFragmentFile[] RemoteFiles
+        Integer i j iItems iRemote iPos
+        Boolean bOk bRetval bVoid
+        String sFileName sManifestFragmentLibrary sTempFile sUrl sHost sPage sData
 
         Move True to bOk
+        Get pRemoteFragmentFiles to RemoteFiles
+        Move (SizeOfArray(RemoteFiles)) to iRemote
         Get psManifestFragmentLibrary to sManifestFragmentLibrary
         Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+        Get WindowsTempDirectory to sTempFile
+        Move (vFolderFormat(sTempFile) + "COMManifestStudioDownload.tmp") to sTempFile
+
         Move (SizeOfArray(sFilesArray)) to iItems
-        Decrement iItems
-        For i from 0 to iItems
+        For i from 0 to (iItems - 1)
             Move sFilesArray[i] to sFileName
-            Get DownloadFile CS_VdfGuidanceSVN (CS_VdfGuidanceLibrary - sFileName) (sManifestFragmentLibrary + sFileName) to bRetval
+            Move "" to sUrl
+            For j from 0 to (iRemote - 1)
+                If (RemoteFiles[j].sFileName = sFileName) Begin
+                    Move RemoteFiles[j].sDownloadUrl to sUrl
+                End
+            Loop
+
+            // "https://raw.githubusercontent.com/NilsSve/..." -> host "raw.githubusercontent.com", page "/NilsSve/..."
+            Move False to bRetval
+            If (Lowercase(Left(sUrl, 8)) = "https://") Begin
+                Move (Mid(sUrl, Length(sUrl), 9)) to sUrl
+                Move (Pos("/", sUrl)) to iPos
+                If (iPos > 1) Begin
+                    Move (Left(sUrl, (iPos - 1)))              to sHost
+                    Move (Mid(sUrl, Length(sUrl), iPos))     to sPage
+                    Get DownloadFile sHost sPage sTempFile to bRetval
+                End
+            End
+            If (bRetval = True) Begin
+                Get FileContentAsString sTempFile to sData
+                Get WriteFileWithCRLF (sManifestFragmentLibrary + sFileName) sData to bRetval
+            End
             // If at least one download didn't work (bRetval = false) we will return a False from this function.
-            If (bRetval = False) ;
+            If (bRetval = False) Begin
                 Move False to bOk
+            End
         Loop
 
+        If (vFilePathExists(sTempFile)) Begin
+            Get vDeleteFile sTempFile to bVoid
+        End
         Function_Return bOk
     End_Function
 
@@ -2597,38 +2822,6 @@ Class cManifestFunctionLibrary is a cObject
         Get psExeFilePath to sPath
         Send vShellExecute "open" "Explorer.exe" sPath ""
     End_Procedure
-
-    // Function that takes an html page (the manifest fragment library html page at vdf-guidance)
-    // as a parameter and returns all manifest fragment library text files as
-    // a text string array.
-    // It also deletes the passed sHTMLFile from disk after the parsing is complete.
-    Function ParseManifestLibraryHTMLPage String sHTMLFile Returns String[]
-        String[] sFilesArray
-        Integer i iItem iCh iStart iEnd iRetval
-        String sValue sFileName
-
-        Move 0 to iItem
-        Get Seq_Open_Input_Channel sHTMLFile to iCh
-        If (iCh > 0) Begin
-            While (not(SeqEof))
-                Readln channel iCh sValue
-                // If we found a manifest fragment text file, parse the file name:
-                If (sValue contains CS_AhRef and sValue contains CS_HTMLTextExt) Begin
-                    Move (Pos(CS_AhRef, sValue)) to iStart
-                    Move (iStart + Length(CS_AhRef) + 1) to iStart
-                    Move (Pos(CS_HTMLTextExt, sValue)) to iEnd
-                    Move (iEnd + Length(CS_HTMLTextExt) -2) to iEnd
-                    Move (Mid(sValue, (iEnd - iStart), iStart)) to sFileName
-                    Move (Replaces(CS_HTMLSpace, sFileName, " ")) to sFileName
-                    Move sFileName to sFilesArray[iItem]
-                    Increment iItem
-                End
-            Loop
-            Send Seq_Close_Channel iCh
-            Get vDeleteFile sHTMLFile to iRetval
-        End
-        Function_Return sFilesArray
-    End_Function
 
     // Helper function that reads and parses a temporary file output by the CLSExport console mode program.
     // It creates a manifest fragment file in the "Manifest Fragment Library" folder.

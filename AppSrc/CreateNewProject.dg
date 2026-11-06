@@ -629,7 +629,7 @@ Object oCreateNewProject_Dg is a cDbModalPanelWizard
 
                     Object oDownloadFragmentFiles_MenuItem is a cCJMenuItem
                         Set psCaption to "&Download New Fragment Files"
-                        Set psDescription to "Download New Fragment Files from vdf-guidance global repository"
+                        Set psDescription to "Download New Fragment Files from the global library on GitHub"
                         Set psImage to "FragmentLibrary032N32.ico"
                         Set psShortcut to "Alt+D"
                         Set pbControlBeginGroup to True

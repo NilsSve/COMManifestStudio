@@ -546,7 +546,7 @@ Object oMain is a Panel
             Object oFragmentDownload_MenuItem is a cCJMenuItem
                 Set psCaption to "&Download"
                 Set psToolTip to "Download fragment file (Alt+D)"
-                Set psDescription to "Download New Fragment Files. Checks if there are any new 'Manifest Fragment Library' files available in the global repository at VDF-Guidance. If there is - you will be presented with a dialog where you can select files to download."
+                Set psDescription to "Download Fragment Files. Checks the global 'Manifest Fragment Library' on GitHub for files that are new to your local library, or that differ from your copy. If there are any - you will be presented with a dialog where you can select files to download."
                 Set psImage to "FragmentDownload.ico"
                 Set psShortcut to "Alt+D"
                 Procedure OnExecute Variant vCommandBarControl
@@ -555,18 +555,17 @@ Object oMain is a Panel
                 End_Procedure
             End_Object
 
-// ToDo: This does not seem to work any more. Needs investigation.
-//            Object oFragmentShare_MenuItem is a cCJMenuItem
-//                Set psCaption to "&Share"
-//                Set psToolTip to "Share fragment file (Alt+S)"
-//                Set psDescription to "Share Fragment Files. If you have created a new Manifest Fragment File for a COM (OCX/DLL) component and version - you are encouraged to share it with other users of this tool. You do so by e-mailing it/them to the author of this program, who will check it for consistency and make it available for the global repository at VDF-Guidance."
-//                Set psShortcut to "Alt+S"
-//                Set psImage to "FragmentShare.ico"
-//                Procedure OnExecute Variant vCommandBarControl
-//                    Forward Send OnExecute vCommandBarControl
-//                    Send DoShareManifestFragmentFiles of (Client_Id(ghoCommandBars))
-//                End_Procedure
-//            End_Object
+            Object oFragmentShare_MenuItem is a cCJMenuItem
+                Set psCaption to "&Share"
+                Set psToolTip to "Share fragment file (Alt+S)"
+                Set psDescription to "Share Fragment Files. If you have created a new Manifest Fragment File for a COM (OCX/DLL) component and version - you are encouraged to share it with other users of this tool. You do so by uploading it/them to the global 'Manifest Fragment Library' on GitHub, where the author of this program checks it for consistency before it is added."
+                Set psShortcut to "Alt+S"
+                Set psImage to "FragmentShare.ico"
+                Procedure OnExecute Variant vCommandBarControl
+                    Forward Send OnExecute vCommandBarControl
+                    Send DoShareManifestFragmentFiles of (Client_Id(ghoCommandBars))
+                End_Procedure
+            End_Object
 
         End_Object
 
@@ -669,7 +668,7 @@ Object oMain is a Panel
             Object oOpenFragmentLibrary_MenuItem is a cCJMenuItem
                 Set psCaption to "Open Fragments"
                 Set psToolTip to "Fragments Library (Ctrl+L)"
-                Set psDescription to "Open the local Manifest Fragment Library in Windows Explorer. Note that there is also a global repository of fragment files available. You can press the 'Download New Fragment Files' button to get new files from the VDF-Guidance web-site."
+                Set psDescription to "Open the local Manifest Fragment Library in Windows Explorer. Note that there is also a global repository of fragment files available. You can press the 'Download New Fragment Files' button to get new files from the global library on GitHub."
                 Set psImage to "FragmentLibrary.ico"
                 Set psShortcut to "Ctrl+L"
                 Procedure OnExecute Variant vCommandBarControl

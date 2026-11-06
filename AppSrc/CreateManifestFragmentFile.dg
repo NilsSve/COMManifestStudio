@@ -292,10 +292,10 @@ Object oCreateManifestFragmentFile is a cRDCModalPanel
             Procedure OnStartup
                 String sValue
                 Move "If you can't find a manifest fragment file for a COM component (OCX/DLL file) in the local Manifest Fragment Library," to sValue
-                Move (sValue * "nor in the global repository at VDF-Guidance (press the Download toolbar button to check) - you can create one here.") to sValue
+                Move (sValue * "nor in the global library on GitHub (press the Download toolbar button to check) - you can create one here.") to sValue
                 Move (sValue * "The component must be registered with Windows. If it is not and you press the 'Create!' button, you will get a question if you would like to register it.") to sValue
                 Move (sValue * "It is important to understand that this process is by no means foolproof. It is your responsibility to check that the new file works properly.") to sValue
-                Move (sValue * "When you have verified that it works properly, press the 'Share' toolbar button so that the new manifest fragment file can be uploaded to the global repository at VDF-Guidance, to be used by all other users of this tool.") to sValue
+                Move (sValue * "When you have verified that it works properly, press the 'Share' toolbar button so that the new manifest fragment file can be uploaded to the global library on GitHub, to be used by all other users of this tool.") to sValue
                 Move (sValue * "To create fragment files for all the COM components in a folder in one go - for example a new CodeJock release - press the 'Folder...' button.") to sValue
                 Set Value to sValue
             End_Procedure

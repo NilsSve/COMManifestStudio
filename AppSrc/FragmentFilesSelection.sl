@@ -408,7 +408,7 @@ Object oFragmentFiles_sl is a cRDCModalPanel
             Set Auto_Size_State to False
             Set Size to 44 392
             Set Location to 3 7
-            Set Label to "The Manifest Fragment Files column is searchable if DataFlex 18 or later is used. While typing, suggestions are shown below the grid cell in a list. If you can't find a matching manifest fragment file you can try the 'Download' toolbar button to check if it exists in the global repository at VDF-Guidance. If it doesn't exist there it needs to be created, by clicking the 'Create' toolbar button. TIP: If the list shows items of no interest to you, delete them from the workspace Manifest Fragment Library. They can always be added later by clicking the 'Download' toolbar button."
+            Set Label to "The Manifest Fragment Files column is searchable if DataFlex 18 or later is used. While typing, suggestions are shown below the grid cell in a list. If you can't find a matching manifest fragment file you can try the 'Download' toolbar button to check if it exists in the global library on GitHub. If it doesn't exist there it needs to be created, by clicking the 'Create' toolbar button. TIP: If the list shows items of no interest to you, delete them from the workspace Manifest Fragment Library. They can always be added later by clicking the 'Download' toolbar button."
             Set Justification_Mode to JMode_Left
             Set peAnchors to anTopLeftRight
             Set Color to clWhite
@@ -452,7 +452,7 @@ Function ActivateFragmentFiles_sl String[] ByRef sFilesArray Returns String[]
     Get FilesArrayDifference     of ghoManifestFunctionLibrary (&sFilesArray) (&sManifestLibraryArray) to sReturnFilesArray
     Move (SizeOfArray(sReturnFilesArray)) to iSize
     If (iSize = 0) Begin
-        Send Info_Box "There are no more local Manifest Fragment files to select. Press the 'Download' toolbar button to check if there exist any new Manifest Fragment files in the global repository at vdf-guidance."
+        Send Info_Box "There are no more local Manifest Fragment files to select. Press the 'Download' toolbar button to check if there exist any new Manifest Fragment files in the global library on GitHub."
     End
     Else Begin
         Get StringArrayToFileStructArray of ghoManifestFunctionLibrary sFilesArray to FilesStructArray

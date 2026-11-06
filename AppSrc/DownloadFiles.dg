@@ -33,15 +33,21 @@ Object oDownloadFiles_dg is a cRDCModalPanel
         End_Object
 
         Object oFileNameFirst_Col is a cRDCCJGridColumnSuggestion
-            Set piWidth to 487
-            Set psCaption to "New Manifest Fragment Files.  Right-click grid for menu options"
+            Set piWidth to 347
+            Set psCaption to "Manifest Fragment Files on GitHub.  Right-click grid for menu options"
             Delegate Set piFileNameFirstCol to (piColumnId(Self))    // cWsCheckboxCJGrid property
+        End_Object
+
+        // "New", or "Differs from your copy": then downloading it replaces the local file.
+        Object oStatus_Col is a cCJGridColumn
+            Set piWidth to 140
+            Set psCaption to "Status"
+            Set pbEditable to False
         End_Object
 
         Procedure DoFillGrid
             Integer i iFiles
-            String[] sManifestLibraryArray sFilesArray
-            Integer iCheckbox_Col iFileNameFirst_Col
+            Integer iCheckbox_Col iFileNameFirst_Col iStatus_Col
             tFileStruct[] FilesStructArray
             Handle hoDataSource hoCol
             tDataSourceRow[] TheData
@@ -52,14 +58,16 @@ Object oDownloadFiles_dg is a cRDCModalPanel
             Get DataSource of hoDataSource   to TheData
             Get piCheckboxCol                to iCheckbox_Col
             Get piFileNameFirstCol           to iFileNameFirst_Col
+            Get piColumnId of oStatus_Col    to iStatus_Col
             Get psFilesStructArray           to FilesStructArray
-            Get FileStructArrayAsStringArray of ghoManifestFunctionLibrary FilesStructArray True to sFilesArray
 
-            Move (SizeOfArray(sFilesArray)) to iFiles
-            Decrement iFiles
-            For i from 0 to iFiles
-                Move False          to TheData[i].sValue[iCheckbox_Col]
-                Move sFilesArray[i] to TheData[i].sValue[iFileNameFirst_Col]
+            Move (SizeOfArray(FilesStructArray)) to iFiles
+            For i from 0 to (iFiles - 1)
+                // New files are ticked. A file that differs from the local copy is not: downloading it
+                // replaces that copy, so the user ticks it.
+                Move (not(FilesStructArray[i].bExists))     to TheData[i].sValue[iCheckbox_Col]
+                Move FilesStructArray[i].sFileNameFirstCol  to TheData[i].sValue[iFileNameFirst_Col]
+                Move FilesStructArray[i].sFileNameSecondCol to TheData[i].sValue[iStatus_Col]
             Loop
 
             // Initialize Grid with new data
@@ -67,9 +75,8 @@ Object oDownloadFiles_dg is a cRDCModalPanel
 
             Send MovetoFirstRow
             Get ColumnObject iFileNameFirst_Col to hoCol
-            Set psFooterText of hoCol           to ("Number of available New Manifest Fragment Files:" * String(iFiles + 1))
-            Get ColumnObject iCheckbox_Col to hoCol
-            Set psFooterText of hoCol to ("Selected:" * String(0))
+            Set psFooterText of hoCol to ("Files to download:" * String(iFiles))
+            Send DoSetCheckboxFooterText
         End_Procedure
 
         Procedure OnCreateGridControl
@@ -144,15 +151,16 @@ Object oDownloadFiles_dg is a cRDCModalPanel
         Set Size to 14 74
         Set Label to "Download Now!"  
         Set psImage to "FragmentDownload.ico"
-        Set Status_Help to "Start downloading new Manifest Fragment Library files from VDF-Guidance to your local 'Manifest Fragment Library'"
+        Set Status_Help to "Download the selected files from the global Manifest Fragment Library on GitHub to your local 'Manifest Fragment Library'"
         Set Location to 233 238
         Set peAnchors To anBottomRight
         Set Default_State to True
 
         Procedure OnClick
             String[] sFilesArray
-            Integer iFiles
-            Boolean bOk
+            String sLibrary
+            Integer i iFiles iReplaced iRetval
+            Boolean bOk bExists
 
             Get SelectedItems of oNewFragmentFiles_grid True to sFilesArray
             Move (SizeOfArray(sFilesArray))    to iFiles
@@ -160,6 +168,23 @@ Object oDownloadFiles_dg is a cRDCModalPanel
                 Send Info_Box "No files to download selected. Please select at least one file and try again."
                 Procedure_Return
             End
+
+            // A selected file that is already in the local library differs from it: say so before replacing it.
+            Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sLibrary
+            Get vFolderFormat sLibrary to sLibrary
+            For i from 0 to (iFiles - 1)
+                Get vFilePathExists (sLibrary + sFilesArray[i]) to bExists
+                If (bExists = True) Begin
+                    Increment iReplaced
+                End
+            Loop
+            If (iReplaced > 0) Begin
+                Get YesNo_Box (String(iReplaced) * "of the selected files are in your local 'Manifest Fragment Library' already, with other content. Downloading them replaces your copies.\n\nDo you want to continue?") to iRetval
+                If (iRetval <> MBR_Yes) Begin
+                    Procedure_Return
+                End
+            End
+
             Send Cursor_Wait of Cursor_Control
             Get DownloadNewFiles of ghoManifestFunctionLibrary (&sFilesArray) to bOk
             Send Cursor_Ready of Cursor_Control
@@ -167,7 +192,7 @@ Object oDownloadFiles_dg is a cRDCModalPanel
                 Send Info_Box "Success! The selected Manifest Fragment Files were downloaded to your local Manifest Fragment Library."
             End
             Else Begin
-                Send Info_Box "A problem occured while downloading files from the VDF-Guidance 'Manifest Fragment Library'. At least one of the selected files could not be downloaded. Press the 'Refresh Grid Data' button to view newly downloaded files."
+                Send Info_Box "A problem occurred while downloading files from the global 'Manifest Fragment Library' on GitHub. At least one of the selected files could not be downloaded; a local copy of such a file is left as it was. Press the 'Download' toolbar button again to see which files are still missing."
             End
             Send Close_Panel
         End_Procedure
@@ -203,7 +228,7 @@ Object oDownloadFiles_dg is a cRDCModalPanel
             Set Skip_State to True
             Procedure OnStartup
                 String sValue
-                Move "The list shows new manifest fragment files that exists in the global repository at VDF-Guidance, but not in your local 'Manifest Fragment Library' folder. Select the fragment files to download and press the Download Now! button." to sValue
+                Move "The list shows the files of the global Manifest Fragment Library on GitHub that are new to your local 'Manifest Fragment Library' folder, or that differ from your copy. New files are ticked. A file that differs replaces your copy when it is downloaded, so tick it only when you want GitHub's version. Then press the 'Download Now!' button." to sValue
                 Move (sValue + CR_LF + "Note:  If you can't find a suitable manifest fragment file here or in your local Manifest Fragment Library, create one by pressing the 'Create' toolbar button.") to sValue
                 Set Value to sValue
             End_Procedure
@@ -229,7 +254,7 @@ Procedure Activate_oDownloadFiles_dg tFileStruct[] FilesStructArray
     Integer iSize
     Move (SizeOfArray(FilesStructArray)) to iSize
     If (iSize = 0) Begin
-        Send Info_Box "No new 'Manifest Fragment Library' files to download from VDF-Guidance."
+        Send Info_Box "No new 'Manifest Fragment Library' files to download from GitHub."
         Procedure_Return
     End
     Send Activate_Dialog of (oDownloadFiles_dg(Self)) FilesStructArray

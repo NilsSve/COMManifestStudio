@@ -440,7 +440,7 @@ Object oDbMerger_vw is a cRDCDbView
 
                 Object oDownloadFragmentFiles_MenuItem is a cCJMenuItem
                     Set psCaption to "&Download New Fragment Files"
-                    Set psDescription to "Download new manifest fragment files from the vdf-guidance global repository"
+                    Set psDescription to "Download new manifest fragment files from the global library on GitHub"
                     Set psImage to "FragmentDownload.ico"
                     Set psShortcut to "Alt+D"
                     Procedure OnExecute Variant vCommandBarControl
@@ -451,7 +451,7 @@ Object oDbMerger_vw is a cRDCDbView
 
                 Object oShareFragmentFiles_MenuItem is a cCJMenuItem
                     Set psCaption to "&Share New Fragment Files"
-                    Set psDescription to "E-mail manifest fragment files that you have created"
+                    Set psDescription to "Upload manifest fragment files that you have created to the global library on GitHub"
                     Set psShortcut to "Alt+S"
                     Set psImage to "FragmentShare.ico"
                     Procedure OnExecute Variant vCommandBarControl
