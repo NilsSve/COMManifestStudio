@@ -1,0 +1,6 @@
+// Xtreme TaskPanel Control Unicode x86 version=24.3
+<file name="Codejock.TaskPanel.Unicode.v24.3.0.ocx">
+	<comClass clsid="{c0de2430-c84e-4c2e-bf15-8e5ab53ca1a8}" description="Xtreme Task Panel Control" tlbid="{B8E5842E-102B-4289-9D57-3B3F5B5E15D3}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,simpleframe,setclientsitefirst" progid="Codejock.TaskPanel.24.3.0"></comClass>
+	<comClass clsid="{c0de2430-2218-47c2-bc02-5d3f311467d7}" description="Codejock.TaskPanelGlobalSettings.24.3.0" progid="Codejock.TaskPanelGlobalSettings.24.3.0"></comClass>
+	<typelib tlbid="{B8E5842E-102B-4289-9D57-3B3F5B5E15D3}" resourceid="1" version="24.3" helpdir=""></typelib>
+</file>

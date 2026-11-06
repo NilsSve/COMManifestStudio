@@ -1,0 +1,7 @@
+// Xtreme Gauge Traits Collection x86 version=24.3
+<file name="Codejock.Gauge.v24.3.0.ocx">
+	<comClass clsid="{c0de2430-bb94-4643-8584-cf3e162c0e4b}" description="Codejock.GaugeTratis.24.3.0" progid="Codejock.GaugeTratis.24.3.0"></comClass>
+	<comClass clsid="{c0de2430-1047-4d16-8c0c-56bbfc104ba7}" description="Xtreme Gauge Control" tlbid="{4047133D-C4A6-4694-83BA-7EAD2D55BCCB}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="Codejock.GaugeCtrl.24.3.0"></comClass>
+	<comClass clsid="{c0de2430-9514-4e69-a47e-a8b44c22edff}" description="Codejock.GaugeGlobalSettings.24.3.0" progid="Codejock.GaugeGlobalSettings.24.3.0"></comClass>
+	<typelib tlbid="{4047133D-C4A6-4694-83BA-7EAD2D55BCCB}" resourceid="1" version="24.3" helpdir=""></typelib>
+</file>

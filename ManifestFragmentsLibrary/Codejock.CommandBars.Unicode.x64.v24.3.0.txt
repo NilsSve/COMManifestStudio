@@ -1,4 +1,4 @@
-// Xtreme CommandBars Control version=24.3
+// Xtreme CommandBars Control Unicode x64 version=24.3
 <file name="Codejock.CommandBars.Unicode.x64.v24.3.0.ocx">
 	<comClass clsid="{c0de2430-1c4d-4de8-bc4a-5240617d4930}" description="Xtreme CommandBars Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,invisibleatruntime,nouiactivate" progid="Codejock.CommandBars.24.3.0"></comClass>
 	<comClass clsid="{c0de2430-148b-45f5-9679-3e0dbbc92c13}" description="Xtreme CommandBars Frame Control" tlbid="{555E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="Codejock.CommandBarsFrame.24.3.0"></comClass>

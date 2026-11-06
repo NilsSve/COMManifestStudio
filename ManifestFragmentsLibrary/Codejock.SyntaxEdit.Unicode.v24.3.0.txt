@@ -1,0 +1,7 @@
+// Syntax Edit Unicode x86 version=24.3
+<file name="Codejock.SyntaxEdit.Unicode.v24.3.0.ocx">
+	<comClass clsid="{c0de2430-1557-497d-b522-62bc1329a5a7}" description="Xtreme Syntax Edit" tlbid="{CA73588D-282F-4592-9369-A61CC244FADA}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.SyntaxEdit.24.3.0"></comClass>
+	<comClass clsid="{c0de2430-4e21-4ee0-ae53-0c2c364c51dd}" description="Xtreme Syntax Edit Frame" tlbid="{CA73588D-282F-4592-9369-A61CC244FADA}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.SyntaxEditFrame.24.3.0"></comClass>
+	<comClass clsid="{c0de2430-48b3-4dd2-a4c6-1faba9ac0641}" description="Codejock.SyntaxEditGlobalSettings.24.3.0" progid="Codejock.SyntaxEditGlobalSettings.24.3.0"></comClass>
+	<typelib tlbid="{CA73588D-282F-4592-9369-A61CC244FADA}" resourceid="1" version="24.3" helpdir=""></typelib>
+</file>
