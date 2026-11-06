@@ -82,6 +82,11 @@ Define CS_StudioTools          for "\Studio\Tools"
 //Define CS_ClassesRootKey       for "HKEY_CLASSES_ROOT"
 Define CS_CLSIDKeyStandard     for "\SOFTWARE\Classes\CLSID"
 Define CS_CLSIDKey64Machine    for "\SOFTWARE\Classes\Wow6432Node\CLSID"
+// How a COM component is registered with Windows (cManifestFunctionLibrary's COMComponentRegistration):
+Define CI_COMNotRegistered       for 0  // none of its classes are in the registry
+Define CI_COMRegisteredThisFile  for 1  // its classes are registered to this file
+Define CI_COMRegisteredSibling   for 2  // to another file in the same folder that uses the same class IDs
+Define CI_COMRegisteredOtherFile for 3  // to a file in another folder
 Define CS_InprocServer32       for "InprocServer32"
 Define CS_Command              for "Command"
 Define CS_CommandLine          for "CommandLine"

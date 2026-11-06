@@ -840,6 +840,7 @@ Object oMain is a Panel
         Use SendSharedFilesDialog.dg
         Use ImageViewer.dg
         Use CreateManifestFragmentFile.dg
+        Use CreateFragmentFilesFromFolder.dg
         Use CreateNewProject.dg
         Use DbMergerViewNew.vw  
         Use ProgramSetup.dg

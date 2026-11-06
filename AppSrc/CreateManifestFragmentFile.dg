@@ -5,6 +5,7 @@ Use cRDCModalPanel.pkg
 Use cRDCForm.pkg
 Use cManifestFunctionLibrary.pkg
 Use vWin32fh.pkg
+Use CreateFragmentFilesFromFolder.dg
 
 Object oCreateManifestFragmentFile is a cRDCModalPanel
     Set Size to 125 387
@@ -25,9 +26,10 @@ Object oCreateManifestFragmentFile is a cRDCModalPanel
             Boolean bState
             Get Value to sValue
             Move (sValue <> "") to bState
-            Set Enabled_State of oCheck_btn    to bState
-            Set Enabled_State of oRegister_btn to bState
-            Set Enabled_State of oCreate_btn   to bState
+            Set Enabled_State of oCheck_btn      to bState
+            Set Enabled_State of oRegister_btn   to bState
+            Set Enabled_State of oUnRegister_btn to bState
+            Set Enabled_State of oCreate_btn     to bState
         End_Procedure
     End_Object
 
@@ -63,6 +65,23 @@ Object oCreateManifestFragmentFile is a cRDCModalPanel
         Set Label to "Path"
         Set Enabled_State to False
         Set peAnchors to anTopLeftRight
+    End_Object
+
+    Object oFolder_btn is a cRDCButton
+        Set Location to 83 326
+        Set Label to "Folder..."
+        Set psImage to "FolderOpen.ico"
+        Set Status_Help to "Create fragment files for all the COM (OCX) components in a folder, in one batch"
+        Set peAnchors to anTopRight
+
+        Procedure OnClick
+            String sPath
+
+            // Start in the folder of the component above, if one was selected.
+            Get Value of oCOMComponentPath_fm to sPath
+            Send Activate_oCreateFragmentFilesFromFolder sPath
+        End_Procedure
+
     End_Object
 
     Object oCreate_btn is a cRDCButton
@@ -214,6 +233,47 @@ Object oCreateManifestFragmentFile is a cRDCModalPanel
 
     End_Object
 
+    Object oUnRegister_btn is a cRDCButton
+        Set Label to "Unregister!"
+        Set Location to 102 136
+        Set Enabled_State to False
+        Set psImage to "UnRegisterDLL.ico"
+        Set Status_Help to "UnRegister the selected COM (OCX/DLL) component in Windows registry."
+        Set peAnchors to anNone
+        Set Size to 14 56
+
+        Procedure OnClick
+            String sPath sCOMComponentFileName sText sNote
+            Boolean bOK bRegistered
+            Integer iRetval
+
+            Get Value of oCOMComponentPath_fm to sPath
+            Get Value of oCOMComponentFileName_fm to sCOMComponentFileName
+            If (sPath = "" or sCOMComponentFileName = "") Begin
+                Send Info_Box "You need to select a COM component (.ocx or .dll file) first."
+                Procedure_Return
+            End
+            Get vFolderFormat of ghoManifestFunctionLibrary sPath to sPath
+
+            Get CheckIfCOMComponentIsRegistered of ghoManifestFunctionLibrary sPath sCOMComponentFileName to bRegistered
+
+            If (bRegistered = False) Begin
+                Send Info_Box ("The" * sCOMComponentFileName * "component is NOT registered with Windows.")
+                Procedure_Return
+            End
+
+            Move "Do you want to UnRegister this component?\n" to sText
+            Move "\n\nNote: When you click the 'Yes' button and UAC - User Access Control - is active on the machine, you will be presented with a Windows dialog with the question: 'Do you want to allow the following program to make changes to this computer?'. Select Yes to make the changes." to sNote
+            Get YesNo_Box (sText + sPath + sCOMComponentFileName + sNote) to iRetval
+            If (iRetval = MBR_No) Begin
+                Procedure_Return
+            End
+
+            Get RunRegSvrProgram of ghoManifestFunctionLibrary sPath sCOMComponentFileName False to bOK
+        End_Procedure
+
+    End_Object
+
     Object oInfo_3d is a Container3d
         Set Size to 43 366
         Set Location to 7 10
@@ -236,6 +296,7 @@ Object oCreateManifestFragmentFile is a cRDCModalPanel
                 Move (sValue * "The component must be registered with Windows. If it is not and you press the 'Create!' button, you will get a question if you would like to register it.") to sValue
                 Move (sValue * "It is important to understand that this process is by no means foolproof. It is your responsibility to check that the new file works properly.") to sValue
                 Move (sValue * "When you have verified that it works properly, press the 'Share' toolbar button so that the new manifest fragment file can be uploaded to the global repository at VDF-Guidance, to be used by all other users of this tool.") to sValue
+                Move (sValue * "To create fragment files for all the COM components in a folder in one go - for example a new CodeJock release - press the 'Folder...' button.") to sValue
                 Set Value to sValue
             End_Procedure
             Send OnStartup

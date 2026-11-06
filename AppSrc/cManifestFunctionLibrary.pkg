@@ -75,6 +75,7 @@ Use Symdef.pkg
 Use StartProg.pkg
 Use cManifestIniFile.pkg
 Use cRDCExternalProgramResult.pkg
+Use RDCRunProgram.pkg          // tRDCShellExecuteInfo, ShellExecuteExEf, WaitForSingleObjectEf
 
 #IFNDEF ghoManifestFunctionLibrary
     Global_Variable Integer ghoManifestFunctionLibrary
@@ -541,8 +542,14 @@ Class cManifestFunctionLibrary is a cObject
         Set pfAccessRights of hoReg to KEY_READ
         Move ("CLSID" + "\" + sCLSID) to sKey
         Get KeyExists of hoReg sKey to bExists
+        // Not in this program's own registry view: look in the 64-bit view, then in the 32-bit one.
         If (bExists = False) Begin
-            Get KeyExists of hoReg (CS_CLSIDKey64Machine + "\" + sCLSID) to bExists
+            Set pfAccessRights of hoReg to (KEY_READ ior KEY_WOW64_64KEY)
+            Get KeyExists of hoReg sKey to bExists
+        End
+        If (bExists = False) Begin
+            Set pfAccessRights of hoReg to (KEY_READ ior KEY_WOW64_32KEY)
+            Get KeyExists of hoReg sKey to bExists
         End
         Send Destroy of hoReg
 
@@ -551,15 +558,36 @@ Class cManifestFunctionLibrary is a cObject
 
     // Function that takes a COM Component path & filename as parameters and returns True/False,
     // if it is registered or not with Windows registry.
+    // True means: its classes are registered to this very file (see COMComponentRegistration).
     Function CheckIfCOMComponentIsRegistered String sCOMComponentPath String sCOMComponentFileName Returns Boolean
+        Integer iState
+        String sRegisteredTo
+
+        Get COMComponentRegistration sCOMComponentPath sCOMComponentFileName (&sRegisteredTo) to iState
+        Function_Return (iState = CI_COMRegisteredThisFile)
+    End_Function
+
+    // Tells how a COM component is registered with Windows. Both registry views are read, so a 64-bit
+    // component is seen from this 32-bit program too (and a 32-bit one from the 64-bit program).
+    // Returns one of:
+    //   CI_COMRegisteredThisFile  - its classes are registered to this file.
+    //   CI_COMRegisteredSibling   - its classes are registered to ANOTHER file in the same folder.
+    //                               CodeJock ships each control as three files (ANSI, Unicode and
+    //                               Unicode x64) that use the same class IDs. Only one file can own them
+    //                               in each registry view, and that registration describes the others
+    //                               too: their fragment files differ only in the file name.
+    //   CI_COMRegisteredOtherFile - its classes are registered to a file in another folder.
+    //   CI_COMNotRegistered       - none of its classes are in the registry, or CLSExport could not read it.
+    // sRegisteredTo returns the registered file (full path), when there is one.
+    Function COMComponentRegistration String sCOMComponentPath String sCOMComponentFileName String ByRef sRegisteredTo Returns Integer
         Integer iRetval i iItems
-        String sProgramsPath sCLSID sPath
+        String sProgramsPath sCLSID sPath sOther
         String[]   sCLSIDArray
         tSxSInfo[] sCLSIDArraystruct
-        tSxSInfo   sSxSInfo
-        Boolean bRegistered bOk
+        Boolean bOk
 
-        Move False to bRegistered
+        Move "" to sRegisteredTo
+        Move "" to sOther
         Send Cursor_Wait of Cursor_Control
         Get vFolderFormat sCOMComponentPath to sCOMComponentPath
 
@@ -568,26 +596,36 @@ Class cManifestFunctionLibrary is a cObject
         Get vFolderFormat sProgramsPath to sProgramsPath
 
         // Execute command:
-        Get ExternalProgramResult of ghoExternalProgramResult ('"' + sProgramsPath + CS_CLSExportExe + '"') ('"' + sCOMComponentPath + sCOMComponentFileName) sProgramsPath (&sCLSIDArray) to iRetval
+        Get ExternalProgramResult of ghoExternalProgramResult ('"' + sProgramsPath + CS_CLSExportExe + '"') ('"' + sCOMComponentPath + sCOMComponentFileName + '"') sProgramsPath (&sCLSIDArray) to iRetval
 
         // Was the ExternalProgramResult call successful?
         If (iRetval > 0) Begin
             Get ConvertFromCLSIDArrayToStruct sCLSIDArray to sCLSIDArraystruct
             Move (SizeOfArray(sCLSIDArraystruct)) to iItems
-            Decrement iItems
-            // Loop through the screen dump looking for CLSID's:
-            For i from 0 to iItems
+            // Loop through the screen dump looking for CLSID's. One class registered to this file is enough.
+            For i from 0 to (iItems - 1)
                 Move sCLSIDArraystruct[i].sCLSID to sCLSID
-
-                // All CLSID's must be registered (different component classes)
-                Get IsCLSIDRegisteredFromCOMComponent sClsid sCOMComponentFileName sPath to bOk
+                Get IsCLSIDRegisteredFromCOMComponent sCLSID sCOMComponentFileName (&sPath) to bOk
                 If (bOk = True) Begin
-                    Move True to bRegistered
+                    Send Cursor_Ready of Cursor_Control
+                    Move sPath to sRegisteredTo
+                    Function_Return CI_COMRegisteredThisFile
+                End
+                If (sPath <> "" and sOther = "") Begin
+                    Move sPath to sOther
                 End
             Loop
         End
         Send Cursor_Ready of Cursor_Control
-        Function_Return bRegistered
+
+        If (sOther = "") Begin
+            Function_Return CI_COMNotRegistered
+        End
+        Move sOther to sRegisteredTo
+        If (Uppercase(ParseFolderName(sOther)) = Uppercase(sCOMComponentPath)) Begin
+            Function_Return CI_COMRegisteredSibling
+        End
+        Function_Return CI_COMRegisteredOtherFile
     End_Function
 
     // Function that checks if a COM component listed in a fragment file is registered with Windows registry database.
@@ -947,7 +985,9 @@ Class cManifestFunctionLibrary is a cObject
     // Pass the full path & the name of the manifest fragment file to create,
     // the name of the COM component file and a struct array with CLSID's & descriptions.
     // Returns the name of new manifest fragment file with full path if successful - else an emtpy string.
-    Function CreateFromCLSIDArray String sToFile String sCOMComponentPath String sCOMComponentFileName tSxSInfo[] sCLSIDStructArray Returns String
+    // bQuiet True (the folder batch): no message boxes. An existing fragment file is replaced only when
+    // bReplaceExisting is True, and when nothing is written sMessage says why.
+    Function CreateFromCLSIDArray String sToFile String sCOMComponentPath String sCOMComponentFileName tSxSInfo[] sCLSIDStructArray Boolean bQuiet Boolean bReplaceExisting String ByRef sMessage Returns String
         String sRetval sValue sManifestFragmentLibrary sTabChar
         String sClsid sDescription sVersion sOutputString sTypeLibOutput
         String sComponentDescription sVersionText
@@ -955,30 +995,49 @@ Class cManifestFunctionLibrary is a cObject
         Boolean bExists bTypeLibValueWritten
         tSxSInfoOut SxSInfoOutInfo
 
+        Move "" to sMessage
         Move False to bTypeLibValueWritten
         Get psManifestFragmentLibrary to sManifestFragmentLibrary
         Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
         // Check if the manifest fragment file already exists.
         Get vFilePathExists (sManifestFragmentLibrary + sToFile) to bExists
         If (bExists = True) Begin
-            Get YesNo_Box ("The following manifest fragment file already exists:\n" + (sManifestFragmentLibrary + sToFile) + "\n\nDo you want to overwrite it?") to iRetval
-            If (iRetval = MBR_No) Begin
-                Function_Return ""
+            If (bQuiet = True) Begin
+                If (bReplaceExisting = False) Begin
+                    Move "Skipped: the fragment file already exists" to sMessage
+                    Function_Return ""
+                End
+            End
+            Else Begin
+                Get YesNo_Box ("The following manifest fragment file already exists:\n" + (sManifestFragmentLibrary + sToFile) + "\n\nDo you want to overwrite it?") to iRetval
+                If (iRetval = MBR_No) Begin
+                    Function_Return ""
+                End
             End
         End
 
         Move (SizeOfArray(sCLSIDStructArray)) to iItems
         If (iItems = 0) Begin
-            Send Info_Box "The CLSID array was empty and the process was unable to create the manifest fragment file. Process stopped."
+            Move "Failed: no COM classes (CLSIDs) were found in the component" to sMessage
+            If (bQuiet = False) Begin
+                Send Info_Box "The CLSID array was empty and the process was unable to create the manifest fragment file. Process stopped."
+            End
             Function_Return ""
         End
         Move (Character(CI_TabCharacter)) to sTabChar
         // Output to:
         Get Seq_Open_Output_Channel (sManifestFragmentLibrary + sToFile) to iChOut
+        If (iChOut < 0) Begin
+            Move "Failed: the fragment file could not be written" to sMessage
+            If (bQuiet = False) Begin
+                Send Info_Box ("The manifest fragment file could not be written:\n" + (sManifestFragmentLibrary + sToFile))
+            End
+            Function_Return ""
+        End
 
         // This will give us the full typelib line. It contains more info than what can
         // be read from the registry.
-        Get ExtractTypeLib sCOMComponentPath sCOMComponentFileName (&sComponentDescription) (&sVersionText) to sTypeLibOutput
+        Get ExtractTypeLib sCOMComponentPath sCOMComponentFileName bQuiet (&sComponentDescription) (&sVersionText) to sTypeLibOutput
 
         // First line in manifest fragment file:
         If (sComponentDescription <> "") Begin
@@ -990,7 +1049,11 @@ Class cManifestFunctionLibrary is a cObject
 
         Writeln channel iChOut (CS_XMLCOMFileName + '"' + sCOMComponentFileName + '"' + '>')
 
-        Move (sTabChar + sTypeLibOutput) to sTypeLibOutput
+        // Only a line that was found gets the tab: an empty one must stay empty, so the registry
+        // fallback below can fill it in.
+        If (sTypeLibOutput <> "") Begin
+            Move (sTabChar + sTypeLibOutput) to sTypeLibOutput
+        End
 
         Decrement iItems
         For i from 0 to iItems
@@ -1014,7 +1077,7 @@ Class cManifestFunctionLibrary is a cObject
                         If (sVersion = "") Begin
                             Move "1.0" to sVersion                                   // A version must exist in the string.
                         End                                                          // There must be a "heldir=" in the string.
-                        Move (sOutputString * CS_XMLVersion + "=" + '"' + sVersion + '"' * CS_XMLHelpDir + '"">' + CS_XMLTypeLibEnd) to sOutputString
+                        Move (sOutputString * CS_XMLVersion + "=" + '"' + sVersion + '"' * CS_XMLHelpDir + '="">' + CS_XMLTypeLibEnd) to sOutputString
 
                         Move  (sTabChar + sOutputString) to sTypeLibOutput
                         // Ok, we have written a typelib def so we should _not_ do it again as only one
@@ -1073,19 +1136,26 @@ Class cManifestFunctionLibrary is a cObject
     // a blank string if the creation failed.
     // It does so by memory piping with the help of the ExternalProgramResult function.
     Function CreateManifestFragmentFile String sCOMComponentPath String sCOMComponentFileName Returns String
+        String sRetval sMessage
+
+        Get CreateManifestFragmentFileEx sCOMComponentPath sCOMComponentFileName False False (&sMessage) to sRetval
+        Function_Return sRetval
+    End_Function
+
+    // The same as CreateManifestFragmentFile, with two more choices for the folder batch:
+    //   bQuiet           - True: no message boxes at all. When no file is written, sMessage says why.
+    //   bReplaceExisting - with bQuiet True: replace a fragment file that already exists (False skips it).
+    //                      With bQuiet False the user is asked instead, as before.
+    Function CreateManifestFragmentFileEx String sCOMComponentPath String sCOMComponentFileName Boolean bQuiet Boolean bReplaceExisting String ByRef sMessage Returns String
         Integer iRetval
-        String sManifestFragmentLibrary sManifestFragmentFileName sProgramsPath sRetval
+        String sManifestFragmentFileName sProgramsPath sRetval
         String[]   sCLSIDArray
         tSxSInfo[] sCLSIDStructArray
 
+        Move "" to sMessage
         Send Cursor_Wait of Cursor_Control
         Get vFolderFormat sCOMComponentPath to sCOMComponentPath
-        Get psManifestFragmentLibrary to sManifestFragmentLibrary
-        Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
-        Move (Replace(".ocx", sCOMComponentFileName, ".txt"))     to sManifestFragmentFileName
-        Move (Replace(".dll", sManifestFragmentFileName, ".txt")) to sManifestFragmentFileName
-        Move (Replace(".OCX", sManifestFragmentFileName, ".txt")) to sManifestFragmentFileName
-        Move (Replace(".DLL", sManifestFragmentFileName, ".txt")) to sManifestFragmentFileName
+        Get ManifestFragmentFileName sCOMComponentFileName to sManifestFragmentFileName
 
         Get psProgramPath of (phoWorkspace(ghoApplication)) to sProgramsPath
         Get PathAtIndex   of (phoWorkspace(ghoApplication)) sProgramsPath 1 to sProgramsPath
@@ -1099,7 +1169,10 @@ Class cManifestFunctionLibrary is a cObject
         If (iRetval > 0) Begin
             Get ConvertFromCLSIDArrayToStruct sCLSIDArray to sCLSIDStructArray
             // This will create the actual manifest fragment file in the manifest fragment library:
-            Get CreateFromCLSIDArray sManifestFragmentFileName sCOMComponentPath sCOMComponentFileName sCLSIDStructArray to sRetval
+            Get CreateFromCLSIDArray sManifestFragmentFileName sCOMComponentPath sCOMComponentFileName sCLSIDStructArray bQuiet bReplaceExisting (&sMessage) to sRetval
+        End
+        Else Begin
+            Move ("Failed: the" * CS_CLSExportExe * "program could not read the component") to sMessage
         End
         Send Cursor_Ready of Cursor_Control
         Function_Return sRetval
@@ -1792,9 +1865,11 @@ Class cManifestFunctionLibrary is a cObject
     // is that it gives us more info than what is available in the registry.
     // The return string can look like this:
     // <typelib tlbid="{5B7759CE-C04E-4C5D-993B-8297E30D9065}" version="1.0" helpdir="" flags="hasdiskimage"/>
+    // Returns "" when the line could not be found; the caller then reads the typelib from the registry.
+    // bQuiet True (the folder batch): no message boxes.
     { Visibility=Private }
     { MethodType=Event  NoDoc=True }
-    Function ExtractTypeLib String sPath String sCOMFileName String ByRef sComponentDescription String ByRef sVersionText Returns String
+    Function ExtractTypeLib String sPath String sCOMFileName Boolean bQuiet String ByRef sComponentDescription String ByRef sVersionText Returns String
         String sCurrProgPath sRetval sValue sParams sTempPath
         String[] sValueArray
         Boolean bExist
@@ -1805,8 +1880,10 @@ Class cManifestFunctionLibrary is a cObject
         Get vFolderFormat sCurrProgPath to sCurrProgPath
         Get vFilePathExists (sCurrProgPath + CS_MtExeProgram) to bExist
         If (bExist = False) Begin
-            Send Info_Box ("The" * CS_MtExeProgram * "program is missing from this workspace Programs folder and the manifest file cannot be validated.")
-            Function_Return False
+            If (bQuiet = False) Begin
+                Send Info_Box ("The" * CS_MtExeProgram * "program is missing from this workspace Programs folder and the manifest file cannot be validated.")
+            End
+            Function_Return ""
         End
 
         Send Cursor_Wait of Cursor_Control
@@ -1816,24 +1893,33 @@ Class cManifestFunctionLibrary is a cObject
 
         // Setup parameters to be passed to the mt.exe program:
         Move ("-nologo -tlb:" + '"' + (sPath + sCOMFileName) + '"' * "-dll:" + '"' +  (sPath + sCOMFileName) + '"' * "-out:" + '"' + (sTempPath + CS_TempFilename) + '"') to sParams
+        // The output file is shared by every call. Remove the last one's first, so a component that mt.exe
+        // writes nothing for can never be given the typelib of the component before it (the folder batch).
+        If (vFilePathExists(sTempPath + CS_TempFilename)) Begin
+            Get vDeleteFile (sTempPath + CS_TempFilename) to iRetval
+        End
 
         // Execute command:
         Get gStartProgram ('"' + sCurrProgPath + CS_MtExeProgram + '"') sParams sCurrProgPath False True to iRetval
         Send Cursor_Ready of Cursor_Control
 
         If (iRetval = -1) Begin
-            Send Info_Box ("Error: The" * CS_MtExeProgram * "program could not run correctly.")
-            Function_Return False
+            If (bQuiet = False) Begin
+                Send Info_Box ("Error: The" * CS_MtExeProgram * "program could not run correctly.")
+            End
+            Function_Return ""
         End
 
         Else If (iRetval > 0) Begin
-            If (iRetval = 31) Begin
-                Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code =" * String(iRetval) + ", and the application manifest file could not be verified. This error could be caused by an Anti-virus program.")
+            If (bQuiet = False) Begin
+                If (iRetval = 31) Begin
+                    Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code =" * String(iRetval) + ", and the application manifest file could not be verified. This error could be caused by an Anti-virus program.")
+                End
+                Else Begin
+                    Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code =" * String(iRetval) + ", and the application manifest file could not be verified.")
+                End
             End
-            Else Begin
-                Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code =" * String(iRetval) + ", and the application manifest file could not be verified.")
-            End
-            Function_Return False
+            Function_Return ""
         End
 
         Get Seq_Open_Input_Channel (sTempPath + CS_TempFilename) to iCh
@@ -2139,52 +2225,85 @@ Class cManifestFunctionLibrary is a cObject
     // It returns two values;
     //   - A boolean if the component i registered or not
     //   - The full path + component name as a ByRef string value as the third parameter.
+    // Is the class sCLSID registered to the file sCOMComponentFileName (a name without path)?
+    // sCOMComponentFileName "" means: to any file.
+    // All registry views are read: this program's own, then the 64-bit and the 32-bit one. A 32-bit
+    // program sees only the 32-bit registrations unless it asks for the 64-bit view, so before this a
+    // registered x64 component always read as "not registered" here.
+    // sPath returns the registered file: the matching one, or else the first one found (registered, but
+    // to another file - e.g. a sibling that uses the same class IDs). "" when the class is not registered.
     Function IsCLSIDRegisteredFromCOMComponent String sCLSID String sCOMComponentFileName String ByRef sPath Returns Boolean
-        tSxSInfo sSxSInfo
-        String sValue sKey
-        Boolean bRegistered bExists bOpen
-        Handle hoReg
+        UInteger[] uiViews
+        String sValue sFirst
+        Integer i
+        Boolean bSame
 
+        Move "" to sPath
+        Move "" to sFirst
         Move (Trim(sCLSID)) to sCLSID
         If (sCLSID = "") Begin
             Function_Return False
         End
 
-        Move False to bRegistered
-        Get Create U_cRegistry to hoReg
-        Set phRootKey of hoReg to HKEY_CLASSES_ROOT
-        Set pfAccessRights of hoReg to KEY_READ
-        Move ("CLSID" + "\" + sCLSID) to sKey
-        Get KeyExists of hoReg sKey to bExists
-        If (bExists = False) Begin
-            Move ("CLSID" + "\" + CS_CLSIDKey64Machine + "\" + sCLSID) to sKey
-            Get KeyExists of hoReg sKey to bExists
-        End
-        If (bExists = True) Begin
-            Move (sKey  + "\" + CS_InprocServer32) to sKey
-            Set pfAccessRights of hoReg to KEY_READ
-            Get KeyExists of hoReg sKey to bExists
-            If (bExists = True) Begin
-                Set pfAccessRights of hoReg to KEY_READ
-                Get OpenKey of hoReg sKey to bOpen
-                If (bOpen = True) Begin
-                    Get ReadString of hoReg "" to sValue
-
-                    // This is the ByRef string value
+        Move 0               to uiViews[0]
+        Move KEY_WOW64_64KEY to uiViews[1]
+        Move KEY_WOW64_32KEY to uiViews[2]
+        For i from 0 to 2
+            Get CLSIDServerPath sCLSID uiViews[i] to sValue
+            If (sValue <> "") Begin
+                If (sFirst = "") Begin
+                    Move sValue to sFirst
+                End
+                Move (sCOMComponentFileName = "") to bSame
+                If (bSame = False) Begin
+                    Get IsSameComponentFile sValue sCOMComponentFileName to bSame
+                End
+                If (bSame = True) Begin
                     Move sValue to sPath
-                    Move (Uppercase(sPath) contains Uppercase(sCOMComponentFileName)) to bRegistered
-                    If (bRegistered = False) Begin
-                        Get ConvertToShortPath sValue to sValue
-                        Get ConvertToShortPath sCOMComponentFileName to sCOMComponentFileName
-                    Move (Uppercase(sValue) contains Uppercase(sCOMComponentFileName)) to bRegistered
-                    End
-                    Send CloseKey of hoReg
+                    Function_Return True
                 End
             End
-        End
+        Loop
 
+        Move sFirst to sPath
+        Function_Return False
+    End_Function
+
+    // Returns the file a class is registered to in one registry view (the InprocServer32 value, without
+    // quotes), or "" when it is not registered there.
+    // uiView: 0 = this program's own view, KEY_WOW64_64KEY = the 64-bit view, KEY_WOW64_32KEY = the 32-bit view.
+    Function CLSIDServerPath String sCLSID UInteger uiView Returns String
+        Handle hoReg
+        String sValue
+        Boolean bOpen
+
+        Move "" to sValue
+        Get Create U_cRegistry to hoReg
+        Set phRootKey of hoReg to HKEY_CLASSES_ROOT
+        Set pfAccessRights of hoReg to (KEY_READ ior uiView)
+        Get OpenKey of hoReg ("CLSID" + "\" + sCLSID + "\" + CS_InprocServer32) to bOpen
+        If (bOpen = True) Begin
+            Get ReadString of hoReg "" to sValue
+            Send CloseKey of hoReg
+        End
         Send Destroy of hoReg
-        Function_Return bRegistered
+
+        Function_Return (Trim(Replaces('"', sValue, "")))
+    End_Function
+
+    // True when the registered file sRegisteredPath (full path) is the component sCOMComponentFileName
+    // (a name without path). The file NAME must be the same - not just contained in the path, as
+    // "Codejock.Calendar.v26.0.0.ocx" is not "Codejock.Calendar.Unicode.v26.0.0.ocx".
+    Function IsSameComponentFile String sRegisteredPath String sCOMComponentFileName Returns Boolean
+        String sShortPath sShortName
+
+        If (Uppercase(ParseFileName(sRegisteredPath)) = Uppercase(sCOMComponentFileName)) Begin
+            Function_Return True
+        End
+        // The registry can hold the short 8.3 form of the path.
+        Get ConvertToShortPath sRegisteredPath       to sShortPath
+        Get ConvertToShortPath sCOMComponentFileName to sShortName
+        Function_Return (Uppercase(ParseFileName(sShortPath)) = Uppercase(ParseFileName(sShortName)))
     End_Function
 
     // Pass a struct array with COM components
@@ -2312,6 +2431,21 @@ Class cManifestFunctionLibrary is a cObject
         Function_Return bOk
     End_Function
 
+    // Returns the name of the manifest fragment file for a COM component (no path):
+    // "Codejock.Calendar.v24.3.0.ocx" -> "Codejock.Calendar.v24.3.0.txt".
+    // Only the file extension is changed, whatever its case.
+    Function ManifestFragmentFileName String sCOMComponentFileName Returns String
+        String sExt
+        Integer iLength
+
+        Move (Length(sCOMComponentFileName)) to iLength
+        Move (Lowercase(Right(sCOMComponentFileName, 4))) to sExt
+        If (sExt = ".ocx" or sExt = ".dll") Begin
+            Function_Return (Left(sCOMComponentFileName, (iLength - 4)) + ".txt")
+        End
+        Function_Return (sCOMComponentFileName + ".txt")
+    End_Function
+
     // Calling the function below will convert the number passed in nNumber to a
     // string containing iDecimals decimals rounding excess decimals. Parameter iDecimals
     // may be negative. The expression (NumberToString(oStringFunctions,1789,-3)) will evaluate to "2000".
@@ -2433,6 +2567,20 @@ Class cManifestFunctionLibrary is a cObject
             Else Begin
                 Runprogram Background sEditor ('"' + sPath + sFileName + '"')
             End
+        End
+    End_Procedure
+
+    // Opens a file (full path) in the editor chosen in the program's settings.
+    Procedure OpenFileInEditor String sFileName
+        String sEditor sEditorParams
+
+        Get psFileEditor       of ghoManifestIniFile to sEditor
+        Get psFileEditorParams of ghoManifestIniFile to sEditorParams
+        If (sEditorParams <> "") Begin
+            Runprogram Background sEditor ('"' + sEditorParams + '"' * '"' + sFileName + '"')
+        End
+        Else Begin
+            Runprogram Background sEditor ('"' + sFileName + '"')
         End
     End_Procedure
 
@@ -2872,6 +3020,117 @@ Class cManifestFunctionLibrary is a cObject
         Function_Return iRetval
     End_Function
 
+    // Registers several COM components in one go, so Windows asks the UAC question once instead of once per
+    // file (the folder batch). All the components must be in the folder sCOMPath.
+    // A command file with RegSvr32 lines is written to the Windows temp folder and run by the VdfCmdUtil helper,
+    // whose manifest asks for administrator rights. RegSvr32 runs with /s, else every component would show a
+    // message box of its own. The 64-bit RegSvr32 is tried first; when it cannot load the file (a 32-bit
+    // component), the 32-bit RegSvr32 is tried. On 32-bit Windows both names point to the same program.
+    // iExitCodes returns RegSvr32's exit code for each component, in the order of sComponents:
+    //   0 = registered, 3 = the file could not be loaded, 4 = the file cannot register itself,
+    //   5 = the registration failed, -1 = no answer.
+    // Returns False if the command file never ran (sMessage says why): the helper is missing, or the user
+    // answered No to the UAC question.
+    Function RegisterCOMComponents String sCOMPath String[] sComponents Integer[] ByRef iExitCodes String ByRef sMessage Returns Boolean
+        String sProgramsPath sHelper sTempPath sScript sLog sParams sWorkDir sValue sComponent
+        Integer i iItems iCh iPos iIndex iVoid
+        Boolean bOk bExists
+
+        Move "" to sMessage
+        Move (SizeOfArray(sComponents)) to iItems
+        Move (ResizeArray(iExitCodes, 0)) to iExitCodes
+        For i from 0 to (iItems - 1)
+            Move -1 to iExitCodes[i]
+        Loop
+        If (iItems = 0) Begin
+            Function_Return True
+        End
+
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sProgramsPath
+        Get PathAtIndex   of (phoWorkspace(ghoApplication)) sProgramsPath 1 to sProgramsPath
+        Get vFolderFormat sProgramsPath to sProgramsPath
+        Move (sProgramsPath + CS_VDFCmdUtilProgram) to sHelper
+        Get vFilePathExists sHelper to bExists
+        If (bExists = False) Begin
+            Move ("The" * CS_VDFCmdUtilProgram * "program is missing from the Programs folder, so the components could not be registered.") to sMessage
+            Function_Return False
+        End
+
+        Get WindowsTempDirectory to sTempPath
+        Get vFolderFormat sTempPath to sTempPath
+        Move (sTempPath + "COMManifestStudioRegister.cmd") to sScript
+        Move (sTempPath + "COMManifestStudioRegister.log") to sLog
+        // An old log would answer for this run.
+        If (vFilePathExists(sLog)) Begin
+            Get vDeleteFile sLog to iVoid
+        End
+        Get vFolderFormat sCOMPath to sCOMPath
+
+        Get Seq_Open_Output_Channel sScript to iCh
+        If (iCh < 0) Begin
+            Move ("The command file could not be written:" * sScript) to sMessage
+            Function_Return False
+        End
+        Writeln channel iCh "@echo off"
+        // The lines below are read as UTF-8, so a folder name with national characters arrives intact.
+        Writeln channel iCh "chcp 65001 >nul"
+        Writeln channel iCh 'set "RS64=%SystemRoot%\System32\regsvr32.exe"'
+        Writeln channel iCh 'if exist "%SystemRoot%\Sysnative\regsvr32.exe" set "RS64=%SystemRoot%\Sysnative\regsvr32.exe"'
+        Writeln channel iCh 'set "RS32=%SystemRoot%\System32\regsvr32.exe"'
+        Writeln channel iCh 'if exist "%SystemRoot%\SysWOW64\regsvr32.exe" set "RS32=%SystemRoot%\SysWOW64\regsvr32.exe"'
+        // A % in a command file starts a variable name; %% is a plain %.
+        Writeln channel iCh ('cd /d "' + Replaces("%", sCOMPath, "%%") + '"')
+        For i from 0 to (iItems - 1)
+            Move (Replaces("%", (sCOMPath + sComponents[i]), "%%")) to sComponent
+            Writeln channel iCh ('"%RS64%" /s "' + sComponent + '"')
+            Writeln channel iCh ('if errorlevel 3 "%RS32%" /s "' + sComponent + '"')
+            // The redirection goes first: in "echo 3>>file" the 3 would be taken as a stream number.
+            Writeln channel iCh ('>>"' + sLog + '" echo ' + String(i) + ' %ERRORLEVEL%')
+        Loop
+        Send Seq_Close_Channel iCh
+
+        // VdfCmdUtil turns the single quotes in /p into double quotes (see VdfCmdUtil.src), and /w makes it
+        // wait for cmd.exe, so it ends when every component has been handled.
+        Move sCOMPath to sWorkDir
+        If (Right(sWorkDir, 1) = "\") Begin
+            Move (Left(sWorkDir, (Length(sWorkDir) - 1))) to sWorkDir
+        End
+        Move ('/ccmd.exe "/p/c ' + "'" + sScript + "'" + '" /d"' + sWorkDir + '" /w') to sParams
+        Get RunProgramAndWait sHelper sParams to bOk
+        If (bOk = False) Begin
+            Move "The components were not registered: Windows did not start the registration. Did you answer No to the Windows question about making changes to this computer?" to sMessage
+            Get vDeleteFile sScript to iVoid
+            Function_Return False
+        End
+
+        Get vFilePathExists sLog to bExists
+        If (bExists = False) Begin
+            Move "The components were not registered: the registration did not run." to sMessage
+            Get vDeleteFile sScript to iVoid
+            Function_Return False
+        End
+
+        // Each line reads "<index> <exit code>".
+        Get Seq_Open_Input_Channel sLog to iCh
+        If (iCh >= 0) Begin
+            While (not(SeqEof))
+                Readln channel iCh sValue
+                Move (Trim(sValue)) to sValue
+                Move (Pos(" ", sValue)) to iPos
+                If (iPos > 1) Begin
+                    Move (Left(sValue, (iPos - 1))) to iIndex
+                    If (iIndex >= 0 and iIndex < iItems) Begin
+                        Move (Trim(Mid(sValue, Length(sValue), (iPos + 1)))) to iExitCodes[iIndex]
+                    End
+                End
+            Loop
+            Send Seq_Close_Channel iCh
+        End
+        Get vDeleteFile sLog    to iVoid
+        Get vDeleteFile sScript to iVoid
+        Function_Return True
+    End_Function
+
     Procedure RegisterOrUnregister Boolean bStatex
         String sPath sComponent sText sNote
         Boolean bExists bState bOpen
@@ -2943,11 +3202,16 @@ Class cManifestFunctionLibrary is a cObject
         Set phRootKey of hoReg to HKEY_CLASSES_ROOT
         Set pfAccessRights of hoReg to KEY_READ
 
-        // Does the CLSID key exist?
+        // Does the CLSID key exist? Not in this program's own registry view: look in the 64-bit view,
+        // then in the 32-bit one. The keys below are read in the view where it was found.
         Move ("CLSID" + "\" + sCLSID) to sTopKey
         Get KeyExists of hoReg sTopKey to bExists
         If (bExists = False) Begin
-            Move (CS_CLSIDKey64Machine + "\" + sCLSID) to sTopKey
+            Set pfAccessRights of hoReg to (KEY_READ ior KEY_WOW64_64KEY)
+            Get KeyExists of hoReg sTopKey to bExists
+        End
+        If (bExists = False) Begin
+            Set pfAccessRights of hoReg to (KEY_READ ior KEY_WOW64_32KEY)
             Get KeyExists of hoReg sTopKey to bExists
         End
         If (bExists = True) Begin
@@ -3099,6 +3363,42 @@ Class cManifestFunctionLibrary is a cObject
         //Move ("/c" + CS_RegSvrProgram * '"/p' + sCmdParam * sComponent + '"' * ("/d" + '"' + sCOMPath + '"') * "/v" * "/w" * "/s") to sParams
         // /cRegsvr32.exe /p"/u 'Visual Report Writer 2012 Developer Edition API.ocx'" /d"C:\Users\Nils G. Svedmyr\Documents\My Dropbox\Visual DataFlex Projects 17\ManifestSideBySideLocal\Common COM (OCX/DLL) Library\" /v /s
         Runprogram Shell Background sProgram sParams
+        Function_Return True
+    End_Function
+
+    // Starts sProgram through the Windows shell and waits until it has finished. Through the shell, a
+    // program whose manifest asks for administrator rights (VdfCmdUtil) gets them, after the UAC question.
+    // This program's windows keep painting meanwhile. They are NOT kept from taking clicks: call this while a
+    // status panel is up (it suspends the rest of the GUI), or the user can start things during the wait.
+    // The started program's window is shown normally: VdfCmdUtil shows its error text in a window, and a
+    // hidden one would make the wait endless.
+    // Returns False if the program could not be started - e.g. the user answered No to the UAC question.
+    Function RunProgramAndWait String sProgram String sParams Returns Boolean
+        Handle hProcess
+        Integer iVoid
+        DWord dwWait
+        String sProgramA sParamsA
+        tRDCShellExecuteInfo ExecInfo
+
+        // ShellExecuteEx is the ANSI entry.
+        Move (Utf8ToAnsi(sProgram)) to sProgramA
+        Move (Utf8ToAnsi(sParams))  to sParamsA
+        Move (SizeOfType(tRDCShellExecuteInfo)) to ExecInfo.cbSize
+        Move RDC_SEE_MASK_NOCLOSEPROCESS        to ExecInfo.fMask
+        Move (AddressOf(sProgramA))             to ExecInfo.lpFile
+        Move (AddressOf(sParamsA))              to ExecInfo.lpParameters
+        Move 1 to ExecInfo.nShow                // SW_SHOWNORMAL
+        Move (ShellExecuteExEf(AddressOf(ExecInfo))) to iVoid
+        Move ExecInfo.hProcess to hProcess
+        If (iVoid = 0 or hProcess = 0) Begin
+            Function_Return False
+        End
+
+        Repeat
+            Move (WaitForSingleObjectEf(hProcess, 250)) to dwWait
+            Send PumpMsgQueue of Desktop
+        Until (dwWait <> 258)                   // 258 = WAIT_TIMEOUT: still running
+        Move (CloseHandleEf(hProcess)) to iVoid
         Function_Return True
     End_Function
 

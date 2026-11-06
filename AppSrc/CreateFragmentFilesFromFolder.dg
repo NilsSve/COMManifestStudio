@@ -1,0 +1,647 @@
+﻿// CreateFragmentFilesFromFolder.dg
+// Creates manifest fragment files for all the COM (OCX) components in a folder, in one batch.
+// Made for a new CodeJock release, where every component needs a new fragment file.
+// The components that are not registered with Windows are registered first, all in one go,
+// so Windows asks its UAC question once instead of once per file.
+// Opened from the "Create New Manifest Fragment File" dialog (CreateManifestFragmentFile.dg).
+Use Windows.pkg
+Use cTextEdit.pkg
+Use cRDCButton.pkg
+Use cRDCModalPanel.pkg
+Use cRDCForm.pkg
+Use cRDCCheckbox.pkg
+Use cCJGridColumn.pkg
+Use cCJGridColumnRowIndicator.pkg
+Use cSelectFolderDialog.pkg
+Use RDCStatusPanel.pkg
+Use vWin32fh.pkg
+Use Symdef.pkg
+Use cManifestFunctionLibrary.pkg
+Use cManifestCheckboxCJGrid.pkg
+
+// The Registered column for a component whose class IDs are registered to another file in the same folder.
+Define CS_COMShared for "Shared"
+
+Object oCreateFragmentFilesFromFolder is a cRDCModalPanel
+    Set Size to 279 430
+    Set Label to "Create Manifest Fragment Files for a Folder"
+    Set Icon to "FragmentNew032N32.ico"
+    Set Sysmenu_Icon to False
+    Set Minimize_Icon to False
+
+    // The folder with the COM components, with a trailing backslash.
+    Property String psFolder ""
+    // True while fragment files are being made, so a second click does not start a second run.
+    Property Boolean pbBusy False
+
+    Object oSelectFolderDialog is a cSelectFolderDialog
+    End_Object
+
+    Object oInfo_3d is a Container3d
+        Set Size to 44 410
+        Set Location to 7 10
+        Set peAnchors to anTopLeftRight
+        Set Color to clWhite
+        Set Border_Style to Border_Normal
+        Set Skip_State to True
+
+        Object oInfo_tb is a cTextEdit
+            Set Size to 35 394
+            Set Location to 4 7
+            Set peAnchors to anTopLeftRight
+            Set Border_Style to Border_None
+            Set Skip_State to True
+            Set Read_Only_State to True
+            Procedure OnStartup
+                String sValue
+                Move "All COM components (.ocx files) in the selected folder are listed below. The ones that have no fragment file yet are ticked." to sValue
+                Move (sValue * "Press 'Create All!' to make a fragment file for each ticked component.") to sValue
+                Move (sValue * "A component that is not registered with Windows is registered first. All of them are registered in one go, so Windows asks for permission only once.") to sValue
+                Move (sValue * "'Shared' means that another file in the folder uses the same class IDs and is the one registered - CodeJock's ANSI, Unicode and x64 files do. Its fragment file is made from that registration.") to sValue
+                Move (sValue * "Check each new file before you use it: double-click a row to open its fragment file in the editor.") to sValue
+                Set Value to sValue
+            End_Procedure
+            Send OnStartup
+        End_Object
+
+    End_Object
+
+    Object oFolder_fm is a cRDCForm
+        Set Size to 13 316
+        Set Location to 58 46
+        Set Label to "Folder:"
+        Set Enabled_State to False
+        Set peAnchors to anTopLeftRight
+    End_Object
+
+    Object oSelectFolder_btn is a cRDCButton
+        Set Size to 14 52
+        Set Location to 58 368
+        Set Label to "Browse..."
+        Set psImage to "FolderOpen.ico"
+        Set Status_Help to "Select the folder with the COM (OCX) components"
+        Set peAnchors to anTopRight
+
+        Procedure OnClick
+            String sFolder
+
+            Get psFolder to sFolder
+            Get SelectComponentFolder sFolder to sFolder
+            If (sFolder <> "") Begin
+                Send ChangeFolder sFolder
+            End
+        End_Procedure
+
+    End_Object
+
+    // Where the fragment files are written: the Manifest Fragment Library. Shown for clarity only.
+    Object oOutput_fm is a cRDCForm
+        Set Size to 13 316
+        Set Location to 74 46
+        Set Label to "Output:"
+        Set pbEnabled to False
+        Set peAnchors to anTopLeftRight
+    End_Object
+
+    Object oFiles_grid is a cManifestCheckboxCJGrid
+        Set Size to 154 352
+        Set Location to 94 10
+        Set peAnchors to anAll
+        Set pbReadOnly to False
+        Set pbAllowEdit to True
+        Set pbAllowDeleteRow to False
+        Set pbAllowInsertRow to False
+        Set pbAllowAppendRow to False
+        Set pbFocusSubItems to False
+        Set pbShowFooter to True
+        Set piLayoutBuild to 1
+
+        Object oCJGridColumnRowIndicator is a cCJGridColumnRowIndicator
+            Set piWidth to 20
+        End_Object
+
+        Object oCheckbox_Col is a cCJGridColumn
+            Set piWidth to 60
+            Set psCaption to "Select"
+            Set pbCheckbox to True
+            Set peHeaderAlignment to xtpAlignmentCenter
+            Set peFooterAlignment to xtpAlignmentCenter
+            Delegate Set piCheckboxCol to (piColumnId(Self))
+        End_Object
+
+        Object oCOMFile_Col is a cCJGridColumn
+            Set piWidth to 280
+            Set psCaption to "COM Component (OCX)"
+            Set pbEditable to False
+            Delegate Set piFileNameFirstCol to (piColumnId(Self))
+        End_Object
+
+        Object oRegistered_Col is a cCJGridColumn
+            Set piWidth to 75
+            Set psCaption to "Registered"
+            Set pbEditable to False
+            Set peHeaderAlignment to xtpAlignmentCenter
+            Set peTextAlignment to xtpAlignmentCenter
+        End_Object
+
+        Object oFragmentFile_Col is a cCJGridColumn
+            Set piWidth to 110
+            Set psCaption to "Fragment File Exists"
+            Set pbEditable to False
+            Set peHeaderAlignment to xtpAlignmentCenter
+            Set peTextAlignment to xtpAlignmentCenter
+        End_Object
+
+        Object oResult_Col is a cCJGridColumn
+            Set piWidth to 300
+            Set psCaption to "Result"
+            Set pbEditable to False
+        End_Object
+
+        // Lists the .ocx files of the folder, with their registration and fragment file state.
+        Procedure DoFillGrid
+            Handle hoDataSource hoCol hoFileSystem
+            tDataSourceRow[] TheData
+            tsSearchResult[] SearchArray
+            String sFolder sLibrary sFile sFragment sRegisteredTo sText
+            String[] sFiles
+            Integer i iItems iCheckbox_Col iFile_Col iRegistered_Col iFragment_Col iResult_Col iState
+            Boolean bExists
+
+            Forward Send DoFillGrid
+
+            Get piCheckboxCol      to iCheckbox_Col
+            Get piFileNameFirstCol to iFile_Col
+            Get piColumnId of oRegistered_Col   to iRegistered_Col
+            Get piColumnId of oFragmentFile_Col to iFragment_Col
+            Get piColumnId of oResult_Col       to iResult_Col
+
+            Get psFolder to sFolder
+            If (sFolder <> "") Begin
+                Get Create (RefClass(cFilesystem)) to hoFileSystem
+                Get FileSearch of hoFileSystem (sFolder + "*.ocx") DIRMODE_FILES_ONLY False True to SearchArray
+                Send Destroy of hoFileSystem
+            End
+            // "*.ocx" also finds e.g. "x.ocx_old" (through the short 8.3 names), so the extension is checked.
+            Move (SizeOfArray(SearchArray)) to iItems
+            For i from 0 to (iItems - 1)
+                Move SearchArray[i].sFilename to sFile
+                If (Lowercase(Right(sFile, 4)) = ".ocx") Begin
+                    Move sFile to sFiles[SizeOfArray(sFiles)]
+                End
+            Loop
+            Move (SortArray(sFiles)) to sFiles
+
+            Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sLibrary
+            Get vFolderFormat sLibrary to sLibrary
+            Move (SizeOfArray(sFiles)) to iItems
+            For i from 0 to (iItems - 1)
+                Move sFiles[i] to sFile
+                Get COMComponentRegistration of ghoManifestFunctionLibrary sFolder sFile (&sRegisteredTo) to iState
+                // The check above resets the cursor; the list is not ready yet.
+                Send Cursor_Wait of Cursor_Control
+                Get ManifestFragmentFileName of ghoManifestFunctionLibrary sFile to sFragment
+                Get vFilePathExists (sLibrary + sFragment) to bExists
+                // A component that already has a fragment file is not ticked: the batch is for the new ones.
+                Move (not(bExists)) to TheData[i].sValue[iCheckbox_Col]
+                Move sFile          to TheData[i].sValue[iFile_Col]
+                Get RegisteredCellText iState to sText
+                Move sText to TheData[i].sValue[iRegistered_Col]
+                Move (If(bExists, CS_BooleanYes, CS_BooleanNo)) to TheData[i].sValue[iFragment_Col]
+                Get RegistrationNote iState sRegisteredTo to sText
+                Move sText to TheData[i].sValue[iResult_Col]
+            Loop
+
+            Send InitializeData TheData
+            Send MovetoFirstRow
+            Get ColumnObject iFile_Col to hoCol
+            Set psFooterText of hoCol to ("COM components in the folder:" * String(iItems))
+            Send DoSetCheckboxFooterText
+        End_Procedure
+
+        // The Registered column: Yes (registered to this file), Shared (its classes are registered to another
+        // file in this folder that uses the same class IDs - see COMComponentRegistration) or No.
+        // A Shared component gets its fragment file from that registration.
+        Function RegisteredCellText Integer iState Returns String
+            If (iState = CI_COMRegisteredThisFile) Begin
+                Function_Return CS_BooleanYes
+            End
+            If (iState = CI_COMRegisteredSibling) Begin
+                Function_Return CS_COMShared
+            End
+            Function_Return CS_BooleanNo
+        End_Function
+
+        // The Result column's note for a Shared component, or one registered to a file elsewhere; "" otherwise.
+        Function RegistrationNote Integer iState String sRegisteredTo Returns String
+            If (iState = CI_COMRegisteredSibling) Begin
+                Function_Return ("Uses the same class IDs as" * ParseFileName(sRegisteredTo) + ", which is the one registered")
+            End
+            If (iState = CI_COMRegisteredOtherFile) Begin
+                Function_Return ("Its classes are registered to another file:" * sRegisteredTo)
+            End
+            Function_Return ""
+        End_Function
+
+        // The text for the Result column when a component is still not registered after RegSvr32 has run.
+        // iExitCode is RegSvr32's exit code (see RegisterCOMComponents); iState and sRegisteredTo come from
+        // COMComponentRegistration, asked after the run.
+        Function RegistrationResultText Integer iExitCode Integer iState String sRegisteredTo Returns String
+            If (iState = CI_COMRegisteredOtherFile) Begin
+                Function_Return ("Not registered: its classes are still registered to another file:" * sRegisteredTo)
+            End
+            Case Begin
+                Case (iExitCode = 0)
+                    Function_Return "Not registered: RegSvr32 reported success, but its classes are not in the registry"
+                Case (iExitCode = 3)
+                    Function_Return "Not registered: Windows could not load the file. Is a file it needs missing?"
+                Case (iExitCode = 4)
+                    Function_Return "Not registered: the file cannot register itself (it has no DllRegisterServer)"
+                Case (iExitCode = 5)
+                    Function_Return "Not registered: the registration failed (RegSvr32 error 5)"
+                Case (iExitCode = -1)
+                    Function_Return "Not registered: RegSvr32 gave no answer"
+            Case End
+            Function_Return ("Not registered: RegSvr32 failed with exit code" * String(iExitCode))
+        End_Function
+
+        // Makes a fragment file for each ticked component. The ones that are not registered with Windows
+        // are registered first, all in one go. No message box is shown per file: the Result column says
+        // what happened to each component, and a summary is shown at the end.
+        Procedure DoCreateFragmentFiles
+            Handle hoDataSource
+            tDataSourceRow[] TheData
+            String sFolder sFile sMessage sFragment sText sRegisteredTo sRegistered
+            String[] sToRegister
+            Integer[] iTicked iToRegister iExitCodes
+            Integer i iItems iRow iCount iRetval iState
+            Integer iCheckbox_Col iFile_Col iRegistered_Col iFragment_Col iResult_Col
+            Integer iCreated iCreatedShared iSkipped iFailed iNotRegistered
+            Boolean bChecked bReplace bOk bCancel
+
+            Get psFolder to sFolder
+            Get Checked_State of oReplaceExisting_cb to bReplace
+
+            Get piCheckboxCol      to iCheckbox_Col
+            Get piFileNameFirstCol to iFile_Col
+            Get piColumnId of oRegistered_Col   to iRegistered_Col
+            Get piColumnId of oFragmentFile_Col to iFragment_Col
+            Get piColumnId of oResult_Col       to iResult_Col
+            Get phoDataSource              to hoDataSource
+            Get DataSource of hoDataSource to TheData
+
+            Move (SizeOfArray(TheData)) to iItems
+            For iRow from 0 to (iItems - 1)
+                Move TheData[iRow].sValue[iCheckbox_Col] to bChecked
+                If (bChecked = True) Begin
+                    Move iRow to iTicked[SizeOfArray(iTicked)]
+                    Move ""   to TheData[iRow].sValue[iResult_Col]
+                End
+            Loop
+            Move (SizeOfArray(iTicked)) to iCount
+            If (iCount = 0) Begin
+                Send Info_Box "No COM components are ticked. Tick at least one and try again."
+                Procedure_Return
+            End
+
+            Move False to bCancel
+            Set Allow_Cancel_State of ghoStatusPanel to True
+            Send Initialize_StatusPanel of ghoStatusPanel "COM Manifest Studio" "Create Manifest Fragment Files" "Checking which components are registered with Windows"
+            Send Start_StatusPanel of ghoStatusPanel
+
+            // 1. Which of them are registered? Asked again, as something may have changed since the list was filled.
+            For i from 0 to (iCount - 1)
+                If (bCancel = False) Begin
+                    Move iTicked[i] to iRow
+                    Move TheData[iRow].sValue[iFile_Col] to sFile
+                    Send Update_StatusPanel of ghoStatusPanel (String(i + 1) * "of" * String(iCount) + ":" * sFile)
+                    Get Check_StatusPanel of ghoStatusPanel to iRetval
+                    If (iRetval = MSG_CANCEL) Begin
+                        Move True to bCancel
+                    End
+                    Else Begin
+                        Get COMComponentRegistration of ghoManifestFunctionLibrary sFolder sFile (&sRegisteredTo) to iState
+                        Get RegisteredCellText iState to sText
+                        Move sText to TheData[iRow].sValue[iRegistered_Col]
+                        Get RegistrationNote iState sRegisteredTo to sText
+                        Move sText to TheData[iRow].sValue[iResult_Col]
+                        // A Shared one is not registered: that would only take the class IDs away from the file
+                        // that has them now, which would then be the Shared one.
+                        If (iState = CI_COMNotRegistered or iState = CI_COMRegisteredOtherFile) Begin
+                            Move sFile to sToRegister[SizeOfArray(sToRegister)]
+                            Move iRow  to iToRegister[SizeOfArray(iToRegister)]
+                        End
+                    End
+                End
+            Loop
+            Send Stop_StatusPanel of ghoStatusPanel
+
+            // 2. Register the ones that are not, in one go: one UAC question for all of them.
+            If (bCancel = False and SizeOfArray(sToRegister) > 0) Begin
+                Move (String(SizeOfArray(sToRegister)) * "of the ticked COM components are not registered with Windows. A fragment file can only be made for a registered component.") to sText
+                Move (sText + "\n\nDo you want to register them now?") to sText
+                Move (sText + "\n\nNote: If you click the 'Yes' button and UAC - User Access Control - is active on the machine, Windows asks once: 'Do you want to allow this app to make changes to your device?'. Select Yes to register all of them.") to sText
+                Get YesNo_Box sText to iRetval
+                If (iRetval = MBR_Yes) Begin
+                    // The status panel is up while RegSvr32 runs: it keeps this program's windows from taking
+                    // clicks during the wait (see RunProgramAndWait). The registration cannot be stopped halfway.
+                    Set Allow_Cancel_State of ghoStatusPanel to False
+                    Send Initialize_StatusPanel of ghoStatusPanel "COM Manifest Studio" "Create Manifest Fragment Files" ("Registering" * String(SizeOfArray(sToRegister)) * "COM components with Windows")
+                    Send Start_StatusPanel of ghoStatusPanel
+                    Send Update_StatusPanel of ghoStatusPanel "Windows may first ask for permission to make changes"
+                    Get RegisterCOMComponents of ghoManifestFunctionLibrary sFolder sToRegister (&iExitCodes) (&sMessage) to bOk
+                    // Asked again for each of them. Two files with the same class IDs (CodeJock's ANSI and
+                    // Unicode builds) can both have been registered just now: the last one owns the class
+                    // IDs, and the first one is Shared - which is fine for its fragment file.
+                    For i from 0 to (SizeOfArray(iToRegister) - 1)
+                        Move iToRegister[i] to iRow
+                        Move CI_COMNotRegistered to iState
+                        Move "" to sRegisteredTo
+                        If (bOk = True) Begin
+                            Move TheData[iRow].sValue[iFile_Col] to sFile
+                            Send Update_StatusPanel of ghoStatusPanel ("Checking the registration:" * sFile)
+                            Get COMComponentRegistration of ghoManifestFunctionLibrary sFolder sFile (&sRegisteredTo) to iState
+                        End
+                        Get RegisteredCellText iState to sText
+                        Move sText to TheData[iRow].sValue[iRegistered_Col]
+                        If (iState = CI_COMRegisteredThisFile or iState = CI_COMRegisteredSibling) Begin
+                            Get RegistrationNote iState sRegisteredTo to sText
+                        End
+                        Else If (bOk = True) Begin
+                            Get RegistrationResultText iExitCodes[i] iState sRegisteredTo to sText
+                        End
+                        Else Begin
+                            Move "Not registered: the registration did not run" to sText
+                        End
+                        Move sText to TheData[iRow].sValue[iResult_Col]
+                    Loop
+                    Send Stop_StatusPanel of ghoStatusPanel
+                    Set Allow_Cancel_State of ghoStatusPanel to True
+                    If (bOk = False) Begin
+                        Send Info_Box sMessage
+                    End
+                End
+            End
+
+            // 3. A fragment file for each registered or Shared component. A Shared one is made from the
+            // registration of the file that owns the class IDs: the classes are the same, so the fragment
+            // files differ only in the file name.
+            If (bCancel = False) Begin
+                Send Initialize_StatusPanel of ghoStatusPanel "COM Manifest Studio" "Create Manifest Fragment Files" "Creating the fragment files"
+                Send Start_StatusPanel of ghoStatusPanel
+            End
+            For i from 0 to (iCount - 1)
+                Move iTicked[i] to iRow
+                If (bCancel = False) Begin
+                    Move TheData[iRow].sValue[iRegistered_Col] to sRegistered
+                    If (sRegistered = CS_BooleanYes or sRegistered = CS_COMShared) Begin
+                        Move TheData[iRow].sValue[iFile_Col] to sFile
+                        Send Update_StatusPanel of ghoStatusPanel (String(i + 1) * "of" * String(iCount) + ":" * sFile)
+                        Get Check_StatusPanel of ghoStatusPanel to iRetval
+                        If (iRetval = MSG_CANCEL) Begin
+                            Move True to bCancel
+                        End
+                        Else Begin
+                            Get CreateManifestFragmentFileEx of ghoManifestFunctionLibrary sFolder sFile True bReplace (&sMessage) to sFragment
+                            If (sFragment <> "") Begin
+                                Increment iCreated
+                                If (sRegistered = CS_COMShared) Begin
+                                    Increment iCreatedShared
+                                    // Keeps the note that says which file it was made from.
+                                    Move ("Created." * TheData[iRow].sValue[iResult_Col]) to TheData[iRow].sValue[iResult_Col]
+                                End
+                                Else Begin
+                                    Move "Created" to TheData[iRow].sValue[iResult_Col]
+                                End
+                                Move CS_BooleanYes to TheData[iRow].sValue[iFragment_Col]
+                                // Done: a second press of 'Create All!' leaves it alone.
+                                Move False         to TheData[iRow].sValue[iCheckbox_Col]
+                            End
+                            Else Begin
+                                Move sMessage to TheData[iRow].sValue[iResult_Col]
+                                If (Left(sMessage, 7) = "Skipped") Begin
+                                    Increment iSkipped
+                                End
+                                Else Begin
+                                    Increment iFailed
+                                End
+                            End
+                        End
+                    End
+                    Else Begin
+                        Increment iNotRegistered
+                        If (TheData[iRow].sValue[iResult_Col] = "") Begin
+                            Move "Skipped: not registered with Windows" to TheData[iRow].sValue[iResult_Col]
+                        End
+                    End
+                End
+            Loop
+            Send Stop_StatusPanel of ghoStatusPanel
+            Send Cursor_Ready of Cursor_Control
+
+            Send ReInitializeData TheData True
+            Send DoSetCheckboxFooterText
+
+            Move ("Fragment files created:" * String(iCreated)) to sText
+            If (iCreatedShared > 0) Begin
+                Move (sText + "\n- of these, made from the registration of another file with the same class IDs:" * String(iCreatedShared)) to sText
+            End
+            If (iSkipped > 0) Begin
+                Move (sText + "\nSkipped, because the fragment file already exists:" * String(iSkipped)) to sText
+            End
+            If (iNotRegistered > 0) Begin
+                Move (sText + "\nNot registered with Windows, so no fragment file:" * String(iNotRegistered)) to sText
+            End
+            If (iFailed > 0) Begin
+                Move (sText + "\nFailed:" * String(iFailed) * "- the Result column says why.") to sText
+            End
+            If (bCancel = True) Begin
+                Move (sText + "\n\nThe run was stopped before all the ticked components were done.") to sText
+            End
+            If (iCreated > 0) Begin
+                Move (sText + "\n\nEach new file starts with a comment line. Replace it with a short description of the component, and add an internet link to where the component can be found. Each comment line must begin with two forward slashes.") to sText
+                Move (sText + "\n\nDouble-click a row to open its fragment file in the editor.") to sText
+            End
+            Send Info_Box sText
+        End_Procedure
+
+        // Double-click (or 'Edit File Under Cursor'): opens the fragment file of the current row, if it exists.
+        Procedure DoOpenCurrentGridItem
+            Integer iRow iCol
+            String sFile sFragment sLibrary
+            Boolean bExists
+
+            Get piCurrentRow       to iRow
+            Get piFileNameFirstCol to iCol
+            If (iRow < 0 or iCol < 0) Begin
+                Procedure_Return
+            End
+            Get FindGridFileName iRow iCol to sFile
+            If (sFile = "") Begin
+                Procedure_Return
+            End
+            Get ManifestFragmentFileName of ghoManifestFunctionLibrary sFile to sFragment
+            Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sLibrary
+            Get vFolderFormat sLibrary to sLibrary
+            Get vFilePathExists (sLibrary + sFragment) to bExists
+            If (bExists = True) Begin
+                Send OpenFileInEditor of ghoManifestFunctionLibrary (sLibrary + sFragment)
+            End
+            Else Begin
+                Send Info_Box ("There is no fragment file for" * sFile * "yet.")
+            End
+        End_Procedure
+
+    End_Object
+
+    Object oSelectAll_btn is a cRDCButton
+        Set Size to 14 52
+        Set Location to 94 368
+        Set Label to "Select All"
+        Set Status_Help to "Select All (Ctrl+A)"
+        Set psImage to "SelectAll.ico"
+        Set peAnchors to anTopRight
+        Procedure OnClick
+            Set SelectItems of oFiles_grid to cx_Select_All
+        End_Procedure
+    End_Object
+
+    Object oDeSelectAll_btn is a cRDCButton
+        Set Size to 14 52
+        Set Location to 110 368
+        Set Label to "None"
+        Set Status_Help to "Select None (Ctrl+N)"
+        Set psImage to "SelectNone.ico"
+        Set peAnchors to anTopRight
+        Procedure OnClick
+            Set SelectItems of oFiles_grid to cx_Select_None
+        End_Procedure
+    End_Object
+
+    Object oInvertSelection_btn is a cRDCButton
+        Set Size to 14 52
+        Set Location to 126 368
+        Set Label to "Invert"
+        Set Status_Help to "Invert Selection (Ctrl+I)"
+        Set psImage to "SelectInvert.ico"
+        Set peAnchors to anTopRight
+        Procedure OnClick
+            Set SelectItems of oFiles_grid to cx_Select_Invert
+        End_Procedure
+    End_Object
+
+    Object oRefresh_btn is a cRDCButton
+        Set Size to 14 52
+        Set Location to 150 368
+        Set Label to "Refresh"
+        Set psImage to "Refresh.ico"
+        Set Status_Help to "Read the folder again, and check again which components are registered and which have a fragment file"
+        Set peAnchors to anTopRight
+        Procedure OnClick
+            Send Cursor_Wait of Cursor_Control
+            Send DoFillGrid of oFiles_grid
+            Send Cursor_Ready of Cursor_Control
+        End_Procedure
+    End_Object
+
+    // Note: cRDCCheckBox follows its anchors only from the RDCToolsLib release after 1.0.15. Up to then
+    // it stays put when the panel grows, and the grid draws over it.
+    Object oReplaceExisting_cb is a cRDCCheckBox
+        Set Size to 10 200
+        Set Location to 259 10
+        Set Label to "Replace fragment files that already exist"
+        Set psToolTip to "When ticked, a ticked component that already has a fragment file gets a new one. When not ticked, it is skipped."
+        Set Checked_State to False
+        Set peAnchors to anBottomLeft
+    End_Object
+
+    Object oCreate_btn is a cRDCButton
+        Set Size to 14 70
+        Set Label to "&Create All!"
+        Set Location to 258 292
+        Set psImage to "CopyComponents.ico"
+        Set Status_Help to "Create a manifest fragment file for each ticked COM (OCX) component"
+        Set peAnchors to anBottomRight
+        Set Default_State to True
+
+        Procedure OnClick
+            Boolean bBusy
+
+            Get pbBusy to bBusy
+            If (bBusy = True) Begin
+                Procedure_Return
+            End
+            Set pbBusy to True
+            Send DoCreateFragmentFiles of oFiles_grid
+            Set pbBusy to False
+        End_Procedure
+    End_Object
+
+    Object oClose_Btn is a cRDCButton
+        Set Size to 14 52
+        Set Label to "Close"
+        Set Status_Help to "Close Panel"
+        Set Location to 258 368
+        Set peAnchors to anBottomRight
+
+        Procedure OnClick
+            Send Close_Panel
+        End_Procedure
+    End_Object
+
+    // Asks for the folder with the COM components, starting in sStartFolder. Returns "" if none was selected.
+    Function SelectComponentFolder String sStartFolder Returns String
+        String sFolder
+        Handle hoFocus
+
+        // The window that has the focus owns the folder dialog, so it opens in front of it.
+        Get Focus of Desktop to hoFocus
+        If (hoFocus > 0) Begin
+            Set phwParent of oSelectFolderDialog to (Window_Handle(hoFocus))
+        End
+        Get SelectFolder of oSelectFolderDialog "Select the folder with the COM (OCX) components" sStartFolder to sFolder
+        Function_Return sFolder
+    End_Function
+
+    // Shows a new folder and lists its components.
+    Procedure ChangeFolder String sFolder
+        Get vFolderFormat sFolder to sFolder
+        Set psFolder to sFolder
+        Set Value of oFolder_fm to sFolder
+        Send Cursor_Wait of Cursor_Control
+        Send DoFillGrid of oFiles_grid
+        Send Cursor_Ready of Cursor_Control
+    End_Procedure
+
+    // Pass the folder to start in; "" asks for one first.
+    Procedure Activate_Dialog String sFolder 
+        String sLibrary
+        If (sFolder = "") Begin
+            Get SelectComponentFolder "" to sFolder
+            If (sFolder = "") Begin
+                Procedure_Return
+            End
+        End
+        Get vFolderFormat sFolder to sFolder
+        Set psFolder to sFolder
+        Set Value of oFolder_fm to sFolder
+        Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sLibrary
+        Set Value of oOutput_fm to (vFolderFormat(sLibrary))
+        // The grid fills itself as the panel is activated (cManifestCheckboxCJGrid's Activating).
+        Send Popup
+    End_Procedure
+
+    Procedure End_Construct_Object
+        Forward Send End_Construct_Object
+        Set piMinSize to (Hi(Size(Self))) (Low(Size(Self)))
+    End_Procedure
+
+    On_Key Key_Alt+Key_C Send KeyAction of oCreate_btn
+    On_Key kCancel       Send KeyAction of oClose_Btn
+End_Object
+
+// Public access method to this dialog. Pass the folder with the COM components to start in;
+// with "" the user is asked to select one first.
+Procedure Activate_oCreateFragmentFilesFromFolder String sFolder
+    Send Activate_Dialog of (oCreateFragmentFilesFromFolder(Self)) sFolder
+End_Procedure
