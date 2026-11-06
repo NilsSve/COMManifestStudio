@@ -1,0 +1,7 @@
+// Codejock DockingPane ANSI version=26.0.0
+<file name="Codejock.DockingPane.v26.0.0.ocx">
+	<comClass clsid="{c0de2600-d9cb-4b48-82fb-38a57d81f48a}" description="Xtreme Docking Pane Control" tlbid="{945E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,invisibleatruntime,nouiactivate" progid="Codejock.DockingPane.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-1d63-41a5-852a-34ff6c9ea7a9}" description="Xtreme Docking Pane Frame Control" tlbid="{945E8FCC-830E-45CC-AF00-A012D5AE7451}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="Codejock.DockingPaneFrame.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-1c32-4fcf-ad92-0abc8202ddd9}" description="Codejock.DockingPaneGlobalSettings.26.0.0" progid="Codejock.DockingPaneGlobalSettings.26.0.0"></comClass>
+	<typelib tlbid="{945E8FCC-830E-45CC-AF00-A012D5AE7451}" resourceid="1" version="26.0" helpdir=""></typelib>
+</file>

@@ -1,0 +1,6 @@
+// Codejock FlowGraph Unicode x86 version=26.0.0
+<file name="Codejock.FlowGraph.Unicode.v26.0.0.ocx">
+	<comClass clsid="{c0de2600-c12a-49a3-8d95-94c2ae4e8ba6}" description="Xtreme FlowGraph Control" tlbid="{BC70F81F-1155-41DF-8810-266AB291B513}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="Codejock.FlowGraphCtrl.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-e2c0-443c-8599-82038743dfd6}" description="Codejock.FlowGraphGlobalSettings.26.0.0" progid="Codejock.FlowGraphGlobalSettings.26.0.0"></comClass>
+	<typelib tlbid="{BC70F81F-1155-41DF-8810-266AB291B513}" resourceid="1" version="26.0" helpdir=""></typelib>
+</file>

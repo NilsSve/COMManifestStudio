@@ -1,0 +1,7 @@
+// Codejock Markup ANSI version=26.0.0
+<file name="Codejock.Markup.v26.0.0.ocx">
+	<comClass clsid="{c0de2600-0e2f-473a-b720-bc79abcc74ff}" description="Xtreme Markup Label Control" tlbid="{C981544E-1A65-45D5-B80E-28746DFE8055}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,simpleframe,setclientsitefirst" progid="Codejock.MarkupLabel.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-1d82-405c-9a99-e9c3bd5bbb6a}" description="Markup Label Property Page"></comClass>
+	<comClass clsid="{c0de2600-ecc9-46bd-8a7f-1f9d4c30762a}" description="Codejock.MarkupGlobalSettings.26.0.0" progid="Codejock.MarkupGlobalSettings.26.0.0"></comClass>
+	<typelib tlbid="{C981544E-1A65-45D5-B80E-28746DFE8055}" resourceid="1" version="26.0" helpdir=""></typelib>
+</file>

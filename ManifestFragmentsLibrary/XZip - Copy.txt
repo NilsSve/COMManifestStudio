@@ -1,5 +1,0 @@
-// XZip version 1
-<file name="XZip.dll">
-	<comClass clsid="{13d6bde3-46aa-4ff2-a622-ebc43110d95c}" description="Zip Class" tlbid="{7E380ED9-C7EC-46F7-9971-CC12EED1F37F}" threadingModel="Apartment" progid="XStandard.Zip.1"></comClass>
-	<typelib tlbid="{7E380ED9-C7EC-46F7-9971-CC12EED1F37F}" resourceid="1" version="1.0" helpdir="" flags="HASDISKIMAGE"></typelib>
-</file>

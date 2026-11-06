@@ -1,0 +1,48 @@
+// Codejock ChartControl Unicode x86 version=26.0.0
+<file name="Codejock.ChartControl.Unicode.v26.0.0.ocx">
+	<comClass clsid="{c0de2600-9bb1-463c-9242-1b5ca025b220}" description="Codejock.Chart3dRotation.26.0.0" progid="Codejock.Chart3dRotation.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-92b6-4671-9613-6b2a0fbf80a8}" description="Codejock.ChartDiagram2D.26.0.0" progid="Codejock.ChartDiagram2D.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-42b8-44b9-b57d-bd3016dbfda7}" description="Codejock.ChartDiagram3D.26.0.0" progid="Codejock.ChartDiagram3D.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-ce70-4f1a-9f16-0bfd8102ce31}" description="Codejock.ChartRadarDiagram.26.0.0" progid="Codejock.ChartRadarDiagram.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-99dc-44c4-a61e-e76fbeb8e364}" description="Codejock.Chart3dFunnelDiagram.26.0.0" progid="Codejock.ChartFunnelDiagram.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-3593-4cb5-b94b-68cdc41e0c02}" description="Codejock.Chart3dLineDiagram.26.0.0" progid="Codejock.Chart2dLineDiagram.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-2b66-4ccb-ba70-002d508c422d}" description="Codejock.Chart3dPyramidDiagram.26.0.0" progid="Codejock.ChartPyramidDiagram.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-4470-4690-a86c-021689fc0d67}" description="Codejock.ChartPieDiagram.26.0.0" progid="Codejock.ChartPieDiagram.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-2484-4b5f-a0b7-53899b03bc72}" description="Codejock.Chart3dPieDiagram.26.0.0" progid="Codejock.Chart3dPieDiagram.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-352d-495a-8ad2-6d31ba5a5cc4}" description="Codejock.ChartPointSeriesStyle.26.0.0" progid="Codejock.ChartPointSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-028c-4fcb-8bb8-61f14c1af661}" description="Codejock.ChartRadarPointSeriesStyle.26.0.0" progid="Codejock.ChartRadarPointSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-94dd-40c0-8bc9-180000f6ba38}" description="Codejock.ChartRadarLineSeriesStyle.26.0.0" progid="Codejock.ChartRadarLineSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-2964-4f18-93d9-0ed9a8d8dfc3}" description="Codejock.ChartRadarSplineSeriesStyle.26.0.0" progid="Codejock.ChartRadarSplineSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-8260-4257-ba00-112389068cb1}" description="Codejock.ChartRadarAreaSeriesStyle.26.0.0" progid="Codejock.ChartRadarAreaSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-e8df-498d-8435-37d973f24e91}" description="Codejock.ChartRadarSplineAreaSeriesStyle.26.0.0" progid="Codejock.ChartRadarSplineAreaSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-2e26-4b6e-a34a-5164fc1d4dd3}" description="Codejock.ChartLineSeriesStyle.26.0.0" progid="Codejock.ChartLineSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-0697-4052-ba13-c52d3ec7fef8}" description="Codejock.Chart3dLineSeriesStyle.26.0.0" progid="Codejock.Chart3dLineSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-c001-4184-a798-7435eb719971}" description="Codejock.ChartScatterLineSeriesStyle.26.0.0" progid="Codejock.ChartScatterLineSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-10f9-496a-8df1-57bbd854775d}" description="Codejock.ChartFastLineSeriesStyle.26.0.0" progid="Codejock.ChartFastLineSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-0d59-47b7-854d-378003f17587}" description="Codejock.ChartStepLineSeriesStyle.26.0.0" progid="Codejock.ChartStepLineSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-4245-4f15-ba71-a35fe9eabe7d}" description="Codejock.ChartPieSeriesStyle.26.0.0" progid="Codejock.ChartPieSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-e2c0-4a52-b078-1c72d4620253}" description="Codejock.Chart3dPieSeriesStyle.26.0.0" progid="Codejock.Chart3dPieSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-0df9-4ba3-8fe9-dc93fb6f5b7c}" description="Codejock.ChartFunnelSeriesStyle.26.0.0" progid="Codejock.ChartFunnelSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-2f6f-48c8-9ef7-ac079a75a3d8}" description="Codejock.Chart3dFunnelSeriesStyle.26.0.0" progid="Codejock.Chart3dFunnelSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-cd0b-44cf-a502-24e4f47f5a9b}" description="Codejock.ChartPyramidSeriesStyle.26.0.0" progid="Codejock.ChartPyramidSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-f700-48ee-8206-e257a6162364}" description="Codejock.Chart3dPyramidSeriesStyle.26.0.0" progid="Codejock.Chart3dPyramidSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-3755-480a-9bcc-1964ff166987}" description="Codejock.ChartBarSeriesStyle.26.0.0" progid="Codejock.ChartBarSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-18db-493b-a12b-76fae1985e43}" description="Codejock.ChartRangeBarSeriesStyle.26.0.0" progid="Codejock.ChartRangeBarSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-a5db-4099-aab3-b7cdec061b85}" description="Codejock.ChartGanttSeriesStyle.26.0.0" progid="Codejock.ChartGanttSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-92b6-4671-9613-6b2a0fbf8789}" description="Codejock.ChartStackedBarSeriesStyle.26.0.0" progid="Codejock.ChartStackedBarSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-7918-41d5-b554-8f63c756571f}" description="Codejock.ChartSplineSeriesStyle.26.0.0" progid="Codejock.ChartSplineSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-92b6-4671-9613-6b2a0fbf5432}" description="Codejock.ChartStackedAreaSeriesStyle.26.0.0" progid="Codejock.ChartStackedAreaSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-51e5-4afc-ad69-5163b50ef99d}" description="Codejock.ChartStackedSplineAreaSeriesStyle.26.0.0" progid="Codejock.ChartStackedSplineAreaSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-52b5-4d9d-aff1-afbfcd08028e}" description="Codejock.ChartAreaSeriesStyle.26.0.0" progid="Codejock.ChartAreaSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-6a26-4a90-aef1-680ff58eb2f5}" description="Codejock.ChartSplineAreaSeriesStyle.26.0.0" progid="Codejock.ChartSplineAreaSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-2757-4192-8788-21d31684f975}" description="Codejock.ChartRangeSplineAreaSeriesStyle.26.0.0" progid="Codejock.ChartRangeSplineAreaSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-301c-4b02-a784-57da03f64bf4}" description="Codejock.ChartStepAreaSeriesStyle.26.0.0" progid="Codejock.ChartStepAreaSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-9e12-4d12-be71-a4201b6ad2ac}" description="Codejock.ChartBubbleSeriesStyle.26.0.0" progid="Codejock.ChartBubbleSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-69d9-484b-b873-bd355bf69d49}" description="Codejock.ChartHighLowSeriesStyle.26.0.0" progid="Codejock.ChartHighLowSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-0eb6-44f6-9272-97bb44dbf87b}" description="Codejock.ChartCandleStickSeriesStyle.26.0.0" progid="Codejock.ChartCandleStickSeriesStyle.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-b03f-4e60-9fb6-1f076ed3f0b5}" description="Codejock.ChartSeriesTrendline.26.0.0" progid="Codejock.ChartSeriesTrendline.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-b617-4dd8-8f30-b5180dfcb6fd}" description="Codejock.ChartContent.26.0.0" progid="Codejock.ChartContent.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-d95d-4b0e-93dd-af0686f199ff}" description="Xtreme Chart Control" tlbid="{C215CB9A-0AE1-499F-A101-48B3C370D3DF}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,setclientsitefirst" progid="Codejock.ChartControl.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-0821-467f-900d-38764b8ed446}" description="Codejock.ChartControlGlobalSettings.26.0.0" progid="Codejock.ChartControlGlobalSettings.26.0.0"></comClass>
+	<typelib tlbid="{C215CB9A-0AE1-499F-A101-48B3C370D3DF}" resourceid="1" version="26.0" helpdir=""></typelib>
+</file>

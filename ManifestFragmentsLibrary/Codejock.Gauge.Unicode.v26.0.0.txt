@@ -1,0 +1,7 @@
+// Codejock Gauge Unicode x86 version=26.0.0
+<file name="Codejock.Gauge.Unicode.v26.0.0.ocx">
+	<comClass clsid="{c0de2600-bb94-4643-8584-cf3e162c0e4b}" description="Codejock.GaugeTratis.26.0.0" progid="Codejock.GaugeTratis.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-1047-4d16-8c0c-56bbfc104ba7}" description="Xtreme Gauge Control" tlbid="{4047133D-C4A6-4694-83BA-7EAD2D55BCCB}" threadingModel="Apartment" miscStatusContent="recomposeonresize,cantlinkinside,insideout,activatewhenvisible,alignable,setclientsitefirst" progid="Codejock.GaugeCtrl.26.0.0"></comClass>
+	<comClass clsid="{c0de2600-9514-4e69-a47e-a8b44c22edff}" description="Codejock.GaugeGlobalSettings.26.0.0" progid="Codejock.GaugeGlobalSettings.26.0.0"></comClass>
+	<typelib tlbid="{4047133D-C4A6-4694-83BA-7EAD2D55BCCB}" resourceid="1" version="26.0" helpdir=""></typelib>
+</file>
