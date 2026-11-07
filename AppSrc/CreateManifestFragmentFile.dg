@@ -135,7 +135,7 @@ Object oCreateManifestFragmentFile is a cRDCModalPanel
                 Else Begin
                     Runprogram Background sEditor ('"' + sFileName + '"')
                 End
-                Move "The new manifest fragment file was created successfully and loaded in the editor. Please add a descriptive text and an internet link to were the component can be found.\n" to sText
+                Move "The new manifest fragment file was created successfully and loaded in the editor. Please check the suggested description on the first line, and add an internet link to where the component can be found.\n" to sText
                 Move (sText + "Each comment line must begin with two forward slashes.\n\n") to sText
                 Move (sText + "Note: If the new file seems incomplete, it might be because the COM (OCX/DLL) component wasn't properly registered with Windows.") to sText
                 Send Info_Box sText

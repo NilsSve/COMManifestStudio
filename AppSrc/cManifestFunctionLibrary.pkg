@@ -1158,7 +1158,7 @@ Class cManifestFunctionLibrary is a cObject
     Function CreateFromCLSIDArray String sToFile String sCOMComponentPath String sCOMComponentFileName tSxSInfo[] sCLSIDStructArray Boolean bQuiet Boolean bReplaceExisting String ByRef sMessage Returns String
         String sRetval sValue sManifestFragmentLibrary sTabChar
         String sClsid sDescription sVersion sOutputString sTypeLibOutput
-        String sComponentDescription sVersionText
+        String sComponentDescription sVersionText sTlbId
         Integer iChOut iRetval i iItems
         Boolean bExists bTypeLibValueWritten
         tSxSInfoOut SxSInfoOutInfo
@@ -1207,13 +1207,20 @@ Class cManifestFunctionLibrary is a cObject
         // be read from the registry.
         Get ExtractTypeLib sCOMComponentPath sCOMComponentFileName bQuiet (&sComponentDescription) (&sVersionText) to sTypeLibOutput
 
-        // First line in manifest fragment file:
-        If (sComponentDescription <> "") Begin
-            Writeln channel iChOut (CS_VDFComment * sComponentDescription * sVersionText)
+        // First line in manifest fragment file: a comment that suggests a description (FragmentFileCommentLine).
+        // It needs the type library's ID. mt.exe's typelib line has it; without that line, ask the registry
+        // which type library the component's classes belong to.
+        Move "" to sTlbId
+        If (sTypeLibOutput = "") Begin
+            For i from 0 to (iItems - 1)
+                If (sTlbId = "") Begin
+                    Get RegistrySxSInfo sCLSIDStructArray[i].sCLSID "" to SxSInfoOutInfo
+                    Move SxSInfoOutInfo.sTypeLib to sTlbId
+                End
+            Loop
         End
-        Else Begin
-            Writeln channel iChOut (CS_VDFComment * "Write a description for the component here! It will be displayed in the Side-By-Side Manifest Studio grid.")
-        End
+        Get FragmentFileCommentLine sCOMComponentPath sCOMComponentFileName sTypeLibOutput sTlbId sComponentDescription to sValue
+        Writeln channel iChOut sValue
 
         Writeln channel iChOut (CS_XMLCOMFileName + '"' + sCOMComponentFileName + '"' + '>')
 
@@ -1344,6 +1351,196 @@ Class cManifestFunctionLibrary is a cObject
         End
         Send Cursor_Ready of Cursor_Control
         Function_Return sRetval
+    End_Function
+
+    // The first line of a new manifest fragment file: a comment that suggests a description, e.g.
+    //   // Xtreme Calendar ActiveX Control 26.0.0 Unicode x64
+    //   // Xtreme CommandBars Control Unicode x86 version=24.0
+    // The description is mt.exe's (sDescription) when it has one - newer CodeJock type libraries give none -
+    // else the name the component's type library is registered under (TypeLibRegisteredName), else the
+    // file name. Then the build (ComponentBuildText), then "version=" with the type library's version from
+    // mt.exe's typelib line, unless the description shows that number already.
+    // sTypeLibLine is mt.exe's typelib line ("" when there is none); sTlbId the type library's ID when the
+    // line is missing.
+    Function FragmentFileCommentLine String sCOMComponentPath String sCOMComponentFileName String sTypeLibLine String sTlbId String sDescription Returns String
+        String sLine sBuild sVersion
+        Integer iPos
+
+        // tlbid="{...}" and version="26.0" from the typelib line.
+        Move "" to sVersion
+        Move (Pos('tlbid="', sTypeLibLine)) to iPos
+        If (iPos > 0) Begin
+            Move (Mid(sTypeLibLine, Length(sTypeLibLine), (iPos + 7))) to sTlbId
+            Move (Left(sTlbId, (Pos('"', sTlbId) - 1))) to sTlbId
+        End
+        Move (Pos(' version="', sTypeLibLine)) to iPos
+        If (iPos > 0) Begin
+            Move (Mid(sTypeLibLine, Length(sTypeLibLine), (iPos + 10))) to sVersion
+            Move (Left(sVersion, (Pos('"', sVersion) - 1))) to sVersion
+        End
+
+        Move (Trim(sDescription)) to sDescription
+        If (sDescription = "" and sTlbId <> "") Begin
+            Get TypeLibRegisteredName sTlbId sCOMComponentFileName to sDescription
+        End
+        If (sDescription = "") Begin
+            Move (Left(sCOMComponentFileName, (Length(sCOMComponentFileName) - Length(ParseFileExtension(sCOMComponentFileName)) - 1))) to sDescription
+        End
+
+        Move (CS_VDFComment * sDescription) to sLine
+        Get ComponentBuildText sCOMComponentPath sCOMComponentFileName to sBuild
+        If (sBuild <> "") Begin
+            Move (sLine * sBuild) to sLine
+        End
+        If (sVersion <> "" and not(sDescription contains sVersion)) Begin
+            Move (sLine * CS_XMLVersion + "=" + sVersion) to sLine
+        End
+        Function_Return sLine
+    End_Function
+
+    // The name a type library is registered under - e.g. "Xtreme Calendar ActiveX Control 26.0.0" - the
+    // value of HKEY_CLASSES_ROOT\TypeLib\{tlbid}\<version>. Of several versions, the one whose win32 or win64
+    // file is sCOMComponentFileName (a name without path) wins; else the first that has a name. All registry
+    // views are read. Returns "" when the type library is not registered.
+    Function TypeLibRegisteredName String sTlbId String sCOMComponentFileName Returns String
+        UInteger[] uiViews
+        String[] sVersions sPlatforms
+        String sKey sName sFirst sPath
+        Handle hoReg
+        Integer iView j k
+        Boolean bOpen bSame
+
+        Move "" to sFirst
+        Move 0               to uiViews[0]
+        Move KEY_WOW64_64KEY to uiViews[1]
+        Move KEY_WOW64_32KEY to uiViews[2]
+        Move "win32" to sPlatforms[0]
+        Move "win64" to sPlatforms[1]
+        Move ("TypeLib" + "\" + sTlbId) to sKey
+
+        For iView from 0 to 2
+            Get Create U_cRegistry to hoReg
+            Set phRootKey      of hoReg to HKEY_CLASSES_ROOT
+            Set pfAccessRights of hoReg to (KEY_READ ior uiViews[iView])
+            Get OpenKey of hoReg sKey to bOpen
+            If (bOpen = True) Begin
+                Get Subkeys of hoReg to sVersions
+                Send CloseKey of hoReg
+                For j from 0 to (SizeOfArray(sVersions) - 1)
+                    Move "" to sName
+                    Get OpenKey of hoReg (sKey + "\" + sVersions[j]) to bOpen
+                    If (bOpen = True) Begin
+                        Get ReadString of hoReg "" to sName
+                        Send CloseKey of hoReg
+                    End
+                    Move (Trim(sName)) to sName
+                    If (sName <> "") Begin
+                        If (sFirst = "") Begin
+                            Move sName to sFirst
+                        End
+                        For k from 0 to 1
+                            Move "" to sPath
+                            Get OpenKey of hoReg (sKey + "\" + sVersions[j] + "\0\" + sPlatforms[k]) to bOpen
+                            If (bOpen = True) Begin
+                                Get ReadString of hoReg "" to sPath
+                                Send CloseKey of hoReg
+                            End
+                            Move (Trim(Replaces('"', sPath, ""))) to sPath
+                            If (sPath <> "") Begin
+                                Get IsSameComponentFile sPath sCOMComponentFileName to bSame
+                                If (bSame = True) Begin
+                                    Send Destroy of hoReg
+                                    Function_Return sName
+                                End
+                            End
+                        Loop
+                    End
+                Loop
+            End
+            Send Destroy of hoReg
+        Loop
+        Function_Return sFirst
+    End_Function
+
+    // Words that tell the builds of a component apart, for the first line of its fragment file:
+    // "ANSI x86", "Unicode x86" or "Unicode x64" for CodeJock's file names (Codejock.<Control>[.Unicode][.x64]...),
+    // else just the platform. The platform comes from the file itself (ComponentPlatform), not from its name.
+    Function ComponentBuildText String sCOMComponentPath String sCOMComponentFileName Returns String
+        String sPlatform sCharSet sName
+
+        Get vFolderFormat sCOMComponentPath to sCOMComponentPath
+        Get ComponentPlatform (sCOMComponentPath + sCOMComponentFileName) to sPlatform
+        Move (Lowercase(sCOMComponentFileName)) to sName
+        Move "" to sCharSet
+        If (sName contains ".unicode.") Begin
+            Move "Unicode" to sCharSet
+        End
+        Else If (Left(sName, 9) = "codejock.") Begin
+            Move "ANSI" to sCharSet
+        End
+        Function_Return (Trim(sCharSet * sPlatform))
+    End_Function
+
+    // The value 0-255 of the byte at iIndex. In an expression a UChar of 128 or more reads as negative
+    // (206 as -50), so it goes through an Integer here.
+    Function ByteValue UChar[] ucData Integer iIndex Returns Integer
+        Integer iByte
+
+        Move ucData[iIndex] to iByte
+        If (iByte < 0) Begin
+            Move (iByte + 256) to iByte
+        End
+        Function_Return iByte
+    End_Function
+
+    // "x86" or "x64" (or "ARM64") - what a DLL/OCX file is built for, from the Machine field of its PE header.
+    // Returns "" when the file cannot be read as a Windows program file.
+    Function ComponentPlatform String sFileName Returns String
+        UChar[] ucData
+        String sData
+        Integer iCh iSize iPE iMachine
+
+        Move "" to sData
+        Get Seq_Open_Input_Channel ("binary: " + sFileName) to iCh
+        If (iCh < 0) Begin
+            Function_Return ""
+        End
+        Get_Channel_Size iCh to iSize
+        // The header is near the start of the file.
+        If (iSize > 4096) Begin
+            Move 4096 to iSize
+        End
+        If (iSize > 0) Begin
+            Read_Block channel iCh sData iSize
+        End
+        Send Seq_Close_Channel iCh
+
+        Move (StringToUCharArray(sData)) to ucData
+        // "MZ", and at 0x3C the offset of the PE header.
+        If (SizeOfArray(ucData) < 64) Begin
+            Function_Return ""
+        End
+        If (ByteValue(Self, ucData, 0) <> 77 or ByteValue(Self, ucData, 1) <> 90) Begin
+            Function_Return ""
+        End
+        Move (ByteValue(Self, ucData, 60) + (ByteValue(Self, ucData, 61) * 256) + (ByteValue(Self, ucData, 62) * 65536)) to iPE
+        If ((iPE + 6) > SizeOfArray(ucData)) Begin
+            Function_Return ""
+        End
+        // "PE" + two zero bytes, then the Machine field (two bytes, low byte first).
+        If (ByteValue(Self, ucData, iPE) <> 80 or ByteValue(Self, ucData, (iPE + 1)) <> 69) Begin
+            Function_Return ""
+        End
+        Move (ByteValue(Self, ucData, (iPE + 4)) + (ByteValue(Self, ucData, (iPE + 5)) * 256)) to iMachine
+        Case Begin
+            Case (iMachine = 332)       // 0x014C
+                Function_Return "x86"
+            Case (iMachine = 34404)     // 0x8664
+                Function_Return "x64"
+            Case (iMachine = 43620)     // 0xAA64
+                Function_Return "ARM64"
+        Case End
+        Function_Return ""
     End_Function
 
     // Returns a line formatted string with a full application manifest file template.

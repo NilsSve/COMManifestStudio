@@ -459,7 +459,7 @@ Object oCreateFragmentFilesFromFolder is a cRDCModalPanel
                 Move (sText + "\n\nThe run was stopped before all the ticked components were done.") to sText
             End
             If (iCreated > 0) Begin
-                Move (sText + "\n\nEach new file starts with a comment line. Replace it with a short description of the component, and add an internet link to where the component can be found. Each comment line must begin with two forward slashes.") to sText
+                Move (sText + "\n\nThe first line of each new file is a comment with a suggested description: the name of the component's type library, its build and its version. Check it, and add an internet link to where the component can be found. Each comment line must begin with two forward slashes.") to sText
                 Move (sText + "\n\nDouble-click a row to open its fragment file in the editor.") to sText
             End
             Send Info_Box sText
