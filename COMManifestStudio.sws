@@ -3,7 +3,7 @@
         {
             "source": "https://github.com/NilsSve/Library-RDCToolsLib.git",
             "sws": "RDC-Windows-Sub-Classes-Library.sws",
-            "version": "1.0.18"
+            "version": "1.0.19"
         },
         {
             "source": "https://github.com/NilsSve/Library-cFilesystem.git",
@@ -13,7 +13,7 @@
         {
             "source": "https://github.com/NilsSve/Library-DUF.git",
             "sws": "RDC-DUF-Library.sws",
-            "version": "1.0.11"
+            "version": "1.0.12"
         }
     ],
     "description": "COM Manifest Studio",
