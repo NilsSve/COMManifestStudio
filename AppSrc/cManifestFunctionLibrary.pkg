@@ -76,7 +76,7 @@ Use Symdef.pkg
 Use StartProg.pkg
 Use cManifestIniFile.pkg
 Use cRDCExternalProgramResult.pkg
-Use RDCRunProgram.pkg          // tRDCShellExecuteInfo, ShellExecuteExEf, WaitForSingleObjectEf
+Use RDCRunProgram.pkg          // RDCShellExecuteEx, RDC_SEE_MASK_NOCLOSEPROCESS, WaitForSingleObjectEf
 
 #IFNDEF ghoManifestFunctionLibrary
     Global_Variable Integer ghoManifestFunctionLibrary
@@ -189,6 +189,64 @@ Use RDCRunProgram.pkg          // tRDCShellExecuteInfo, ShellExecuteExEf, WaitFo
 
 #IFNDEF GET_GetShortPathNameEf
     External_Function GetShortPathNameEf "GetShortPathNameA" kernel32.dll Pointer lpLongPath Pointer lpShortPath DWord dwBuffer Returns DWord
+#ENDIF
+
+// The wide functions. COMManifestStudio is a DataFlex 26 program, where a string is UTF-8: the ANSI functions above
+// took the bytes of a path as ANSI ones and gave ANSI bytes back, and the OemToAnsi, AnsiToOem and Utf8ToAnsi steps
+// around them belong to DataFlex 19 and earlier. A path, a running program or a temp folder with a national letter in
+// it (C:\Users\Björn\AppData\Local\Temp) was not found or came back garbled, and console text lost its national
+// letters. These take and give WStrings - every character as it is. Names of their own; the ANSI ones keep theirs.
+#IFNDEF get_CMS_CreateFileW
+    External_Function CMS_CreateFileW "CreateFileW" kernel32.dll ;
+        Pointer lpFileName ;
+        DWord   dwDesiredAccess ;
+        DWord   dwShareMode ;
+        Pointer lpSecurityAttributes ;
+        DWord   dwCreationDisposition ;
+        DWord   dwFlagsAndAttributes ;
+        Handle  hTemplateFile ;
+        Returns Handle
+#ENDIF
+
+#IFNDEF get_CMS_GetModuleFileNameExW
+    External_Function CMS_GetModuleFileNameExW "GetModuleFileNameExW" psapi.dll ;
+        Handle  hProcess ;
+        Handle  hModule ;
+        Pointer lpFilename ;
+        Integer nSize ;
+        Returns Integer
+#ENDIF
+
+#IFNDEF get_CMS_GetTempPathW
+    External_Function CMS_GetTempPathW "GetTempPathW" kernel32.dll ;
+        DWord   nBufferLength ;
+        Pointer lpBuffer ;
+        Returns DWord
+#ENDIF
+
+#IFNDEF get_CMS_GetShortPathNameW
+    External_Function CMS_GetShortPathNameW "GetShortPathNameW" kernel32.dll ;
+        Pointer lpszLongPath ;
+        Pointer lpszShortPath ;
+        DWord   cchBuffer ;
+        Returns DWord
+#ENDIF
+
+#IFNDEF get_CMS_WriteConsoleW
+    External_Function CMS_WriteConsoleW "WriteConsoleW" kernel32.dll ;
+        Handle  hConsoleOutput ;
+        Pointer lpBuffer ;
+        DWord   nNumberOfCharsToWrite ;
+        Pointer lpNumberOfCharsWritten ;
+        Pointer lpReserved ;
+        Returns Integer
+#ENDIF
+
+// The length of a WString in UTF-16 characters, as WriteConsoleW counts them.
+#IFNDEF get_CMS_lstrlenW
+    External_Function CMS_lstrlenW "lstrlenW" kernel32.dll ;
+        Pointer lpString ;
+        Returns Integer
 #ENDIF
 
 Register_Object oSendSharedFiles_Dialog
@@ -991,20 +1049,21 @@ Class cManifestFunctionLibrary is a cObject
     // Sometimes they get saved as "long" filenames and path, sometimes in
     // the short format.
     Function ConvertToShortPath String sPath Returns String
-        String sShort sLong
+        String sShort
         Integer iRet
+        WString wLong wShort
 
-        Move (ZeroString(4096)) to sShort
-        Move (sPath + (Character(0))) to sLong
-        Move (OemToAnsi(AddressOf(sLong), AddressOf(sLong))) to iRet
-        Move (GetShortPathNameEf(AddressOf(sLong), AddressOf(sShort), 4096)) to iRet
+        // GetShortPathNameW (see CMS_GetShortPathNameW). OemToAnsi before the ANSI one read the UTF-8 path as OEM text,
+        // so a path with a national letter was not found and came back long.
+        Move sPath to wLong
+        Move (ZeroString(4096)) to wShort
+        Move (CMS_GetShortPathNameW(AddressOf(wLong), AddressOf(wShort), 4096)) to iRet
 
         If (iRet = 0 or iRet > 4096) Begin
             Function_Return sPath
         End
 
-        Move (AnsiToOem(AddressOf(sShort), AddressOf(sShort))) to iRet
-        Move (CString(sShort)) to sShort
+        Move (CString(wShort)) to sShort
         If (sShort = "") Begin
             Function_Return sPath
         End
@@ -2562,6 +2621,7 @@ Class cManifestFunctionLibrary is a cObject
         Integer iProcessId iThreadId iRet iCount
         String sProgram sPreviousProgram
         String[] sModulesNames
+        WString wProgram
 
         Move (FindWindowExEf(0,0,0,0)) to hWnd
         While (hWnd <> 0)
@@ -2570,11 +2630,12 @@ Class cManifestFunctionLibrary is a cObject
             If (iProcessId <> 0) Begin
                 Move (OpenProcessEf(PROCESS_ALL_ACCESS_EF, False, iProcessId)) to hProcess
                 If (hProcess <> 0) Begin
-                    Move (ZeroString(1024)) to sProgram
-                    Move (GetModuleFilenameExEf(hProcess, 0, AddressOf(sProgram), 1024)) to iRet
+                    // GetModuleFileNameExW: the program's path as it is. The ANSI one gave ANSI bytes, and Utf8ToAnsi then
+                    // converted them the wrong way, so a program path with a national letter came back garbled.
+                    Move (ZeroString(1024)) to wProgram
+                    Move (CMS_GetModuleFileNameExW(hProcess, 0, AddressOf(wProgram), 1024)) to iRet
                     Move (CloseHandleEf(hProcess)) to iRet
-                    Move (Utf8ToAnsi(sProgram)) to sProgram
-                    Move (CString(sProgram)) to sProgram
+                    Move (CString(wProgram)) to sProgram
                     If (sProgram <> "?" and sProgram <> sPreviousProgram) Begin
                         Move sProgram to sModulesNames[iCount]
                         Increment iCount
@@ -3767,20 +3828,13 @@ Class cManifestFunctionLibrary is a cObject
         Handle hProcess
         Integer iVoid
         DWord dwWait
-        String sProgramA sParamsA
-        tRDCShellExecuteInfo ExecInfo
+        Boolean bStarted
 
-        // ShellExecuteEx is the ANSI entry.
-        Move (Utf8ToAnsi(sProgram)) to sProgramA
-        Move (Utf8ToAnsi(sParams))  to sParamsA
-        Move (SizeOfType(tRDCShellExecuteInfo)) to ExecInfo.cbSize
-        Move RDC_SEE_MASK_NOCLOSEPROCESS        to ExecInfo.fMask
-        Move (AddressOf(sProgramA))             to ExecInfo.lpFile
-        Move (AddressOf(sParamsA))              to ExecInfo.lpParameters
-        Move 1 to ExecInfo.nShow                // SW_SHOWNORMAL
-        Move (ShellExecuteExEf(AddressOf(ExecInfo))) to iVoid
-        Move ExecInfo.hProcess to hProcess
-        If (iVoid = 0 or hProcess = 0) Begin
+        // RDCShellExecuteEx (RDCRunProgram.pkg, RDCToolsLib 1.0.17) hands the shell every character of the path
+        // and the parameters (ShellExecuteExW). The ANSI ShellExecuteEx used here before turned a letter outside
+        // the machine's code page into '?', and the program was not found. 1 = SW_SHOWNORMAL.
+        Move (RDCShellExecuteEx(sProgram, sParams, RDC_SEE_MASK_NOCLOSEPROCESS, 1, &hProcess)) to bStarted
+        If (bStarted = False or hProcess = 0) Begin
             Function_Return False
         End
 
@@ -4190,7 +4244,7 @@ Class cManifestFunctionLibrary is a cObject
     Function _WinAPIOpenFileForReadAndWrite String sFilename Returns Handle
         Pointer lpFilenamePointer
         Integer iRetVal iErrornumber
-        String sFilenameANSI             
+        WString wFilename
         Boolean bExists
         
         Get vFilePathExists sFilename to bExists
@@ -4198,10 +4252,10 @@ Class cManifestFunctionLibrary is a cObject
             Send Info_Box ("The program file doesn't exist:" + "\n" + sFilename)
             Function_Return 0
         End
-        Move (Utf8ToAnsi(sFilename)) to sFilenameANSI
-        Append sFilenameANSI (Character(0)) (Character(0))
-
-        Move (fCreatefile(AddressOf(sFilenameANSI), GENERIC_RANDOM, FILE_SHARE_RANDOM, FNULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, FNULL)) to iRetVal
+        // CreateFileW: every character of the path reaches Windows. CreateFileA took it after Utf8ToAnsi, so a letter
+        // outside the machine's ANSI code page became '?' and the file was not found.
+        Move sFilename to wFilename
+        Move (CMS_CreateFileW(AddressOf(wFilename), GENERIC_RANDOM, FILE_SHARE_RANDOM, FNULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, FNULL)) to iRetVal
         If (iRetVal = INVALID_HANDLE_VALUE) Begin
             Move (GetLastError()) to iErrornumber
             If (iErrornumber = 32) Begin
@@ -4234,12 +4288,14 @@ Class cManifestFunctionLibrary is a cObject
     Function WindowsTempDirectory Returns String
         String sTempDir
         Integer iRet
+        WString wTempDir
 
-        Move (ZeroString(250)) to sTempDir
-        Move (GetTempPathEf(250, AddressOf(sTempDir))) to iRet
+        // GetTempPathW: the folder as it is. The ANSI one gave ANSI bytes, and AnsiToOem made OEM text of them - for a
+        // DataFlex 26 string the wrong text, so a user folder with a national letter came back garbled.
+        Move (ZeroString(250)) to wTempDir
+        Move (CMS_GetTempPathW(250, AddressOf(wTempDir))) to iRet
         If (iRet <> 0) Begin
-            Move (AnsiToOem(AddressOf(sTempDir), AddressOf(sTempDir))) to iRet
-            Move (cString(sTempDir)) to sTempDir
+            Move (CString(wTempDir)) to sTempDir
             If (Right(sTempDir, 1) = "\") ;
                 Move (Left(sTempDir, (Length(sTempDir) - 1))) to sTempDir
             Function_Return sTempDir
@@ -4251,17 +4307,18 @@ Class cManifestFunctionLibrary is a cObject
     // Writes to the console window (DOS-command window)
     { Visibility=Private MethodType=Event  NoDoc=True }
     Function WriteConsole Handle hConsole String sParam Returns Integer
-        String  sMessage
+        WString wMessage
         Handle  lpnCharsWritten
         Integer iCharsWritten
         Integer iRetVal
 
         Move (sParam + "\n") to sParam
-        Move (ZeroString(Length(sParam) + 1)) to sMessage
-        Move (sParam + (Character(0)))  to sMessage
+        // WriteConsoleW: the console shows every letter. WriteConsoleA showed the UTF-8 bytes as the console's code
+        // page, and Length counts characters, not the bytes it wanted. The count is the WString's own, in UTF-16.
+        Move sParam to wMessage
         Move 0 to iCharsWritten
         Move (AddressOf(iCharsWritten)) to lpnCharsWritten
-        Move (Win32WriteConsole(hConsole, AddressOf(sMessage), Length(sParam), lpnCharsWritten, 0)) to iRetval
+        Move (CMS_WriteConsoleW(hConsole, AddressOf(wMessage), CMS_lstrlenW(AddressOf(wMessage)), lpnCharsWritten, 0)) to iRetval
         Function_Return iRetVal
     End_Function
 
