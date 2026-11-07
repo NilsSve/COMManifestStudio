@@ -157,10 +157,14 @@ Object oDbMerger_vw is a cRDCDbView
                 
                 // Finally auto-find record, if exists.
                 Get Value of ho to sManifestFile
+                If (sManifestFile = "") Begin
+                    Procedure_Return
+                End
                 Get Value of hoPath to sPath
-                Move sManifestFile to ManHdr.ManifestFileName
-                Find Ge ManHdr by 2 
-                If (ManHdr.ManifestFileName = sManifestFile) Begin
+                Move sManifestFile to ManHdr.ManifestFileName 
+                Move sPath         to ManHdr.Path
+                Find Ge ManHdr by 2
+                If (Found and (Trim(ManHdr.ManifestFileName) = sManifestFile) and (Trim(ManHdr.Path) = sPath)) Begin
                     Send Request_Assign of (Main_DD(Self))
                 End
                 Else Begin
