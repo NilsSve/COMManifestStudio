@@ -78,7 +78,7 @@ Object oDbMerger_vw is a cRDCDbView
 
        Object oManHdrManifestFileName_fm is a cRDCDbSuggestionForm
             Entry_Item ManHdr.ManifestFileName
-            Set Size to 13 301
+            Set Size to 13 299
             Set Location to 29 16
             Set peAnchors to anTopLeftRight
             Set psToolTip to "This is the application manifest file. It has the same name as the executable, with an added '.manifest' word at the end. To select an application manifest file press the 'Browse...' button or press. Or press (F4) to display a selection list with previously created records. Note: A filename in red denotes it is missing!"
@@ -140,8 +140,8 @@ Object oDbMerger_vw is a cRDCDbView
         End_Object
 
         Object oSelectManifest_btn is a cRDCButton
-            Set Size to 13 44
-            Set Location to 29 321
+            Set Size to 13 49
+            Set Location to 29 318
             Set Label to "Browse..."
             Set psToolTip to "Click to show an Open dialog for you to select an application manifest file from. The file has the same name as the executable file, with an added '.manifest' keyword. (Ctrl+O)"
             Set peAnchors to anTopRight           
@@ -177,7 +177,7 @@ Object oDbMerger_vw is a cRDCDbView
 
         Object oManHdrPath_fm is a cRDCDbForm
             Entry_Item ManHdr.Path
-            Set Size to 13 301
+            Set Size to 13 299
             Set Location to 44 16
             Set peAnchors to anTopLeftRight
             Set phoManifestPathObject of ghoApplication to Self
@@ -190,9 +190,9 @@ Object oDbMerger_vw is a cRDCDbView
         End_Procedure
 
         Object oEditPath_btn is a cRDCButton
-            Set Size to 13 44
-            Set Location to 44 321
-            Set Label to "Enable"
+            Set Size to 13 49
+            Set Location to 44 318
+            Set Label to "Enable Path"
             Set psToolTip to "Makes the path window accessable for edit."
             Set peAnchors to anTopRight
 
