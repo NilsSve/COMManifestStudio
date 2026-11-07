@@ -1,13 +1,13 @@
 {
     "dependencies": {
         "github.com/NilsSve/Library-DFAbout.git/RDC-DFAbout-Library": {
-            "ref": "1.0.5"
+            "ref": "1.0.6"
         },
         "github.com/NilsSve/Library-DUF.git/RDC-DUF-Library": {
-            "ref": "1.0.10"
+            "ref": "1.0.11"
         },
         "github.com/NilsSve/Library-RDCToolsLib.git/RDC-Windows-Sub-Classes-Library": {
-            "ref": "1.0.17"
+            "ref": "1.0.18"
         },
         "github.com/NilsSve/Library-cFilesystem.git/Filesystem26.0": {
             "ref": "f78c91adca8827911fc5583300c44c05661e2eab"
