@@ -1,0 +1,37 @@
+// UnitTests.src - the unit-test program of the COMManifestStudio workspace.
+//
+// It lives in the workspace's own AppSrc: DataFlex resolves a project name against the workspace's own
+// AppSrc path only, never a library's. New tests are added in oUnit_Tests.pkg - nothing here changes.
+//
+// Running it (a 32-bit program, as COM Manifest Studio is - see UnitTests.cfg):
+//     UnitTests.exe                    the test-runner window
+//     UnitTests.exe -c                 unattended: results on the console, then exit 0 (all passed)
+//                                      or -1 (a test failed)
+//     UnitTests.exe -c -o result.xml   the same, plus JUnit XML for a build server
+//     UnitTests.exe -n                 open the window but do not run on startup
+
+Use DFAllEnt.pkg
+Use DFUnit.pkg
+Use cRDCApplication.pkg
+
+// cManifestFunctionLibrary.pkg sends these two to objects that COMManifestStudio.src and the
+// manifest view define (the application's grid property, and the grid's selection). The tests
+// never call them; they are declared here only so the package compiles in this program.
+Register_Function phoManifest_grid Returns Handle
+Register_Function SelectedItems Returns String[]
+
+Object oApplication is a cRDCApplication
+    Set psCompany to "RDC Tools International"
+    Set psProduct to "COM Manifest Studio Unit Tests"
+End_Object
+
+Object oTestApplication is a cDFUnitTestApplication
+
+    // Every test fixture in this workspace hangs off this one file.
+    Use oUnit_Tests.pkg
+
+End_Object
+
+// Parses the command line, then either shows the test-runner window or runs the tests on the console and
+// exits with the appropriate code.
+Send AutoRun of ghoTestApplication

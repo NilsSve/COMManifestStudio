@@ -15,8 +15,8 @@ This is a DataFlex 26 workspace. It leverages various additional libraries hoste
 Open **`COMManifestStudio.sws`** in DataFlex 26 and build. That is the whole
 procedure; there is no setup step to run first.
 
-The five libraries this workspace uses — Filesystem, DUF, DFAbout, RDCToolsLib
-and vwin32fh — are not stored in this repository. They are dependencies of the
+The libraries this workspace uses — Filesystem, DUF, DFAbout, RDCToolsLib,
+vwin32fh and DFUnit (for the unit tests) — are not stored in this repository. They are dependencies of the
 workspace, each pinned to an exact commit in `COMManifestStudio.sws.lock`, and
 the Studio's package handler fetches them into `DfPkg\` when the workspace is
 first opened. Give it a moment before the first compile. `DfPkg\` is local-only
@@ -31,3 +31,22 @@ Run **`setup.bat`** once. It does one thing: it calls `skip-local-data.cmd`, so
 that git ignores your own changes to the baseline database under `Data\` and you
 cannot push them by accident. If you are only running the program, you can skip
 it.
+
+## Unit tests
+
+`AppSrc\UnitTests.src` is the unit-test program of the workspace, built on
+[DFUnit](https://github.com/NilsSve/Library-DFUnit), which the workspace takes as a package like the other
+libraries. The tests are in `AppSrc\o<Subject>-Tests.pkg`, one file per subject, and `AppSrc\oUnit_Tests.pkg`
+lists them. The first file covers the parts of `cManifestFunctionLibrary` that need no database, no window and
+no COM component: git's name for a file's content (how the program tells a changed fragment file), the
+platform a program file is built for, and the small text helpers.
+
+Like the program itself, the test program is 32-bit. Build it in the Studio, or from a command prompt:
+
+```
+df-cli build --target UnitTests COMManifestStudio.sws
+Programs\UnitTests.exe -c
+```
+
+`-c` runs the tests on the console and ends with exit code 0 when all passed; without it the test-runner window
+opens.

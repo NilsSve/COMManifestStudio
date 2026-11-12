@@ -1,6 +1,11 @@
 {
     "dependencies": [
         {
+            "source": "https://github.com/NilsSve/Library-DFUnit.git",
+            "sws": "RDC-DFUnit-Library.sws",
+            "version": "0.1.0"
+        },
+        {
             "source": "https://github.com/NilsSve/Library-RDCToolsLib.git",
             "sws": "RDC-Windows-Sub-Classes-Library.sws",
             "version": "1.0.19"
@@ -20,6 +25,7 @@
     "df": 26.0,
     "projects": [
         "COMManifestStudio.src",
-        "VdfCmdUtil.src"
+        "VdfCmdUtil.src",
+        "UnitTests.src"
     ]
 }

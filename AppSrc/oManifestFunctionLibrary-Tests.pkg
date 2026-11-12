@@ -1,0 +1,166 @@
+// oManifestFunctionLibrary-Tests.pkg - the functions of cManifestFunctionLibrary that need no database,
+// no window and no COM component installed: git's name for a file's content, the platform a program
+// file is built for, and the small text helpers.
+//
+// The package creates its own object (ghoManifestFunctionLibrary). Its start-up reads the program's ini
+// file only; it writes nothing.
+
+Use DFUnit\Fixturing\Fixture.pkg
+Use cManifestFunctionLibrary.pkg
+
+Object oManifestFunctionLibrary_Tests is a cTestFixture
+    Set psTestFixtureName to "cManifestFunctionLibrary"
+
+    // ---------------------------------------------------------------- GitBlobSha
+
+    // git hash-object of an empty file.
+    { Published=True }
+    Procedure Test_GitBlobSha_Of_Empty_Content
+        String sSha
+
+        Get GitBlobSha of ghoManifestFunctionLibrary "" to sSha
+        Send AssertSAreEqual "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391" sSha "git's name for an empty file."
+    End_Procedure
+
+    // git hash-object of "hello" and a line feed. The first byte of the hash is 206 (hex ce): a UChar of 128
+    // or more reads as negative in an expression, and before the fix the name began "e" instead of "ce".
+    { Published=True }
+    Procedure Test_GitBlobSha_Of_Hello_Starts_With_A_High_Byte
+        String sSha
+
+        Get GitBlobSha of ghoManifestFunctionLibrary ("hello" + Character(10)) to sSha
+        Send AssertSAreEqual "ce013625030ba8dba906f756967f9e9ca394464a" sSha "git's name for hello + LF."
+        Send AssertIAreEqual 40 (Length(sSha)) "Always 40 hex digits."
+    End_Procedure
+
+    // ---------------------------------------------------------------- ByteValue / ComponentPlatform
+
+    { Published=True }
+    Procedure Test_ByteValue_Reads_A_High_Byte_As_Positive
+        UChar[] ucData
+        Integer iByte
+
+        Move 206 to ucData[0]
+        Move 77  to ucData[1]
+        Get ByteValue of ghoManifestFunctionLibrary ucData 0 to iByte
+        Send AssertIAreEqual 206 iByte "206 stays 206."
+        Get ByteValue of ghoManifestFunctionLibrary ucData 1 to iByte
+        Send AssertIAreEqual 77 iByte "A low byte is unchanged."
+    End_Procedure
+
+    // This test program is itself a Windows program file, so its PE header names the platform it was built for.
+    { Published=True }
+    Procedure Test_ComponentPlatform_Of_This_Program
+        String sFileName sPlatform sExpected
+
+        Get GetApplicationFileName of ghoApplication to sFileName
+        Get ComponentPlatform of ghoManifestFunctionLibrary sFileName to sPlatform
+#IFDEF IS$WIN64
+        Move "x64" to sExpected
+#ELSE
+        Move "x86" to sExpected
+#ENDIF
+        Send AssertSAreEqual sExpected sPlatform ("The platform of " + sFileName)
+    End_Procedure
+
+    { Published=True }
+    Procedure Test_ComponentPlatform_Of_A_Missing_File_Is_Empty
+        String sPlatform
+
+        Get ComponentPlatform of ghoManifestFunctionLibrary "C:\No Such Folder 7Q\NoSuchFile.ocx" to sPlatform
+        Send AssertSAreEqual "" sPlatform "No file, no platform."
+    End_Procedure
+
+    // Config.ws sits beside every DataFlex program: a text file, not a program file.
+    { Published=True }
+    Procedure Test_ComponentPlatform_Of_A_Text_File_Is_Empty
+        String sFileName sPlatform
+
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sFileName
+        Move (vFolderFormat(sFileName) + "Config.ws") to sFileName
+        Get ComponentPlatform of ghoManifestFunctionLibrary sFileName to sPlatform
+        Send AssertSAreEqual "" sPlatform ("Not a program file: " + sFileName)
+    End_Procedure
+
+    // ---------------------------------------------------------------- ExtractCLSIDFromDump
+
+    { Published=True }
+    Procedure Test_ExtractCLSIDFromDump_Keeps_The_Braces
+        String sCLSID
+
+        Get ExtractCLSIDFromDump of ghoManifestFunctionLibrary "  CLSID: {A1B2C3D4-0000-1111-2222-333344445555}  " to sCLSID
+        Send AssertSAreEqual "{A1B2C3D4-0000-1111-2222-333344445555}" sCLSID "The CLSID with its braces."
+    End_Procedure
+
+    { Published=True }
+    Procedure Test_ExtractCLSIDFromDump_Without_Braces_Is_Empty
+        String sCLSID
+
+        Get ExtractCLSIDFromDump of ghoManifestFunctionLibrary "no class id on this line" to sCLSID
+        Send AssertSAreEqual "" sCLSID "No braces, no CLSID."
+    End_Procedure
+
+    // ---------------------------------------------------------------- CompareTypeLibIDs
+
+    // Two fragment files name the same type library when their tlbid matches - whatever the case, and
+    // whatever follows it on the line.
+    { Published=True }
+    Procedure Test_CompareTypeLibIDs_Ignores_Case_And_The_Rest_Of_The_Line
+        tFileStruct TypeLib1 TypeLib2
+        Integer iResult
+
+        Move '<typelib tlbid="{AAAA0000-1111-2222-3333-444455556666}" version="1.0" />' to TypeLib1.sFileNameSecondCol
+        Move '<typelib tlbid="{aaaa0000-1111-2222-3333-444455556666}" version="2.4" helpdir="" />' to TypeLib2.sFileNameSecondCol
+        Get CompareTypeLibIDs of ghoManifestFunctionLibrary TypeLib1 TypeLib2 to iResult
+        Send AssertIAreEqual (EQ) iResult "The same type library."
+    End_Procedure
+
+    { Published=True }
+    Procedure Test_CompareTypeLibIDs_Orders_Different_IDs
+        tFileStruct TypeLib1 TypeLib2
+        Integer iResult
+
+        Move '<typelib tlbid="{AAAA0000-1111-2222-3333-444455556666}" version="1.0" />' to TypeLib1.sFileNameSecondCol
+        Move '<typelib tlbid="{BBBB0000-1111-2222-3333-444455556666}" version="1.0" />' to TypeLib2.sFileNameSecondCol
+        Get CompareTypeLibIDs of ghoManifestFunctionLibrary TypeLib1 TypeLib2 to iResult
+        Send AssertIAreEqual (LT) iResult "A before B."
+        Get CompareTypeLibIDs of ghoManifestFunctionLibrary TypeLib2 TypeLib1 to iResult
+        Send AssertIAreEqual (GT) iResult "B after A."
+    End_Procedure
+
+    // ---------------------------------------------------------------- IsNumeric / InsertThousandsSeparators
+
+    { Published=True }
+    Procedure Test_IsNumeric
+        Send Assert      (IsNumeric("12345"))  "Digits."
+        Send Assert      (IsNumeric(" -42 "))  "A minus sign, with spaces round it."
+        Send AssertFalse (IsNumeric("12a"))    "A letter."
+        Send AssertFalse (IsNumeric("1.5"))    "A decimal separator is not a digit."
+        Send AssertFalse (IsNumeric(""))       "Empty."
+    End_Procedure
+
+    // The thousands separator is the one the decimal separator leaves free: "," when the decimal separator
+    // is ".", and "." when it is ",".
+    { Published=True }
+    Procedure Test_InsertThousandsSeparators
+        Integer iSeparator
+        String sDec sTh sResult
+
+        Get_Attribute DF_DECIMAL_SEPARATOR to iSeparator
+        Move (Character(iSeparator)) to sDec
+        If (sDec = ",") Begin
+            Move "." to sTh
+        End
+        Else Begin
+            Move "," to sTh
+        End
+
+        Get InsertThousandsSeparators of ghoManifestFunctionLibrary "1234567" to sResult
+        Send AssertSAreEqual ("1" + sTh + "234" + sTh + "567") sResult "Seven digits."
+        Get InsertThousandsSeparators of ghoManifestFunctionLibrary "999" to sResult
+        Send AssertSAreEqual "999" sResult "Three digits need no separator."
+        Get InsertThousandsSeparators of ghoManifestFunctionLibrary ("-1234567" + sDec + "89") to sResult
+        Send AssertSAreEqual ("-1" + sTh + "234" + sTh + "567" + sDec + "89") sResult "Negative, with decimals."
+    End_Procedure
+
+End_Object

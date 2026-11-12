@@ -1,0 +1,20 @@
+// oUnit_Tests.pkg - the root fixture for the unit tests of the COMManifestStudio workspace.
+//
+// This is the only file to edit when a test file is added: one Use line per subject. One file per package or
+// per function under test, named o<Subject>-Tests.pkg.
+
+Use DFUnit\Fixturing\Fixture.pkg
+
+Object oWorkspace_Tests is a cTestFixture
+    Set psTestFixtureName to "COMManifestStudio"
+
+    Procedure Setup
+    End_Procedure
+
+    Procedure TearDown
+    End_Procedure
+
+    // *** Test files below - one Use line per subject: ***
+    Use oManifestFunctionLibrary-Tests.pkg
+
+End_Object
