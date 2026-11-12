@@ -402,7 +402,8 @@ Object oCreateFragmentFilesFromFolder is a cRDCModalPanel
                             Move True to bCancel
                         End
                         Else Begin
-                            Get CreateManifestFragmentFileEx of ghoManifestFunctionLibrary sFolder sFile True bReplace (&sMessage) to sFragment
+                            // "" "": the fragment file's own name, and the suggested description.
+                            Get CreateManifestFragmentFileEx of ghoManifestFunctionLibrary sFolder sFile "" "" True bReplace (&sMessage) to sFragment
                             If (sFragment <> "") Begin
                                 Increment iCreated
                                 If (sRegistered = CS_COMShared) Begin

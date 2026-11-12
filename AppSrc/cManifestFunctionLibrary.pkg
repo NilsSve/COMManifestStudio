@@ -1212,9 +1212,10 @@ Class cManifestFunctionLibrary is a cObject
     // Pass the full path & the name of the manifest fragment file to create,
     // the name of the COM component file and a struct array with CLSID's & descriptions.
     // Returns the name of new manifest fragment file with full path if successful - else an emtpy string.
+    // sCustomDescription: the first line's text, written as given; "" writes the suggested description.
     // bQuiet True (the folder batch): no message boxes. An existing fragment file is replaced only when
     // bReplaceExisting is True, and when nothing is written sMessage says why.
-    Function CreateFromCLSIDArray String sToFile String sCOMComponentPath String sCOMComponentFileName tSxSInfo[] sCLSIDStructArray Boolean bQuiet Boolean bReplaceExisting String ByRef sMessage Returns String
+    Function CreateFromCLSIDArray String sToFile String sCOMComponentPath String sCOMComponentFileName tSxSInfo[] sCLSIDStructArray String sCustomDescription Boolean bQuiet Boolean bReplaceExisting String ByRef sMessage Returns String
         String sRetval sValue sManifestFragmentLibrary sTabChar
         String sClsid sDescription sVersion sOutputString sTypeLibOutput
         String sComponentDescription sVersionText sTlbId
@@ -1266,19 +1267,30 @@ Class cManifestFunctionLibrary is a cObject
         // be read from the registry.
         Get ExtractTypeLib sCOMComponentPath sCOMComponentFileName bQuiet (&sComponentDescription) (&sVersionText) to sTypeLibOutput
 
-        // First line in manifest fragment file: a comment that suggests a description (FragmentFileCommentLine).
-        // It needs the type library's ID. mt.exe's typelib line has it; without that line, ask the registry
-        // which type library the component's classes belong to.
-        Move "" to sTlbId
-        If (sTypeLibOutput = "") Begin
-            For i from 0 to (iItems - 1)
-                If (sTlbId = "") Begin
-                    Get RegistrySxSInfo sCLSIDStructArray[i].sCLSID "" to SxSInfoOutInfo
-                    Move SxSInfoOutInfo.sTypeLib to sTlbId
-                End
-            Loop
+        // First line in manifest fragment file: the user's own description when one was given - written as it
+        // was typed, with no build or version added - else a comment that suggests one (FragmentFileCommentLine).
+        Move (Trim(sCustomDescription)) to sCustomDescription
+        // A typed "//" in front would give "// //".
+        While (Left(sCustomDescription, 2) = CS_VDFComment)
+            Move (Trim(Right(sCustomDescription, (Length(sCustomDescription) - 2)))) to sCustomDescription
+        Loop
+        If (sCustomDescription <> "") Begin
+            Move (CS_VDFComment * sCustomDescription) to sValue
         End
-        Get FragmentFileCommentLine sCOMComponentPath sCOMComponentFileName sTypeLibOutput sTlbId sComponentDescription to sValue
+        Else Begin
+            // The suggestion needs the type library's ID. mt.exe's typelib line has it; without that line, ask
+            // the registry which type library the component's classes belong to.
+            Move "" to sTlbId
+            If (sTypeLibOutput = "") Begin
+                For i from 0 to (iItems - 1)
+                    If (sTlbId = "") Begin
+                        Get RegistrySxSInfo sCLSIDStructArray[i].sCLSID "" to SxSInfoOutInfo
+                        Move SxSInfoOutInfo.sTypeLib to sTlbId
+                    End
+                Loop
+            End
+            Get FragmentFileCommentLine sCOMComponentPath sCOMComponentFileName sTypeLibOutput sTlbId sComponentDescription to sValue
+        End
         Writeln channel iChOut sValue
 
         Writeln channel iChOut (CS_XMLCOMFileName + '"' + sCOMComponentFileName + '"' + '>')
@@ -1369,10 +1381,12 @@ Class cManifestFunctionLibrary is a cObject
     // Returns a string with the full filename including path of the newly created manifest fragment file - or
     // a blank string if the creation failed.
     // It does so by memory piping with the help of the ExternalProgramResult function.
-    Function CreateManifestFragmentFile String sCOMComponentPath String sCOMComponentFileName Returns String
+    //   sCustomFileName    - the fragment file's name (no path); "" gives ManifestFragmentFileName's.
+    //   sCustomDescription - the first line's text, written as given; "" gives the suggested description.
+    Function CreateManifestFragmentFile String sCOMComponentPath String sCOMComponentFileName String sCustomFileName String sCustomDescription Returns String
         String sRetval sMessage
 
-        Get CreateManifestFragmentFileEx sCOMComponentPath sCOMComponentFileName False False (&sMessage) to sRetval
+        Get CreateManifestFragmentFileEx sCOMComponentPath sCOMComponentFileName sCustomFileName sCustomDescription False False (&sMessage) to sRetval
         Function_Return sRetval
     End_Function
 
@@ -1380,7 +1394,9 @@ Class cManifestFunctionLibrary is a cObject
     //   bQuiet           - True: no message boxes at all. When no file is written, sMessage says why.
     //   bReplaceExisting - with bQuiet True: replace a fragment file that already exists (False skips it).
     //                      With bQuiet False the user is asked instead, as before.
-    Function CreateManifestFragmentFileEx String sCOMComponentPath String sCOMComponentFileName Boolean bQuiet Boolean bReplaceExisting String ByRef sMessage Returns String
+    // NOTE for a caller: DataFlex accepts a call with FEWER arguments and binds them by position, so a call
+    // that was not updated when parameters were added compiles cleanly and passes them to the wrong ones.
+    Function CreateManifestFragmentFileEx String sCOMComponentPath String sCOMComponentFileName String sCustomFileName String sCustomDescription Boolean bQuiet Boolean bReplaceExisting String ByRef sMessage Returns String
         Integer iRetval
         String sManifestFragmentFileName sProgramsPath sRetval
         String[]   sCLSIDArray
@@ -1389,7 +1405,15 @@ Class cManifestFunctionLibrary is a cObject
         Move "" to sMessage
         Send Cursor_Wait of Cursor_Control
         Get vFolderFormat sCOMComponentPath to sCOMComponentPath
-        Get ManifestFragmentFileName sCOMComponentFileName to sManifestFragmentFileName
+
+        // Optional user-supplied name applies only to the fragment .txt file,
+        // never to the physical COM component name inside the XML.
+        If (Trim(sCustomFileName) <> "") Begin
+            Move (Trim(sCustomFileName)) to sManifestFragmentFileName
+        End
+        Else Begin
+            Get ManifestFragmentFileName sCOMComponentFileName to sManifestFragmentFileName
+        End
 
         Get psProgramPath of (phoWorkspace(ghoApplication)) to sProgramsPath
         Get PathAtIndex   of (phoWorkspace(ghoApplication)) sProgramsPath 1 to sProgramsPath
@@ -1403,7 +1427,7 @@ Class cManifestFunctionLibrary is a cObject
         If (iRetval > 0) Begin
             Get ConvertFromCLSIDArrayToStruct sCLSIDArray to sCLSIDStructArray
             // This will create the actual manifest fragment file in the manifest fragment library:
-            Get CreateFromCLSIDArray sManifestFragmentFileName sCOMComponentPath sCOMComponentFileName sCLSIDStructArray bQuiet bReplaceExisting (&sMessage) to sRetval
+            Get CreateFromCLSIDArray sManifestFragmentFileName sCOMComponentPath sCOMComponentFileName sCLSIDStructArray sCustomDescription bQuiet bReplaceExisting (&sMessage) to sRetval
         End
         Else Begin
             Move ("Failed: the" * CS_CLSExportExe * "program could not read the component") to sMessage
@@ -1453,6 +1477,24 @@ Class cManifestFunctionLibrary is a cObject
         End
         If (sVersion <> "" and not(sDescription contains sVersion)) Begin
             Move (sLine * CS_XMLVersion + "=" + sVersion) to sLine
+        End
+        Function_Return sLine
+    End_Function
+
+    // The description a new fragment file of this component would get on its first line, without the "//"
+    // in front - e.g. "Xtreme Calendar ActiveX Control 26.0.0 Unicode x64". For a dialog that shows the
+    // suggestion for the user to edit. mt.exe runs quietly: no message box when it fails.
+    // The type library's registered name is part of the suggestion, so a component that is not registered
+    // yet gets less of one (the file name); CreateManifestFragmentFile makes it again when the file is made.
+    Function SuggestedFragmentDescription String sCOMComponentPath String sCOMComponentFileName Returns String
+        String sTypeLibLine sDescription sVersionText sLine
+
+        Get vFolderFormat sCOMComponentPath to sCOMComponentPath
+        Get ExtractTypeLib sCOMComponentPath sCOMComponentFileName True (&sDescription) (&sVersionText) to sTypeLibLine
+        Get FragmentFileCommentLine sCOMComponentPath sCOMComponentFileName sTypeLibLine "" sDescription to sLine
+        Move (Trim(sLine)) to sLine
+        If (Left(sLine, 2) = CS_VDFComment) Begin
+            Move (Trim(Right(sLine, (Length(sLine) - 2)))) to sLine
         End
         Function_Return sLine
     End_Function
