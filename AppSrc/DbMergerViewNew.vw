@@ -168,9 +168,11 @@ Object oDbMerger_vw is a cRDCDbView
                     Send Request_Assign of (Main_DD(Self))
                 End
                 Else Begin
-                    Send Clear of (Main_DD(Self))    
+                    Send Clear of (Main_DD(Self))
                     Set Changed_Value of ho 0 to sManifestFile
                     Set Changed_Value of hoPath 0 to sPath
+                    // A manifest file the database does not know can list COM components already.
+                    Send FillGridFromManifestFile sPath sManifestFile
                 End
             End_Procedure
         End_Object
@@ -269,7 +271,7 @@ Object oDbMerger_vw is a cRDCDbView
 
                 Procedure Prompt
                     String[] sFileNames sRetvalsArray
-                    Integer i iRows iID iRetval
+                    Integer iID
 
                     Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
                     If (iID = 0) Begin
@@ -281,26 +283,7 @@ Object oDbMerger_vw is a cRDCDbView
                     // Popup the selection list!
                     Get ActivateFragmentFiles_sl (&sFileNames) to sRetvalsArray
                     // Get the selection from the popup list and add them to the grid:
-                    Move (SizeOfArray(sRetvalsArray)) to iRows
-                    If (iRows = 0) ;
-                        Procedure_Return
-
-                    // Create new records from the returned sRetvalsArray values
-                    Decrement iRows
-                    Lock
-                        For i from 0 to iRows
-                            Clear ManDet
-                            Get GlobalAutoCreateNewID File_Field ManDet.ID False to iRetval
-                            Move iRetval to ManDet.ID
-                            Move iID to ManDet.ManHdrID
-                            Move sRetvalsArray[i] to ManDet.ManifestFragmentFile
-                            SaveRecord ManDet
-                        Loop
-                    Unlock
-
-                    // Refresh grid from the database table's records
-                    Send RefreshDataFromExternal of oManifest_grid 0
-                    Send MovetoFirstRow
+                    Send AddFragmentFiles of oManifest_grid iID sRetvalsArray
                 End_Procedure
 
                 // Check if the manifest fragment file is missing; in case we set the textcolor to red
@@ -375,6 +358,34 @@ Object oDbMerger_vw is a cRDCDbView
             // what column header is clicked. It just makes sense here.
             Procedure OnHeaderClick Integer iCol
                 Send Prompt of oFragmentFileCol
+            End_Procedure
+
+            // Adds a detail row for each of the fragment files to the manifest record with the ID iID, and shows
+            // them. Used by the fragment files prompt list, and when a new manifest file fills the grid
+            // (FillGridFromManifestFile).
+            Procedure AddFragmentFiles Integer iID String[] sFragmentFiles
+                Integer i iRows iRetval
+
+                Move (SizeOfArray(sFragmentFiles)) to iRows
+                If (iID = 0 or iRows = 0) Begin
+                    Procedure_Return
+                End
+
+                // Create new records from the fragment file names
+                Lock
+                    For i from 0 to (iRows - 1)
+                        Clear ManDet
+                        Get GlobalAutoCreateNewID File_Field ManDet.ID False to iRetval
+                        Move iRetval to ManDet.ID
+                        Move iID to ManDet.ManHdrID
+                        Move sFragmentFiles[i] to ManDet.ManifestFragmentFile
+                        SaveRecord ManDet
+                    Loop
+                Unlock
+
+                // Refresh grid from the database table's records
+                Send RefreshDataFromExternal 0
+                Send MovetoFirstRow
             End_Procedure
 
             // Send by grid subclass Refresh message.
@@ -979,6 +990,72 @@ Register_Object oViewContextMenu
                 Send Clear of oManHdr_DD
             End
         End
+    End_Procedure
+
+    // A manifest file that is not in the database yet can list COM components already - one made elsewhere, or
+    // one whose record was deleted. Offer to fill the grid with the fragment files of the local library that
+    // describe them (FragmentFilesForManifest), so they need not be picked one by one. The header record is saved
+    // first, as a detail row needs its ID; the user is asked before anything is saved.
+    Procedure FillGridFromManifestFile String sPath String sManifestFile
+        String[] sFragments sMissing
+        String sText sList
+        Integer i iFound iMissing iRetval iID
+        Boolean bHasRecord
+
+        Send Cursor_Wait of Cursor_Control
+        Get FragmentFilesForManifest of ghoManifestFunctionLibrary (vFolderFormat(sPath) + sManifestFile) (&sMissing) to sFragments
+        Send Cursor_Ready of Cursor_Control
+        Move (SizeOfArray(sFragments)) to iFound
+        Move (SizeOfArray(sMissing))   to iMissing
+        // No COM component in it: nothing to offer.
+        If ((iFound + iMissing) = 0) Begin
+            Procedure_Return
+        End
+
+        // The components without a fragment file, at most 15 named.
+        Move "" to sList
+        For i from 0 to (iMissing - 1)
+            If (i < 15) Begin
+                Move (sList + "\n   " + sMissing[i]) to sList
+            End
+        Loop
+        If (iMissing > 15) Begin
+            Move (sList + "\n   ... and" * String(iMissing - 15) * "more") to sList
+        End
+        If (iFound = 0) Begin
+            Send Info_Box ("The manifest file lists" * String(iMissing) * "COM components, but none of them has a fragment file in your local 'Manifest Fragment Library':" + sList + "\n\nYou can create fragment files with the 'Create' toolbar button.")
+            Procedure_Return
+        End
+
+        Move ("The manifest file lists" * String(iFound + iMissing) * "COM components. Fragment files were found in your local 'Manifest Fragment Library' for" * String(iFound) * "of them:") to sText
+        For i from 0 to (iFound - 1)
+            If (i < 15) Begin
+                Move (sText + "\n   " + sFragments[i]) to sText
+            End
+        Loop
+        If (iFound > 15) Begin
+            Move (sText + "\n   ... and" * String(iFound - 15) * "more") to sText
+        End
+        If (iMissing > 0) Begin
+            Move (sText + "\n\nNo fragment file was found for:" + sList + "\nYou can create them with the 'Create' toolbar button.") to sText
+        End
+        Move (sText + "\n\nDo you want to save the manifest record and add the found fragment files to the grid?") to sText
+        Get YesNo_Box sText to iRetval
+        If (iRetval <> MBR_Yes) Begin
+            Procedure_Return
+        End
+
+        // Save the header at the DD (a save there does not clear the record); its ID is made as it is saved.
+        Set Field_Changed_Value of oManHdr_DD Field ManHdr.ManifestFileName to sManifestFile
+        Set Field_Changed_Value of oManHdr_DD Field ManHdr.Path             to sPath
+        Send Request_Save of oManHdr_DD
+        Get HasRecord of oManHdr_DD to bHasRecord
+        Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
+        If (bHasRecord = False or iID = 0) Begin
+            Send Info_Box "The manifest record could not be saved, so the grid was not filled."
+            Procedure_Return
+        End
+        Send AddFragmentFiles of oManifest_grid iID sFragments
     End_Procedure
 
     Procedure OnFileDropped String sFilename Boolean bLast

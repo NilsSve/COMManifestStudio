@@ -2971,6 +2971,196 @@ Class cManifestFunctionLibrary is a cObject
         Function_Return (sCOMComponentFileName + ".txt")
     End_Function
 
+    // The CLSIDs of a COM file as one text that two files can be compared by: lowercase, sorted, joined by ";".
+    Function CLSIDKey String[] sCLSIDs Returns String
+        String sKey
+        Integer i
+
+        Move "" to sKey
+        Move (SortArray(sCLSIDs)) to sCLSIDs
+        For i from 0 to (SizeOfArray(sCLSIDs) - 1)
+            If (i > 0) Begin
+                Move (sKey + ";") to sKey
+            End
+            Move (sKey + Lowercase(Trim(sCLSIDs[i]))) to sKey
+        Loop
+        Function_Return sKey
+    End_Function
+
+    // The COM files a manifest file lists: each <file> element of the assembly that has a comClass, typelib or
+    // comInterfaceProxyStub element. Read with the XML parser, so a manifest written on one line (mt.exe and other
+    // tools write them so) reads the same as one written by this program. Returns an empty array when the file
+    // cannot be read as XML, or lists no COM file.
+    Function ManifestCOMFiles String sManifestFile Returns tManifestCOMFile[]
+        tManifestCOMFile[] COMFiles
+        String[] sCLSIDs sEmpty
+        Handle hoXML hoRoot hoFile hoNextFile hoChild hoNextChild
+        String sName sBaseName sClsid sKey
+        Integer iCount
+        Boolean bOk bCOM
+
+        Get Create U_cXMLDOMDocument to hoXML
+        Set psDocumentName of hoXML to sManifestFile
+        Get LoadXMLDocument of hoXML to bOk
+        If (bOk = False) Begin
+            Send Destroy of hoXML
+            Function_Return COMFiles
+        End
+        Get DocumentElement of hoXML to hoRoot
+        If (hoRoot = 0) Begin
+            Send Destroy of hoXML
+            Function_Return COMFiles
+        End
+
+        Get FirstChild of hoRoot to hoFile
+        While (hoFile <> 0)
+            // piNodeType 1 = an element. psBaseName is the name without a namespace prefix.
+            If (piNodeType(hoFile) = 1 and Lowercase(psBaseName(hoFile)) = CS_XMLFileTag) Begin
+                Get AttributeValue of hoFile CS_XMLNameTag to sName
+                Move False  to bCOM
+                Move sEmpty to sCLSIDs
+                Get FirstChild of hoFile to hoChild
+                While (hoChild <> 0)
+                    If (piNodeType(hoChild) = 1) Begin
+                        Move (Lowercase(psBaseName(hoChild))) to sBaseName
+                        If (sBaseName = "comclass" or sBaseName = "typelib" or sBaseName = "cominterfaceproxystub") Begin
+                            Move True to bCOM
+                        End
+                        If (sBaseName = "comclass") Begin
+                            Get AttributeValue of hoChild CS_XMLclsidTag to sClsid
+                            If (Trim(sClsid) <> "") Begin
+                                Move (Lowercase(Trim(sClsid))) to sCLSIDs[SizeOfArray(sCLSIDs)]
+                            End
+                        End
+                    End
+                    Get NextSibling of hoChild to hoNextChild
+                    Send Destroy of hoChild
+                    Move hoNextChild to hoChild
+                Loop
+                // The name can carry a folder ("bin\x.ocx"); the file name is what a fragment file names.
+                Move (ParseFileName(Replaces("/", Trim(sName), "\"))) to sName
+                If (bCOM = True and sName <> "") Begin
+                    Move (SizeOfArray(COMFiles)) to iCount
+                    Move sName to COMFiles[iCount].sDisplayName
+                    Move (Lowercase(sName)) to COMFiles[iCount].sFileName
+                    Get CLSIDKey sCLSIDs to sKey
+                    Move sKey to COMFiles[iCount].sCLSIDs
+                End
+            End
+            Get NextSibling of hoFile to hoNextFile
+            Send Destroy of hoFile
+            Move hoNextFile to hoFile
+        Loop
+        Send Destroy of hoRoot
+        Send Destroy of hoXML
+        Function_Return COMFiles
+    End_Function
+
+    // The local library's fragment files, each with the COM file it describes (its <file name=...>) and its
+    // CLSIDs, for FragmentFilesForManifest. Every fragment file is read once; a file that names no COM file
+    // (not a fragment file) is left out.
+    Function FragmentLibraryIndex Returns tFragmentIndexEntry[]
+        tFragmentIndexEntry[] Index
+        tsSearchResult[] SearchArray
+        String[] sCLSIDs sEmpty
+        Handle hoFileSystem
+        String sLibrary sFile sData sLow sName sKey
+        Integer i iItems iPos iCount
+
+        Get psManifestFragmentLibrary to sLibrary
+        Get vFolderFormat sLibrary to sLibrary
+        Get Create (RefClass(cFilesystem)) to hoFileSystem
+        Get FileSearch of hoFileSystem (sLibrary + CS_TextFileWildCards) DIRMODE_FILES_ONLY False True to SearchArray
+        Send Destroy of hoFileSystem
+
+        Move (SizeOfArray(SearchArray)) to iItems
+        For i from 0 to (iItems - 1)
+            Move SearchArray[i].sFilename to sFile
+            // "*.txt" also finds e.g. "x.txt_old" (the short 8.3 names): only real .txt files.
+            If (Lowercase(Right(sFile, 4)) = ".txt") Begin
+                Get FileContentAsString (sLibrary + sFile) to sData
+                Move (Lowercase(sData)) to sLow
+                Move (Pos('<file name="', sLow)) to iPos
+                If (iPos > 0) Begin
+                    Move (Mid(sData, Length(sData), (iPos + 12))) to sName
+                    Move (Left(sName, (Pos('"', sName) - 1))) to sName
+                    Move (Lowercase(ParseFileName(Replaces("/", Trim(sName), "\")))) to sName
+                    // Every clsid="{...}" of the file.
+                    Move sEmpty to sCLSIDs
+                    Move (Pos('clsid="', sLow)) to iPos
+                    While (iPos > 0)
+                        Move (Mid(sLow, Length(sLow), (iPos + 7))) to sLow
+                        Move (Left(sLow, (Pos('"', sLow) - 1))) to sCLSIDs[SizeOfArray(sCLSIDs)]
+                        Move (Pos('clsid="', sLow)) to iPos
+                    Loop
+                    If (sName <> "") Begin
+                        Move (SizeOfArray(Index)) to iCount
+                        Move sFile to Index[iCount].sFragmentFile
+                        Move sName to Index[iCount].sCOMFileName
+                        Get CLSIDKey sCLSIDs to sKey
+                        Move sKey to Index[iCount].sCLSIDs
+                    End
+                End
+            End
+        Loop
+        Function_Return Index
+    End_Function
+
+    // The fragment files of the local library that describe the COM files a manifest file lists - so the grid can
+    // be filled from a manifest file the database does not know yet. A COM file's fragment file names the same
+    // file (<file name=...>). When several do - mostly one component saved under two fragment names, sometimes
+    // two versions of one DLL - the one with the same CLSIDs as the manifest wins, then the one that
+    // ManifestFragmentFileName names, then the first. Each fragment file is returned once, in the manifest's order.
+    // sMissing returns the COM files (as the manifest names them) that no fragment file describes.
+    // Both arrays are empty when the manifest lists no COM file.
+    Function FragmentFilesForManifest String sManifestFile String[] ByRef sMissing Returns String[]
+        tManifestCOMFile[] COMFiles
+        tFragmentIndexEntry[] Index
+        String[] sFragments sEmpty
+        String sPreferred
+        Integer i j iItems iEntries iBest iBestScore iScore
+
+        Move sEmpty to sMissing
+        Get ManifestCOMFiles sManifestFile to COMFiles
+        Move (SizeOfArray(COMFiles)) to iItems
+        If (iItems = 0) Begin
+            Function_Return sFragments
+        End
+
+        Get FragmentLibraryIndex to Index
+        Move (SizeOfArray(Index)) to iEntries
+        For i from 0 to (iItems - 1)
+            Get ManifestFragmentFileName COMFiles[i].sFileName to sPreferred
+            Move -1 to iBest
+            Move -1 to iBestScore
+            For j from 0 to (iEntries - 1)
+                If (Index[j].sCOMFileName = COMFiles[i].sFileName) Begin
+                    // The same CLSIDs count 2, the name ManifestFragmentFileName gives counts 1.
+                    Move 0 to iScore
+                    If (Index[j].sCLSIDs = COMFiles[i].sCLSIDs) Begin
+                        Move (iScore + 2) to iScore
+                    End
+                    If (Lowercase(Index[j].sFragmentFile) = sPreferred) Begin
+                        Move (iScore + 1) to iScore
+                    End
+                    If (iScore > iBestScore) Begin
+                        Move j      to iBest
+                        Move iScore to iBestScore
+                    End
+                End
+            Loop
+            If (iBest >= 0) Begin
+                If (SearchArray(Index[iBest].sFragmentFile, sFragments) = -1) Begin
+                    Move Index[iBest].sFragmentFile to sFragments[SizeOfArray(sFragments)]
+                End
+            End
+            Else Begin
+                Move COMFiles[i].sDisplayName to sMissing[SizeOfArray(sMissing)]
+            End
+        Loop
+        Function_Return sFragments
+    End_Function
+
     // Calling the function below will convert the number passed in nNumber to a
     // string containing iDecimals decimals rounding excess decimals. Parameter iDecimals
     // may be negative. The expression (NumberToString(oStringFunctions,1789,-3)) will evaluate to "2000".

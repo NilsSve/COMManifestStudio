@@ -229,6 +229,24 @@ Define ENABLE_PROCESSED_INPUT  for 1
     End_Struct
 #ENDIF
 
+// One COM file that a manifest file lists (ManifestCOMFiles), for matching it with a fragment file.
+#IFNDEF _struct_tManifestCOMFile
+    Struct tManifestCOMFile
+        String sDisplayName     // the file name as the manifest gives it, without a path
+        String sFileName        // the same in lowercase, to compare
+        String sCLSIDs          // its comClass CLSIDs: lowercase, sorted, joined by ";" (CLSIDKey)
+    End_Struct
+#ENDIF
+
+// One fragment file of the local library, with the COM file it describes (FragmentLibraryIndex).
+#IFNDEF _struct_tFragmentIndexEntry
+    Struct tFragmentIndexEntry
+        String sFragmentFile    // e.g. "Codejock.Calendar.v26.0.0.txt"
+        String sCOMFileName     // its <file name=...>, without a path, in lowercase
+        String sCLSIDs          // as tManifestCOMFile.sCLSIDs
+    End_Struct
+#ENDIF
+
 // One file of the global Manifest Fragment Library on GitHub, as the folder listing gives it.
 #IFNDEF _struct_tRemoteFragmentFile
     Struct tRemoteFragmentFile
