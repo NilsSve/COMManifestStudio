@@ -139,6 +139,7 @@ Object oCreateFragmentFilesFromFolder is a cRDCModalPanel
         Object oRegistered_Col is a cCJGridColumn
             Set piWidth to 75
             Set psCaption to "Registered"
+            Set psToolTip to "'Shared' means that another file in the folder uses the same class IDs and is the one registered - CodeJock's ANSI, Unicode and x64 files do."
             Set pbEditable to False
             Set peHeaderAlignment to xtpAlignmentCenter
             Set peTextAlignment to xtpAlignmentCenter
