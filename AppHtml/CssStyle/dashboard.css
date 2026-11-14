@@ -144,8 +144,9 @@ body {
    header is 92 px further down than the panels' first tile: the theme's 20 px above a tab container, its tab
    header (37 px: 7 + a 24 px line + 3, and the 3 px line), the page's 4 px, the row of buttons (one FT row, 33 px)
    and the list's 2 px - against the panels' own 4 px. Only on a page tall enough for the panels there (about
-   540 px); a smaller window keeps them at the top, so that they need not scroll. */
-@media (min-height: 540px) {
+   560 px, since the Windows Explorer tile has its heading on a line of its own); a smaller window keeps them at
+   the top, so that they need not scroll. */
+@media (min-height: 560px) {
     .cms-tools {
         padding-top: 94px;
     }
@@ -217,21 +218,6 @@ body {
     width: 100%;
     min-width: 0;
     padding: 0 8px;
-}
-
-/* A tile of one row: its heading, then its buttons - the folders. */
-.cms-tile.cms-inline {
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-}
-
-.cms-inline .cms-tile-h {
-    flex: none;
-}
-
-.cms-inline .cms-row {
-    flex: 1 1 auto;
 }
 
 /* A state on its tile's heading line, at the right - the selected component's. */

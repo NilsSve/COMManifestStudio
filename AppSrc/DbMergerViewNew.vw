@@ -338,9 +338,8 @@ Object oDbMerger_vw is a cRDCDbView
                 Set piColumnCount to 2
                 Set psColumnWidths to "0/1fr 1/1fr"   // two halves: when, and by whom
 
+                // The dates are filled by the view (ShowRecordDates), not bound: see there.
                 Object oCreated_wf is a cFTWebForm
-                    Entry_Item ManHdr.CreatedDateTime
-                    Set Server to oManHdr_DD
                     Set piRowIndex to 0
                     Set piColumnIndex to 0
                     Set psLabel to "Created:"
@@ -359,8 +358,6 @@ Object oDbMerger_vw is a cRDCDbView
                 End_Object
 
                 Object oChanged_wf is a cFTWebForm
-                    Entry_Item ManHdr.ChangedDateTime
-                    Set Server to oManHdr_DD
                     Set piRowIndex to 1
                     Set piColumnIndex to 0
                     Set psLabel to "Last edited:"
@@ -835,6 +832,36 @@ Object oDbMerger_vw is a cRDCDbView
         Send ReloadFragmentList True
     End_Procedure
 
+    /* THE RECORD'S DATES on the Record Info page. ManHdr's two date columns are ASCII (20), not DateTime: the data
+       dictionary stores the date and time in them as text, "2026-11-14 18:25:15", and gives them a DateTime mask. A
+       data-aware web field takes the DD's mask when it has none of its own, and through that mask the text showed as
+       nothing, while the user names beside them showed (Nils 2026-11-14). So the two fields are not bound: they show
+       the text as it is stored, without the seconds. Saving was never the trouble - the DD's Creating and Update
+       write the dates with the user names. */
+    Function RecordDateText String sValue Returns String
+        Move (Trim(sValue)) to sValue
+        If (Length(sValue) = 19 and Mid(sValue, 1, 14) = ":" and Mid(sValue, 1, 17) = ":") Begin
+            Move (Left(sValue, 16)) to sValue
+        End
+        Function_Return sValue
+    End_Function
+
+    // A field's text, stored for the page's next mount and pushed to a page that is up.
+    Procedure SetFieldText Handle hoForm String sValue
+        Set psValue of hoForm to sValue
+        If (FTHostPageIsUp(oMain_host)) Begin
+            WebSet psValue of hoForm to sValue
+        End
+    End_Procedure
+
+    Procedure ShowRecordDates
+        String sCreated sChanged
+        Get Field_Current_Value of oManHdr_DD Field ManHdr.CreatedDateTime to sCreated
+        Get Field_Current_Value of oManHdr_DD Field ManHdr.ChangedDateTime to sChanged
+        Send SetFieldText oCreated_wf (RecordDateText(Self, sCreated))
+        Send SetFieldText oChanged_wf (RecordDateText(Self, sChanged))
+    End_Procedure
+
     // The fragment files' tab says how many - stored for the page's next mount, pushed to a page that is up.
     Procedure SetFragmentsCaption Integer iCount
         String sCaption
@@ -1117,10 +1144,10 @@ Object oDbMerger_vw is a cRDCDbView
         Move (sHtml + DashButtonHtml(Self, "share", CS_GlyphUpload, "To GitHub...", "Share fragment files you made: upload them to the global library on GitHub (Alt+S)", True, False)) to sHtml
         Move (sHtml + CS_DivEnd + CS_DivEnd) to sHtml
 
-        // The folders: one row of three buttons, each with the open-folder glyph. No heading - with one, the row did
-        // not fit the panel's width and took a second line (measured 2026-11-14); the glyph says what they do.
+        // The folders, in Windows Explorer - a tile of their own, its heading on a line above the three buttons (Nils
+        // 2026-11-14). Beside the heading the row did not fit the panel's width (measured 2026-11-14).
         Get psExeFilePath of ghoManifestFunctionLibrary to sExePath
-        Move (sHtml + DivOpen("cms-tile cms-inline") + DivOpen("cms-row")) to sHtml
+        Move (sHtml + DivOpen("cms-tile") + DivOpen("cms-tile-h") + DashIcon(CS_GlyphWindows) + TagText("span", "", "Windows Explorer") + CS_DivEnd + DivOpen("cms-row")) to sHtml
         Move (sHtml + DashButtonHtml(Self, "programfolder", CS_GlyphFolderOpen, "Programs", "Open the program's folder (Ctrl+D)", (sExePath <> ""), False)) to sHtml
         Move (sHtml + DashButtonHtml(Self, "fragmentfolder", CS_GlyphFolderOpen, "Fragments", "Open your fragment library's folder (Ctrl+L)", True, False)) to sHtml
         Move (sHtml + DashButtonHtml(Self, "comfolder", CS_GlyphFolderOpen, "COM", "Open your COM library's folder, where COM files are copied from (Ctrl+B)", True, False)) to sHtml
@@ -1135,6 +1162,7 @@ Object oDbMerger_vw is a cRDCDbView
         String[] sLibraryFiles sFragments
         If (iWhat = CI_DashAll) Begin
             Send LoadFragmentsForManifest
+            Send ShowRecordDates
             Get SelectedItems to sFragments
             Send SetFragmentsCaption (SizeOfArray(sFragments))
             Get AllManifestFragmentFiles of ghoManifestFunctionLibrary to sLibraryFiles
