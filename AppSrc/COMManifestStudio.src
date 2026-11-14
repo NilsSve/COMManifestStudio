@@ -54,6 +54,11 @@ End_Object
 // procedure used in the OnWorkspaceOpened in oApplication event.
 Use cDataBaseFunctions.pkg
 
+// COM Manifest Studio on GitHub: GitHub's page to choose an issue template (a suggestion or a bug report), and
+// the source code.
+Define CS_GitHubIssueChooser for "https://github.com/NilsSve/COMManifestStudio/issues/new/choose"
+Define CS_GitHubRepository   for "https://github.com/NilsSve/COMManifestStudio"
+
 // The main view's messages the menu bar sends (DbMergerViewNew.vw is built after it).
 Register_Procedure ArmDashboard
 Register_Procedure DoAddFragmentFiles
@@ -212,6 +217,19 @@ End_Function
         Returns Integer
 #ENDIF
 
+/* THE ICON SET FOLLOWS THE THEME (Nils 2026-11-14): in the dark theme the icons come from the dark folders first -
+   Bitmaps\RDCFlexTron\Dk, the dark icons the RDCFlexTron package installs (Save outlined blue, Delete Record red,
+   the GitHub cats ...), and a Bitmaps\Dk of this program's own, when it has one. FTSeedThemeIcons
+   (FTThemeIcons.pkg) puts them in front of the bitmap path, at the end of SeedProgramTheme: the theme is in the
+   program's ini file, readable only once the workspace is open, and the menus and toolbars that load the icons
+   are built after it.
+
+   An icon the dark folders hold must NOT be in COMManifestStudio.cfg's [Icons] list. A listed icon is built into
+   the program, and the command bars take a built-in icon first and look for a file only when there is none
+   (cCJCommandBarSystem's AddImageType), so the dark file would never be read. The Studio adds a name to that list
+   when an image is picked in its designer: if an icon stays light in the dark theme, look there first. */
+Use FTThemeIcons.pkg
+
 Procedure SeedProgramTheme
     String sTheme
     Boolean bLight
@@ -227,6 +245,7 @@ Procedure SeedProgramTheme
         End
     End
     Send FTThemeLateObjects
+    Send FTSeedThemeIcons
 End_Procedure
 Send SeedProgramTheme
 
@@ -904,12 +923,22 @@ Object oMain is a Panel
 
                 Object oSuggestion_MenuItem is a cCJMenuItem
                     Set psCaption to "Suggest a feature, or report a &bug..."
-                    Set psDescription to "Opens the program's issue page on GitHub"
+                    Set psDescription to "GitHub's page to choose between a feature suggestion and a bug report"
                     Set psImage to "Suggestion.ico"
                     Set pbControlBeginGroup to True
 
                     Procedure OnExecute Variant vCommandBarControl
-                        Runprogram Shell Background "https://github.com/NilsSve/COMManifestStudio/issues/1"
+                        Runprogram Shell Background CS_GitHubIssueChooser
+                    End_Procedure
+                End_Object
+
+                Object oGitHubSource_MenuItem is a cCJMenuItem
+                    Set psCaption to "&GitHub source code repository"
+                    Set psDescription to "COM Manifest Studio's source code on GitHub"
+                    Set psImage to "GitHub.ico"
+
+                    Procedure OnExecute Variant vCommandBarControl
+                        Runprogram Shell Background CS_GitHubRepository
                     End_Procedure
                 End_Object
 
@@ -988,6 +1017,107 @@ Object oMain is a Panel
             End_Object
 
             Object oDeleteEditToolbarItem is a cCJDeleteEditMenuItem
+                Set pbControlBeginGroup to True
+            End_Object
+        End_Object
+
+        /* THE PROGRAM'S OWN TOOLBAR, as RDC Tools' other programs have it (DFRefactorFT's oExit_toolbar), at the right
+           of the row (stStretchShared): About, a coffee, GitHub's page for a suggestion or a bug report, the help - a
+           split button, its list the Help menu's - and Exit (Nils 2026-11-14). */
+        Object oHelp_ToolBar is a cCJToolbar
+            Set psTitle to "Help Toolbar"
+            Set pbCloseable to False
+            Set pbCustomizable to False
+            Set pbShowExpandButton to False
+            Set peStretched to stStretchShared
+
+            Object oAboutTool is a cCJAboutMenuItem
+                Set psImage to "ActionAbout.ico"
+                Set psToolTip to "About COM Manifest Studio"
+            End_Object
+
+            Object oKoFiTool is a cCJMenuItem
+                Set psCaption to "Ko-fi"
+                Set psToolTip to "Coffee time!"
+                Set psDescription to "Buy me a coffee, to support me"
+                Set psImage to "Ko-fi.ico"
+                Set pbControlBeginGroup to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    Runprogram Shell Background "https://ko-fi.com/nilss"
+                End_Procedure
+            End_Object
+
+            Object oSuggestionTool is a cCJMenuItem
+                Set psCaption to "GitHub"
+                Set psToolTip to "Suggest a feature, or report a bug"
+                Set psDescription to "GitHub's page to choose between a feature suggestion and a bug report"
+                Set psImage to "Suggestion.ico"
+
+                Procedure OnExecute Variant vCommandBarControl
+                    Runprogram Shell Background CS_GitHubIssueChooser
+                End_Procedure
+            End_Object
+
+            Object oHelpTool is a cCJHelpMenuItem
+                Set psCaption to "Help"
+                Set psToolTip to "Help (F1)"
+                Set psDescription to "How to use the program"
+                Set psImage to "ActionHelp.ico"
+                Set peControlType to xtpControlSplitButtonPopup
+                Set pbControlBeginGroup to True
+
+                Object oHelpToolLocal is a cCJHelpMenuItem
+                    Set psCaption to "Help"
+                    Set psDescription to "How to use the program"
+                    Set psImage to "ActionHelp.ico"
+                End_Object
+
+                Object oHelpToolOnline is a cCJMenuItem
+                    Set psCaption to "Online HTML Help"
+                    Set psImage to "ActionHelpInternet.ico"
+
+                    Procedure OnExecute Variant vCommandBarControl
+                        Runprogram Shell Background "http://www.rdctools.com//HTMLHelpComManifestStudio/COMManifestStudio.html"
+                    End_Procedure
+                End_Object
+
+                Object oHelpToolVideo is a cCJMenuItem
+                    Set psCaption to "How to add the standard DataFlex Codejock components"
+                    Set psDescription to "A video clip on how to make a manifest file for the standard Codejock components that come with DataFlex"
+                    Set psImage to "VideoClip.ico"
+                    Set pbControlBeginGroup to True
+
+                    Procedure OnExecute Variant vCommandBarControl
+                        Send vShellExecute "open" CS_VideoStdCodeJockComp "" ""
+                    End_Procedure
+                End_Object
+
+                Object oHelpToolArticle is a cCJMenuItem
+                    Set psCaption to "Microsoft: Side-by-side assemblies deployment"
+                    Set psDescription to "Read Microsoft's article about 'Side-By-Side Assemblies Deployment'"
+                    Set psImage to "InternetDocument.ico"
+
+                    Procedure OnExecute Variant vCommandBarControl
+                        Send vShellExecute "open" CS_MicrosoftArticle "" ""
+                    End_Procedure
+                End_Object
+
+                Object oHelpToolGitHub is a cCJMenuItem
+                    Set psCaption to "GitHub source code repository"
+                    Set psDescription to "COM Manifest Studio's source code on GitHub"
+                    Set psImage to "GitHub.ico"
+                    Set pbControlBeginGroup to True
+
+                    Procedure OnExecute Variant vCommandBarControl
+                        Runprogram Shell Background CS_GitHubRepository
+                    End_Procedure
+                End_Object
+            End_Object
+
+            Object oExitTool is a cCJExitMenuItem
+                Set psImage to "ActionExit.ico"
+                Set psToolTip to "Exit the program (Alt+F4)"
                 Set pbControlBeginGroup to True
             End_Object
         End_Object

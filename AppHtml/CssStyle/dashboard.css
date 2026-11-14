@@ -117,6 +117,15 @@ body {
     padding: 0 6px;
 }
 
+/* ---- Browse... and Enable path, one width (Nils 2026-11-14) ----
+   An FT button in a row is as wide as its glyph and caption, 76 px at least (ftcontrols.css, .ftbtnrow), so the
+   two stood at about 89 and 106 px, one above the other. Both get the width of the wider, "Enable path" - 15 px
+   glyph, 6 px gap, 62 px of text, 2 x 10 px padding and the border, plus a little - which also keeps the button
+   from narrowing when it says Lock path. */
+.WebControl.WebGroup.ftbtnrow .WebCon_Content.WebCon_GridLayout > .WebControl.WebButton.ftbtn.cms-pathbtn button {
+    min-width: 108px;
+}
+
 /* ---- the list's empty text ("No fragment files yet") ----
    The framework draws it at 25 px, bold, at 40 % opacity (system.css): far larger than the list's rows, and faint.
    The page's own size here, in the secondary ink at full strength (Nils 2026-11-14). */
@@ -132,7 +141,7 @@ body {
 .cms-tools {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 12px;       /* air between the groups (Nils 2026-11-14) */
     padding: 2px;
     font-family: "Segoe UI", sans-serif;
     font-size: 12px;
@@ -144,9 +153,9 @@ body {
    header is 92 px further down than the panels' first tile: the theme's 20 px above a tab container, its tab
    header (37 px: 7 + a 24 px line + 3, and the 3 px line), the page's 4 px, the row of buttons (one FT row, 33 px)
    and the list's 2 px - against the panels' own 4 px. Only on a page tall enough for the panels there (about
-   560 px, since the Windows Explorer tile has its heading on a line of its own); a smaller window keeps them at
-   the top, so that they need not scroll. */
-@media (min-height: 560px) {
+   575 px, with the Windows Explorer tile's heading line and 12 px between the groups); a smaller window keeps
+   them at the top, so that they need not scroll. */
+@media (min-height: 575px) {
     .cms-tools {
         padding-top: 94px;
     }

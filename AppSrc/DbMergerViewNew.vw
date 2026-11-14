@@ -34,7 +34,7 @@ Use COMComponents.dg
 Use ProgramSetup.dg
 Use DownloadFiles.dg
 
-Use cManHdrDataDictionary.dd        // and, with it, ManHdr.sl - the list of manifests (Select...)
+Use cManHdrDataDictionary.dd        // and, with it, ManHdr.sl - the list of manifests (F4 in the manifest file)
 Use cManDetManDataDictionary.dd     // and, with it, FragmentFilesSelection.sl - the fragment files to add
 Use Windows.pkg
 
@@ -99,7 +99,7 @@ Object oDbMerger_vw is a cRDCDbView
     /* THE HOST: the whole view, on a grid of 8 px columns - column 0 takes the extra width, and the 41 after it
        (328 px) are the panels' at the right. Row 3 - the tabs and the panels - takes the extra height.
 
-         row 0   the manifest file's name               Select... Browse...
+         row 0   the manifest file's name (F4: a list)  Browse...
          row 1   its folder                             Enable path
          row 2   the steps (an HTML box)
          row 3   the tabs: fragment files, notes,       the panels (an HTML box): the selected
@@ -118,8 +118,10 @@ Object oDbMerger_vw is a cRDCDbView
 
         // ---- row 0 and 1: the manifest file
 
-        // Typing finds a manifest the database knows (smFind), as the native suggestion form did.
-        Object oManifestName_wf is a cWebSuggestionForm
+        /* A DATABASE FORM (Nils 2026-11-14: not a suggestion form). F4, the prompt button at its end and the toolbar's
+           Prompt open the list of manifests: cFTWebForm takes the field's prompt list from the data dictionary
+           (cManHdrDataDictionary's Field_Prompt_Object, ManHdr.sl), as a native form does - RDCFlexTron 0.9.32. */
+        Object oManifestName_wf is a cFTWebForm
             Entry_Item ManHdr.ManifestFileName
             Set Server to oManHdr_DD
             Set piRowIndex to 0
@@ -127,8 +129,7 @@ Object oDbMerger_vw is a cRDCDbView
             Set piColumnSpan to 18
             Set psLabel to "Manifest file:"
             Set piLabelOffset to 100
-            Set pbFullText to True
-            Set psToolTip to "The application manifest file: the program's name with '.manifest' added. Type to find one the program keeps, or press Select... or Browse..."
+            Set psToolTip to "The application manifest file: the program's name with '.manifest' added. Choose one the program keeps with F4 or the button at the end. Browse... takes a file on disk."
 
             // A manifest found, saved or cleared: the program's names and paths follow it, and the dashboard.
             Procedure Refresh Integer eMode
@@ -142,19 +143,12 @@ Object oDbMerger_vw is a cRDCDbView
             Set piColumnIndex to 18
             Set piColumnSpan to 24
 
-            Object oOpenManifest_btn is a cFTWebButton
-                Set psCaption to "Select..."
-                Set psCSSClass to "ftbtn ftg-search"
-                Set psToolTip to "Choose one of the manifests this program keeps (Alt+O, F4)"
-
-                Procedure OnButtonClick
-                    Send DoOpenManifestList
-                End_Procedure
-            End_Object
-
+            // No Select... button any more (Nils 2026-11-14): the manifest file's field has the prompt button at its end,
+            // which opens the same list, as do F4 and the toolbar's Prompt.
             Object oBrowse_btn is a cFTWebButton
                 Set psCaption to "Browse..."
-                Set psCSSClass to "ftbtn ftg-folderopen"
+                // cms-pathbtn: as wide as Enable path below it (dashboard.css).
+                Set psCSSClass to "ftbtn ftg-folderopen cms-pathbtn"
                 Set psToolTip to "Choose a manifest file on disk (Ctrl+O). The COM components it lists already are looked up in your fragment library."
 
                 Procedure OnButtonClick
@@ -182,7 +176,8 @@ Object oDbMerger_vw is a cRDCDbView
 
             Object oEnablePath_btn is a cFTWebButton
                 Set psCaption to "Enable path"
-                Set psCSSClass to "ftbtn ftg-unlock"
+                // cms-pathbtn: as wide as Browse... above it, and the same width as Lock path (dashboard.css).
+                Set psCSSClass to "ftbtn ftg-unlock cms-pathbtn"
                 Set psToolTip to "Lets you type in the manifest file's folder"
 
                 Procedure OnButtonClick
@@ -623,7 +618,7 @@ Object oDbMerger_vw is a cRDCDbView
         Send ArmDashboard
     End_Procedure
 
-    // Select... - the button, the File menu's Select Manifest..., Alt+O, F4: the native list of the manifests this program keeps,
+    // The manifest file's prompt (its button, F4, the toolbar's Prompt), the File menu's Select Manifest..., Alt+O: the native list of the manifests this program keeps,
     // as a list of its own (umPromptNonInvoking: no field to update), and the chosen one found here.
     Procedure DoOpenManifestList
         Handle hoPanel hoList
@@ -945,7 +940,7 @@ Object oDbMerger_vw is a cRDCDbView
         tManifestCOMFile[] ManifestFiles
         tFileStruct[] COMFiles
         Integer iID iFragments iListed iInFolder iNext i iPos
-        Boolean bManifest bBuilt bCopied bNext
+        Boolean bManifest bBuilt bCopied bNext bReady
 
         Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
         // The manifest file's name, set only while the file exists (SetApplicationStrings).
@@ -989,8 +984,8 @@ Object oDbMerger_vw is a cRDCDbView
         Move (iFragments > 0 and iListed = iFragments) to bBuilt
         Move (iFragments > 0 and iInFolder = iFragments) to bCopied
 
-        // The next step: the first that is not done. Embed and compress are optional, so after the copy it is the
-        // test run.
+        // The next step: the first that is not done. Embed and compress are optional, and the test run is the last
+        // step - never "Next" (Nils 2026-11-14) - so after the copy no step is next, and the test run says Ready.
         Move 0 to iNext
         If (bManifest) Begin
             If (iID = 0 or iFragments = 0) Begin
@@ -1003,7 +998,7 @@ Object oDbMerger_vw is a cRDCDbView
                 Move 3 to iNext
             End
             Else Begin
-                Move 5 to iNext
+                Move True to bReady
             End
         End
 
@@ -1072,16 +1067,15 @@ Object oDbMerger_vw is a cRDCDbView
         Get StepCardHtml 4 "Embed, compress" "Optional" "Puts it in the .exe, then shrinks it." sButtons False False True to sCard
         Move (sHtml + sCard) to sHtml
 
-        // 5 Test run
-        Move (iNext = 5) to bNext
+        // 5 Test run - Ready once the copy is done; no amber, no Next: there is no step after it.
         If (sExe <> "") Begin
             Move ("Starts" * sExe + ".") to sText
         End
         Else Begin
             Move "Starts the program." to sText
         End
-        Move (DashButtonHtml(Self, "run", CS_GlyphPlay, "Run program", "Start the program (Ctrl+R)", bManifest, bNext)) to sButtons
-        Get StepCardHtml 5 "Test run" (StepStateText(Self, False, bNext)) sText sButtons False bNext False to sCard
+        Move (DashButtonHtml(Self, "run", CS_GlyphPlay, "Run program", "Start the program (Ctrl+R)", bManifest, False)) to sButtons
+        Get StepCardHtml 5 "Test run" (If(bReady, "Ready", "To do")) sText sButtons False False False to sCard
         Move (sHtml + sCard + CS_DivEnd) to sHtml
 
         Function_Return sHtml
