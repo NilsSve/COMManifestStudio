@@ -44,6 +44,12 @@ Define CS_ToolbarIconText          for "Toolbar Icon Text Setting"
     Define CS_ShowTextBelowIcon    for "Show text below toolbar icons"
 //End_Enum_List
 
+// The theme the program runs in (Settings > Theme, 2026-11-14): the ini key, and its three values.
+Define CS_ThemeSetting             for "Theme"
+    Define CS_ThemeLight           for "Light"
+    Define CS_ThemeDark            for "Dark"
+    Define CS_ThemeWindows         for "Follow Windows"
+
 Define CS_BooleanYes           for "Yes"
 Define CS_BooleanNo            for "No"
 Define CS_XMLTypeLibStart      for "<typelib tlbid"

@@ -19,10 +19,20 @@
             "source": "https://github.com/NilsSve/Library-DUF.git",
             "sws": "RDC-DUF-Library.sws",
             "version": "1.0.12"
+        },
+        "DataFlex-dev/Web UI FlexTron#1.0.56",
+        "DataFlex-dev/Web UI Material Theme#1.0.4",
+        {
+            "source": "https://github.com/NilsSve/Library-RDCFlexTron.git",
+            "sws": "RDC-FlexTron-Library.sws",
+            "version": "0.9.30"
         }
     ],
     "description": "COM Manifest Studio",
     "df": 26.0,
+    "paths": {
+        "indexHtml": "AppSrc/FlexTronScriptIncludes.html"
+    },
     "projects": [
         "COMManifestStudio.src",
         "VdfCmdUtil.src",

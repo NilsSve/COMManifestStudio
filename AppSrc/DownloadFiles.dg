@@ -192,7 +192,7 @@ Object oDownloadFiles_dg is a cRDCModalPanel
                 Send Info_Box "Success! The selected Manifest Fragment Files were downloaded to your local Manifest Fragment Library."
             End
             Else Begin
-                Send Info_Box "A problem occurred while downloading files from the global 'Manifest Fragment Library' on GitHub. At least one of the selected files could not be downloaded; a local copy of such a file is left as it was. Press the 'Download' toolbar button again to see which files are still missing."
+                Send Info_Box "A problem occurred while downloading files from the global 'Manifest Fragment Library' on GitHub. At least one of the selected files could not be downloaded; a local copy of such a file is left as it was. Use 'Get new files from GitHub...' in the Fragments menu again to see which files are still missing."
             End
             Send Close_Panel
         End_Procedure
@@ -229,7 +229,7 @@ Object oDownloadFiles_dg is a cRDCModalPanel
             Procedure OnStartup
                 String sValue
                 Move "The list shows the files of the global Manifest Fragment Library on GitHub that are new to your local 'Manifest Fragment Library' folder, or that differ from your copy. New files are ticked. A file that differs replaces your copy when it is downloaded, so tick it only when you want GitHub's version. Then press the 'Download Now!' button." to sValue
-                Move (sValue + CR_LF + "Note:  If you can't find a suitable manifest fragment file here or in your local Manifest Fragment Library, create one by pressing the 'Create' toolbar button.") to sValue
+                Move (sValue + CR_LF + "Note:  If you can't find a suitable manifest fragment file here or in your local Manifest Fragment Library, create one with 'Create a fragment file...' in the Fragments menu.") to sValue
                 Set Value to sValue
             End_Procedure
             Send OnStartup

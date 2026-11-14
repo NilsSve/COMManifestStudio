@@ -23,22 +23,14 @@ Procedure DoShareManifestFragmentFiles
     Send Popup of (oSendSharedFiles_Dialog(Client_Id(ghoCommandBars)))
 End_Procedure
 
+// The list of manifests (Select Manifest...). The main view's web page has no native name field to prompt
+// since 2026-11-14: the view opens the list itself.
 Procedure DoShowMainPromptList
-    Handle ho
-    Get phoMainPromptObject of ghoApplication to ho
-    Send Activate of ho
-    Send Prompt of ho
+    Send DoOpenManifestList of (phoMainView(ghoApplication))
 End_Procedure
 
+// The New Project wizard, on a cleared main view - the wizard makes the manifest, and the view shows it after.
 Procedure DoStartWizard
-    Handle ho
-    Broadcast Recursive Send Clear
-    Get phoMainPromptObject of ghoApplication to ho
-    // We need to activate the "main" dbform before calling the wizard because if the
-    // focus is in the grid and Ctrl+N is pressed and the Wizard is cancelled, there
-    // is no focus to return to for the cursor, so it "disappears". The reason this
-    // happens is of course that the main grid no nonger can take the focus after all
-    // data has been cleared.
-    Send Activate of ho
+    Send DoClearManifest of (phoMainView(ghoApplication))
     Send Activate_oCreateNewProject_Dg of (Client_Id(ghoCommandBars))
 End_Procedure

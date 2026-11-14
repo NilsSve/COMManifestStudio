@@ -9,6 +9,11 @@
 
 # AppHtml
 **/apphtml/global.asa
+# What the package manager installs into AppHtml (Web UI FlexTron, its theme, RDCFlexTron)
+AppHtml/WebUI/
+AppHtml/WebUI_Designer/
+AppHtml/CssThemes/
+AppHtml/RDCFlexTron/
 
 # AppSrc
 **/AppSrc/**/*.prn

@@ -1,45 +1,53 @@
-﻿Use cRDCDbView.pkg
-Use cCJGridColumnRowIndicator.pkg
-Use cCJGridColumn.pkg
-Use dfTabDlg.pkg
-Use dfLine.pkg
-Use cTextEdit.pkg         
-Use cRDCSlideButton.pkg
-Use cRDCDbForm.pkg
-Use cRDCDbCJGrid.pkg
-Use cRDCDbCJGridColumn.pkg
-Use cRDCRichEditor.pkg
-Use cRDCDbRichEditor.pkg
-Use cRDCDbSuggestionForm.pkg
-Use cRDCButton.pkg  
-Use cRDCDbReadOnlyForm.pkg
-Use cRDCDbFormOrDbSuggestionForm.pkg
-Use cRDCDbGroup.pkg
-Use cRDCHeaderDbGroup.pkg
+﻿//****************************************************************************
+// $Module type: View
+// $Module name: DbMergerViewNew
+// $Author     : Nils Svedmyr, RDC Tools International, <mailto:support@rdctools.com>
+//
+// Description : The main view: one manifest - its file, its fragment files, its notes - and the dashboard of the
+//               steps that make and deploy it.
+//
+//               ALL OF IT FLEXTRON WEB CONTROLS (RDCFlexTron), since 2026-11-14: ONE data-aware host
+//               (cFTDbGridHost) on the manifest's data dictionary fills the view. Native controls could not take
+//               the dark theme - Windows paints their borders, tab headers and buttons in its own light colours -
+//               and the web controls take either theme. The selection lists and the dialogs stay native.
+//
+//               The host is a data-entry object, as a Windows view's forms are: the toolbar's and the menus'
+//               Find, Save, Clear, Delete and Prompt act on it when the focus is in it, and Save moves what was
+//               typed - the manifest file's name, the path, the notes - into the data dictionary.
+//
+// This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+//****************************************************************************
+Use cRDCDbView.pkg
+Use cFTDbGridHost.pkg               // the data-aware host on a grid of 8 px columns (RDCFlexTron) - Used before the web controls
+Use FTAllWebControlClasses.pkg      // cFTWebForm, cFTWebList, cFTWebButton(Row), cFTWebHtmlBox, cWebSuggestionForm, cWebEdit, the tabs
+Use cFTDeferTimer.pkg               // the dashboard drawn a moment after a change, once
+Use FTPageIsUp.pkg                  // FTHostPageIsUp - can the host's page take a live push now?
+Use FTMarkupBuilders.pkg            // DivOpen, TagText, ButtonHtml, IconLabel ...
+Use FTDashIcons.pkg                 // DashIcon and its CS_Glyph* names
 Use cManifestFunctionLibrary.pkg
 Use cManifestIniFile.pkg
-Use oDEOEditContextMenuManifest.pkg
 Use Symdef.pkg
 Use vWin32fh.pkg
 
-Use oRichEditFind.dg
-Use oRichEditFindReplace.dg
 Use COMComponents.dg
 Use ProgramSetup.dg
 Use DownloadFiles.dg
 
-Use cManHdrDataDictionary.dd
-Use cManDetManDataDictionary.dd
+Use cManHdrDataDictionary.dd        // and, with it, ManHdr.sl - the list of manifests (Select...)
+Use cManDetManDataDictionary.dd     // and, with it, FragmentFilesSelection.sl - the fragment files to add
 Use Windows.pkg
 
-Register_Object oManHdrManifestFileName_fm
-Register_Object oManHdrPath_fm
+// What the dashboard's timer does: draw all of it, draw the selected row's panel, or add a file dropped on the page.
+Define CI_DashAll  for 1
+Define CI_DashRow  for 2
+Define CI_DashDrop for 3
 
 Activate_View Activate_oDbMerger_vw for oDbMerger_vw
 Object oDbMerger_vw is a cRDCDbView
-    Set Size to 279 400
-    Set Location to 0 0 
-    Set Label to "Main view"  
+    Set Size to 264 556
+    Set Location to 0 0
+    Set Label to "Main view"
     Set Icon to "COMManifestManager.ico"
     // Saves in header should not clear the view
     Set Auto_Clear_DEO_State to False
@@ -48,6 +56,13 @@ Object oDbMerger_vw is a cRDCDbView
     Set pbAutoActivate to True
 
     Property String[] pArrayOfDroppedFiles
+    // The path is typed in only after Enable path (DoTogglePath).
+    Property Boolean pbPathEditable False
+
+    // The menu bar's commands reach this view through the application object (RefreshDashboard ...), and so does
+    // the list of fragment files the build, the copy and the run take (SelectedItems, ItemCount).
+    Set phoMainView of ghoApplication to Self
+    Set phoManifest_grid of ghoApplication to Self
 
     Object oManHdr_DD is a cManHdrDataDictionary
         Set Allow_Foreign_New_Save_State to True
@@ -61,173 +76,6 @@ Object oDbMerger_vw is a cRDCDbView
     Set Main_DD to oManHdr_DD
     Set Server  to oManHdr_DD
 
-    Object oCompile_Info_tb is a TextBox
-        Set Size to 10 33
-        Set Location to 2 12
-        Set Label to "NOTE: This program needs to compiled as 32-bit to function properly!"
-        Set FontWeight to fw_Bold
-    End_Object
-
-    Object oAppManifest_grp is a cRDCHeaderDbGroup
-        Set Size to 68 376
-        Set Location to 16 12
-        Set Label to "Manifest File"
-        Set psNote to "Select manifest file for your Windows program (.exe) file"  
-        Set psImage to "Program.ico"
-        Set peAnchors to anTopLeftRight
-
-       Object oManHdrManifestFileName_fm is a cRDCDbSuggestionForm
-            Entry_Item ManHdr.ManifestFileName
-            Set Size to 13 299
-            Set Location to 29 16
-            Set peAnchors to anTopLeftRight
-            Set psToolTip to "This is the application manifest file. It has the same name as the executable, with an added '.manifest' word at the end. To select an application manifest file press the 'Browse...' button or press. Or press (F4) to display a selection list with previously created records. Note: A filename in red denotes it is missing!"
-            Set Floating_Menu_Object to oDEOEditContextMenuManifest
-            Set pbFullText to True
-            Set phoMainPromptObject of ghoApplication to Self
-
-            // Augment method to add further info to the Suggestion List.
-            // Note that the Forward is _after_ the augmentation.
-            Procedure ShowSuggestion tSuggestion SuggestionData String sSearch
-                Integer iPos iLen iLineNum
-                String sManifestFileName
-
-                Send ReadByRowId to (Server(Self)) (Data_File(Self)) (DeserializeRowID(SuggestionData.sRowId))
-                Move ManHdr.ManifestFileName   to SuggestionData.aValues[0]
-                Move ManHdr.Path to SuggestionData.aValues[1]
-                Forward Send ShowSuggestion SuggestionData sSearch
-            End_Procedure
-
-            Procedure Refresh Integer NotifyMode
-                String sManifestFile sPath
-                Boolean bExists
-
-                Forward Send Refresh NotifyMode
-                Get Field_Current_Value of oManHdr_DD Field ManHdr.Path             to sPath
-                Get vFolderFormat sPath to sPath
-                Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sManifestFile
-                Send SetApplicationStrings of ghoManifestFunctionLibrary (sPath + sManifestFile)
-
-                Get vFilePathExists (sPath + sManifestFile) to bExists
-                // If either the file or folder doesn't exist change the form text to red, to denote it is missing.
-                If (bExists = False and sPath <> "" and sManifestFile <> "") Begin
-                    Set TextColor to clRed
-                End
-                Else Begin
-                    Set TextColor to clBlack
-                End
-            End_Procedure
-
-            Procedure OnChange
-                Boolean bExists
-                String sFileName sPath
-
-                Forward Send OnChange
-                Get Value of (phoManifestPathObject(ghoApplication)) to sPath
-                Get vFolderFormat sPath to sPath
-                Get Value to sFileName
-                Get vFilePathExists sFileName to bExists
-
-                If (bExists = False) Begin
-                    Set TextColor to clRed
-                End
-                Else Begin
-                    Set TextColor to clWindowText
-                End
-            End_Procedure
-
-            On_Key Key_F6 Send Activate of oManifest_grid
-        End_Object
-
-        Object oSelectManifest_btn is a cRDCButton
-            Set Size to 13 49
-            Set Location to 29 318
-            Set Label to "Browse..."
-            Set psToolTip to "Click to show an Open dialog for you to select an application manifest file from. The file has the same name as the executable file, with an added '.manifest' keyword. (Ctrl+O)"
-            Set peAnchors to anTopRight           
-            Set psImage to "FolderOpen.ico"
-
-            Procedure OnClick
-                Handle ho hoPath 
-                String sManifestFile sPath
-                
-                Get phoMainPromptObject    of ghoApplication to ho
-                Get phoManifestPathObject  of ghoApplication to hoPath
-                Send SelectAppManifestFile of ghoManifestFunctionLibrary ho hoPath
-                
-                // Finally auto-find record, if exists.
-                Get Value of ho to sManifestFile
-                If (sManifestFile = "") Begin
-                    Procedure_Return
-                End
-                Get Value of hoPath to sPath
-                Move sManifestFile to ManHdr.ManifestFileName 
-                Move sPath         to ManHdr.Path
-                Find Ge ManHdr by 2
-                If (Found and (Trim(ManHdr.ManifestFileName) = sManifestFile) and (Trim(ManHdr.Path) = sPath)) Begin
-                    Send Request_Assign of (Main_DD(Self))
-                End
-                Else Begin
-                    Send Clear of (Main_DD(Self))
-                    Set Changed_Value of ho 0 to sManifestFile
-                    Set Changed_Value of hoPath 0 to sPath
-                    // A manifest file the database does not know can list COM components already.
-                    Send FillGridFromManifestFile sPath sManifestFile
-                End
-            End_Procedure
-        End_Object
-
-        Object oManHdrPath_fm is a cRDCDbForm
-            Entry_Item ManHdr.Path
-            Set Size to 13 299
-            Set Location to 44 16
-            Set peAnchors to anTopLeftRight
-            Set phoManifestPathObject of ghoApplication to Self
-            Set Enabled_State to False
-        End_Object
-
-        Procedure Mouse_Down2 Integer iWindowNumber Integer iPosition
-            Forward Send Mouse_Down2 iWindowNumber iPosition
-            Send Popup of oViewContextMenu
-        End_Procedure
-
-        Object oEditPath_btn is a cRDCButton
-            Set Size to 13 49
-            Set Location to 44 318
-            Set Label to "Enable Path"
-            Set psToolTip to "Makes the path window accessable for edit."
-            Set peAnchors to anTopRight
-
-            Procedure OnClick
-                Boolean bEnabled
-                Get Enabled_State of oManHdrPath_fm to bEnabled
-                Set Enabled_State of oManHdrPath_fm to (not(bEnabled))
-                Set Label to (If(bEnabled, "Enable", "Disable"))
-            End_Procedure
-        End_Object
-
-    End_Object
-
-    Procedure Refresh Integer eMode
-        String sPath sFileName
-        Boolean bExists
-        
-        Forward Send Refresh eMode
-        Get Field_Current_Value of oManHdr_DD Field ManHdr.Path to sPath
-        Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFileName
-
-        Get vFilePathExists (sPath + sFileName) to bExists
-        // If either the file or folder doesn't exist change the form text to red, to denote it is missing.
-        If (bExists = False and sPath <> "" and sFileName <> "") Begin
-            Set TextColor to clRed
-        End
-        Else Begin
-            Set TextColor to clBlack
-        End
-
-        Send SetApplicationStrings of ghoManifestFunctionLibrary (sPath + sFileName)
-    End_Procedure
-
     Function ConfirmDeleteHeader Returns Boolean
         Boolean bFail
         Get Confirm "Delete entire header and all details?" to bFail
@@ -235,738 +83,632 @@ Object oDbMerger_vw is a cRDCDbView
     End_Function
     Set Verify_Delete_MSG to (RefFunc(ConfirmDeleteHeader))
 
-    Object oManifestFragmentFileGrid_grp is a cRDCHeaderDbGroup
-        Set Size to 94 376
-        Set Location to 92 12
-        Set Label to "Manifest Fragment Files"                 
-        Set psNote to "Select one fragment file for each *.ocx/*.dll ActiveX component"
-        Set psImage to "FragmentFile.ico"
+    // Draws the dashboard one tick after it was asked for - a burst of changes draws it once - and adds a file that
+    // was dropped on the page (CI_DashDrop), after the web control's event has returned.
+    Object oDashboard_tmr is a cFTDeferTimer
+        Procedure OnDeferredAction Integer iAction String sParam
+            If (iAction = CI_DashDrop) Begin
+                Send AddDroppedFileUrl sParam
+            End
+            Else Begin
+                Send UpdateDashboard iAction
+            End
+        End_Procedure
+    End_Object
+
+    /* THE HOST: the whole view, on a grid of 8 px columns - column 0 takes the extra width, and the 41 after it
+       (328 px) are the panels' at the right. Row 3 - the tabs and the panels - takes the extra height.
+
+         row 0   the manifest file's name               Select... Browse...
+         row 1   its folder                             Enable path
+         row 2   the steps (an HTML box)
+         row 3   the tabs: fragment files, notes,       the panels (an HTML box): the selected
+                 record info                            component, the fragment library, folders */
+    Object oMain_host is a cFTDbGridHost
+        Set Location to 0 0
+        Set Size to 264 556
         Set peAnchors to anAll
+        Set piColumnCount to 42
+        Set psColumnWidths to "0/1fr"
+        Set psRowHeights to "3/1fr"
+        Set Server to oManHdr_DD
+        Set Auto_Clear_DEO_State to False                       // a saved manifest stays on screen
+        Set Verify_Save_Msg to (RefFunc(No_Confirmation))
+        Set Verify_Delete_Msg to (RefFunc(ConfirmDeleteHeader))
 
-        Object oManifest_grid is a cRDCDbCJGrid
-            Set Server to oManDet_DD
-            Set Ordering to 3
-            Set Size to 57 347
-            Set Location to 30 16
-            Set pbAllowDeleteRow to True
-            Set Verify_Delete_Msg to (RefFunc(No_Confirmation))
-            Set Verify_Data_Loss_Msg to (RefFunc(No_Confirmation))
-            Set Verify_Save_msg to (RefFunc(No_Confirmation))
+        // ---- row 0 and 1: the manifest file
 
-            Set phoManifest_grid of ghoApplication to Self
+        // Typing finds a manifest the database knows (smFind), as the native suggestion form did.
+        Object oManifestName_wf is a cWebSuggestionForm
+            Entry_Item ManHdr.ManifestFileName
+            Set Server to oManHdr_DD
+            Set piRowIndex to 0
+            Set piColumnIndex to 0
+            Set piColumnSpan to 18
+            Set psLabel to "Manifest file:"
+            Set piLabelOffset to 100
+            Set pbFullText to True
+            Set psToolTip to "The application manifest file: the program's name with '.manifest' added. Type to find one the program keeps, or press Select... or Browse..."
 
-            Object oCJGridColumnRowIndicator is a cCJGridColumnRowIndicator
-                Set piWidth to 27
-            End_Object
-
-            Object oFragmentFileCol is a cRDCDbCJGridColumn
-                Entry_Item ManDet.ManifestFragmentFile
-                Set piWidth to 256
-                Set psCaption to "Click to select components (F4)"
-                Set psToolTip to "Click the header or press (F4) from the grid to select manifest fragment files."
-                Set Status_Help to (psToolTip(Self))
-                Set Prompt_Button_Mode to PB_PromptOn
-                Set psImage to "ActionPrompt.ico"
-                Set pbMultiLine to True
-
-                Procedure Prompt
-                    String[] sFileNames sRetvalsArray
-                    Integer iID
-
-                    Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
-                    If (iID = 0) Begin
-                        Procedure_Return
-                    End
-
-                    // Get the current grid fragment files
-                    Get SelectedItems to sFileNames
-                    // Popup the selection list!
-                    Get ActivateFragmentFiles_sl (&sFileNames) to sRetvalsArray
-                    // Get the selection from the popup list and add them to the grid:
-                    Send AddFragmentFiles of oManifest_grid iID sRetvalsArray
-                End_Procedure
-
-                // Check if the manifest fragment file is missing; in case we set the textcolor to red
-                Procedure OnSetDisplayMetrics Handle hoMetrics Integer iRow String ByRef sValue
-                    String sPath
-                    Boolean bExists
-                    If (sValue <> "") Begin
-                        Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sPath
-                        Get vFolderFormat sPath to sPath
-                        Get vFilePathExists (sPath + sValue) to bExists
-                        If (bExists = False) Begin
-                            Set ComForeColor of hoMetrics to clRed
-                        End
-                    End
-                End_Procedure
-
-                // Check if the manifest fragment file is missing; in case we set the textcolor to red
-                // Else show tooltip about right-click context sensitive menu.
-                Function OnGetTooltip Integer iRow String sValue String sText Returns String
-                    Boolean bExists
-                    String sPath
-                    If (sValue <> "") Begin
-                        Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sPath
-                        Get vFolderFormat sPath to sPath
-                        Get vFilePathExists (sPath + sValue) to bExists
-                        If (bExists = False) Begin
-                            Move "Filenames with red text indicates that the file is missing from the Manifest Fragment Library OR the pathing to the 'Manifest Fragment Library' settings is incorrect. You can correct the pathing from the 'Configure' dialog." to sText
-                        End
-                        Else Begin
-                            Move (sValue + ".  Right-click grid row for menu options") to sText
-                        End
-                    End
-                    Function_Return sText
-                End_Function
-
-            End_Object
-
-            Object oComment_Column is a cRDCDbCJGridColumn 
-                Set piWidth to 411
-                Set psCaption to "Description"
-                Set psToolTip to "Click the header or press (F4) from the grid to select manifest fragment files."
-                Set pbMultiLine to True
-                Set Status_Help to (psCaption(Self))
-                Set Prompt_Button_Mode to PB_PromptOn
-                Set Prompt_Object to oFragmentFiles_sl
-
-                Procedure Prompt
-                    Send Prompt of oFragmentFileCol
-                End_Procedure
-
-                // Show the comment from the current row's manifest fragment file in this column:
-                Procedure OnSetCalculatedValue String ByRef sValue
-                    Forward Send OnSetCalculatedValue sValue
-                    Move (Trim(ManDet.ManifestFragmentFile)) to sValue
-                    If (sValue contains ".txt") Begin
-                        Get ExtractManifestFragmentFileComment of ghoManifestFunctionLibrary sValue to sValue
-                    End
-                End_Procedure
-
-                Function OnGetTooltip Integer iRow String sValue String sText Returns String
-                    String sRetVal
-                    Forward Get OnGetTooltip iRow sValue sText to sRetVal
-                    Move "Right-click grid rows for menu options" to sRetVal
-                    Function_Return sRetVal
-                End_Function
-
-            End_Object
-
-            // Grid messages:
-            //
-            // Always show the manifest fragment files prompt list, no matter
-            // what column header is clicked. It just makes sense here.
-            Procedure OnHeaderClick Integer iCol
-                Send Prompt of oFragmentFileCol
+            // A manifest found, saved or cleared: the program's names and paths follow it, and the dashboard.
+            Procedure Refresh Integer eMode
+                Forward Send Refresh eMode
+                Send OnHeaderRefresh
             End_Procedure
-
-            // Adds a detail row for each of the fragment files to the manifest record with the ID iID, and shows
-            // them. Used by the fragment files prompt list, and when a new manifest file fills the grid
-            // (FillGridFromManifestFile).
-            Procedure AddFragmentFiles Integer iID String[] sFragmentFiles
-                Integer i iRows iRetval
-
-                Move (SizeOfArray(sFragmentFiles)) to iRows
-                If (iID = 0 or iRows = 0) Begin
-                    Procedure_Return
-                End
-
-                // Create new records from the fragment file names
-                Lock
-                    For i from 0 to (iRows - 1)
-                        Clear ManDet
-                        Get GlobalAutoCreateNewID File_Field ManDet.ID False to iRetval
-                        Move iRetval to ManDet.ID
-                        Move iID to ManDet.ManHdrID
-                        Move sFragmentFiles[i] to ManDet.ManifestFragmentFile
-                        SaveRecord ManDet
-                    Loop
-                Unlock
-
-                // Refresh grid from the database table's records
-                Send RefreshDataFromExternal 0
-                Send MovetoFirstRow
-            End_Procedure
-
-            // Send by grid subclass Refresh message.
-            Procedure DoSetCurrentRow
-                Handle hoDataSource
-                Integer iRows
-
-                Forward Send DoSetCurrentRow
-
-                Get phoDataSource to hoDataSource
-                Get RowCount      of hoDataSource to iRows
-                Set psFooterText of oFragmentFileCol to (" No of Components:" * String(iRows))
-            End_Procedure
-
-            Function SelectedItems Returns String[]
-                Integer i iRows iFileName_Col
-                Handle hoDataSource
-                tDataSourceRow[] TheData
-                String[] sFilesArray
-                String sFileName
-
-                Get phoDataSource              to hoDataSource
-                Get DataSource of hoDataSource to TheData
-                Move (SizeOfArray(TheData))    to iRows
-                Get piColumnId of oFragmentFileCol to iFileName_Col
-                Decrement iRows
-                For i from 0 to iRows
-                    Move TheData[i].sValue[iFileName_Col] to sFileName
-                    Move sFileName to sFilesArray[i]
-                Loop
-
-                Function_Return sFilesArray
-            End_Function
-
-            // Contect sensitive menu for the grid object
-            // Right mouse button click.
-            Object oGridContextMenu is a cCJContextMenu
-
-                Object oOpenGridItem_MenuItem is a cCJMenuItem
-                    Set psCaption to "Edit File Under Cursor"
-                    Set psDescription to "Opens the file under the cursor in the editor"
-                    Set psImage to "FragmentEdit.ico"
-                    Set psShortcut to "Double-Click"
-                    Procedure OnExecute Variant vCommandBarControl
-                        Forward Send OnExecute vCommandBarControl
-                        Send OpenCurrentGridItem of ghoManifestFunctionLibrary
-                    End_Procedure
-                    Function IsEnabled Returns Boolean
-                        String sManifestFile
-                        Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
-                        Function_Return (sManifestFile <> "")
-                    End_Function
-                End_Object
-
-                Object oCreateFragmentFiles_MenuItem is a cCJMenuItem
-                    Set psCaption to "&Create New Fragment File"
-                    Set psToolTip to "Create a new manifest fragment file (Alt+C)"
-                    Set psDescription to "If you cannot find a manifest fragment file for your COM (OCX/DLL) component you can create one here."
-                    Set peControlStyle to xtpButtonIconAndCaption
-                    Set psImage to "FragmentNew.ico"
-                    Set psShortcut to "Alt+C"
-                    Procedure OnExecute Variant vCommandBarControl
-                        Forward Send OnExecute vCommandBarControl
-                        Send Popup of (oCreateManifestFragmentFile(Client_Id(ghoCommandBars)))
-                    End_Procedure
-                End_Object
-
-                Object oDownloadFragmentFiles_MenuItem is a cCJMenuItem
-                    Set psCaption to "&Download New Fragment Files"
-                    Set psDescription to "Download new manifest fragment files from the global library on GitHub"
-                    Set psImage to "FragmentDownload.ico"
-                    Set psShortcut to "Alt+D"
-                    Procedure OnExecute Variant vCommandBarControl
-                        Forward Send OnExecute vCommandBarControl
-                        Send DownloadManifestFragmentFiles of ghoManifestFunctionLibrary
-                    End_Procedure
-                End_Object
-
-                Object oShareFragmentFiles_MenuItem is a cCJMenuItem
-                    Set psCaption to "&Share New Fragment Files"
-                    Set psDescription to "Upload manifest fragment files that you have created to the global library on GitHub"
-                    Set psShortcut to "Alt+S"
-                    Set psImage to "FragmentShare.ico"
-                    Procedure OnExecute Variant vCommandBarControl
-                        Forward Send OnExecute vCommandBarControl
-                        Send DoShareManifestFragmentFiles of (Client_Id(ghoCommandBars))
-                    End_Procedure
-                End_Object
-
-                Object oPromptMenuItem is a cCJPromptMenuItem
-                    Set pbControlBeginGroup to True
-                End_Object
-
-                Object oDeleteMenuItem is a cCJDeleteMenuItem
-                End_Object
-
-                Object oCheckIfCOMComponentIsRegisteredMenuItem is a cCJMenuItem
-                    Set psCaption to "&Check if COM Component is registered"
-                    Set psDescription to "Is the COM (OCX/DLL) component registered with Windows?"
-                    Set pbControlBeginGroup to True
-                    Set psImage to "COMCheck.ico" 
-                    Procedure OnExecute Variant vCommandBarControl
-                        String sManifestFragmentFile sResult sCOMFileName
-                        Boolean bRegistered
-                        Forward Send OnExecute vCommandBarControl
-                        Get Field_Current_Value of oManDet_DD Field ManDet.ManifestFragmentFile to sManifestFragmentFile
-                        Get CheckCOMRegistrationFromManifestFragmentFile of ghoManifestFunctionLibrary sManifestFragmentFile to bRegistered
-                        Get ExtractCOMFileName of ghoManifestFunctionLibrary sManifestFragmentFile to sCOMFileName
-                        If (bRegistered = True) Begin
-                            Move ("Yes, the" * sCOMFileName * "component is registered with Windows.") to sResult
-                        End
-                        Else Begin
-                            Move ("No, the" * sCOMFileName * "component is not registered with Windows.") to sResult
-                        End
-                        Send Info_Box sResult
-                    End_Procedure
-
-                End_Object
-
-                Object oRegisterCOMComponentMenuItem is a cCJMenuItem
-                    Set psCaption to "&Register COM Component"
-                    Set psDescription to "Registers the COM (OCX/DLL) Component corresponding to the manifest fragment file under the cursor in Windows registry"
-                    Set psImage to "RegisterDLL.ico"
-                    Procedure OnExecute Variant vCommandBarControl
-                        Forward Send OnExecute vCommandBarControl
-                        Send RegisterOrUnregister of ghoManifestFunctionLibrary True
-                    End_Procedure
-
-                End_Object
-
-                Object oUnRegisterCOMComponentMenuItem is a cCJMenuItem
-                    Set psCaption to "&UnRegister COM Component"
-                    Set psDescription to "Unregisters the COM (OCX/DLL) Component corresponding to the manifest fragment file under the cursor, from Windows registry"
-                    Set psImage to "UnRegisterDLL.ico"
-                    Procedure OnExecute Variant vCommandBarControl
-                        Forward Send OnExecute vCommandBarControl
-                        Send RegisterOrUnregister of ghoManifestFunctionLibrary False
-                    End_Procedure
-                End_Object
-
-                Procedure OnCreate
-                    Forward Send OnCreate
-                    Send ComSetIconSize 24 24
-                End_Procedure
-
-                Delegate Set phoContextMenu to Self
-            End_Object
-
-            // Make the enter key activate the check & merge button
-            Procedure OnEnterKey
-                String sFileName
-                Forward Send OnEnterKey
-                String[] sFilesArray
-                Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFileName
-                Get SelectedItems of oManifest_grid to sFilesArray
-                Send BuildManifestFile of ghoManifestFunctionLibrary sFileName sFilesArray
-            End_Procedure
-
-            Function OnPostEntering Returns Boolean
-                Boolean bRetVal
-                Handle hoSrvr
-                Boolean bErr
-
-                Forward Get OnPostEntering to bRetVal
-
-                Delegate Get Server to hoSrvr
-                Get Request_Validate of hoSrvr to bErr
-                If (bErr = False) Begin
-                    Delegate Send Request_Save
-                    If (Err = True) Begin
-                        Send Info_Box "The manifest filename and path needs to be unique and there already exist a record with these values. Please adjust and try again."
-                    End
-                End
-
-                Function_Return (Err)
-            End_Function
-
-            // Returns number of items.
-            Function ItemCount Returns Integer
-                Integer iItems
-                Handle hoDataSource
-                tDataSourceRow[] TheData
-        
-                Get phoDataSource to hoDataSource
-                Get DataSource of hoDataSource to TheData
-                Move (SizeOfArray(TheData)) to iItems
-        
-                Function_Return iItems
-            End_Function
-
-            Procedure OnEntering
-                Handle hoSrvr
-                Boolean bChanged
-                Delegate Get Server to hoSrvr
-                Get Should_Save of hoSrvr to bChanged
-                If (bChanged = True) Begin
-                    Set pbNeedPostEntering to True
-                End
-            End_Procedure
-
-            // In this grid it doesn't make any to clear if the "Clear" menu
-            // button is pressed. Make it clear all instead.
-            Procedure Request_Clear
-                Send Request_Clear_All
-            End_Procedure
-
-            Procedure ProcessDroppedFiles String[] ArrayOfDroppedFiles
-                Integer iItems iCount iID
-                String sFileName
-                Handle hoDD
-                Boolean bErr
-
-                Get Server to hoDD
-                Get File_Field_Current_Value of hoDD File_Field ManHdr.ID               to iID
-                Get File_Field_Current_Value of hoDD File_Field ManHdr.ManifestFileName to sFileName
-                If (sFileName = "") Begin
-                    Send Stop_Box "You need to select a .manifest file first."
-                    Procedure_Return
-                End
-
-                // If the parent record isn't created yet, try saving/creating now.
-                If (iID = 0) Begin
-                    Send Request_Save of (Parent(Self))
-                    If (Err) Begin
-                        Send Stop_Box "Couldn't save the new header record. Try saving the header manually, then try dropping files on the grid."
-                        Procedure_Return
-                    End
-                End
-
-                Move (SizeOfArray(ArrayOfDroppedFiles)) to iItems
-                Decrement iItems
-
-                For iCount from 0 to iItems
-                    Move ArrayOfDroppedFiles[iCount] to sFileName
-                    Get ParseFileName sFileName to sFileName
-                    Send Clear of hoDD
-                    Set Field_Changed_Value of hoDD Field ManDet.ManifestFragmentFile to sFileName
-                    Get Request_Validate of hoDD to bErr
-                    If (bErr = False) Begin
-                        Send Request_Save of hoDD
-                    End
-                Loop
-
-                Send RefreshDataFromSelectedRow
-            End_Procedure
-
-            Procedure OnComRowDblClick Variant llRow Variant llItem
-                Forward Send OnComRowDblClick llRow llItem
-                Send OpenCurrentGridItem of ghoManifestFunctionLibrary
-            End_Procedure
-
-            Procedure End_Construct_Object                                                                          
-                String sColor
-                Forward Send End_Construct_Object
-                Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_HighlightColorText clNone to sColor
-                Set piSelectedRowBackColor to sColor
-                Set piHighlightBackColor   to sColor 
-            End_Procedure
-        
-            On_Key Key_Delete Send Request_Delete
         End_Object
 
-        Procedure Mouse_Down2 Integer iWindowNumber Integer iPosition
-            Forward Send Mouse_Down2 iWindowNumber iPosition
-            Send Popup of oViewContextMenu
-        End_Procedure
-            
-    End_Object
+        Object oHeader_btns is a cFTWebButtonRow
+            Set piRowIndex to 0
+            Set piColumnIndex to 18
+            Set piColumnSpan to 24
 
-    Object oDbTabDialog is a dbTabDialog
-        Set Size to 81 377
-        Set Location to 191 12
-        Set peAnchors to anBottomLeftRight
-        Set Rotate_Mode to RM_Rotate_in_Ring
-        Set Skip_Button_Mode to SBM_Never
+            Object oOpenManifest_btn is a cFTWebButton
+                Set psCaption to "Select..."
+                Set psCSSClass to "ftbtn ftg-search"
+                Set psToolTip to "Choose one of the manifests this program keeps (Alt+O, F4)"
 
-Register_Object oViewContextMenu
+                Procedure OnButtonClick
+                    Send DoOpenManifestList
+                End_Procedure
+            End_Object
 
-//        Object oHelpInfo_tp is a dbTabPage
-//            Set Label to "Instructions"
-//
-//            Object oInfo_3d is a Container3d
-//                Set Size to 45 347
-//                Set Location to 7 16
-//                Set peAnchors to anTopLeftRight
-//                Set Skip_State to True
-////                Set Color to clBtnFace
-//                Set Color to clWindow
-//                Set Border_Style to Border_ClientEdge
-//
-//                Object oGeneralInfo_edt is a cRDCRichEditor
-//                    Set Size to 38 338
-//                    Set Location to 2 7
-//                    Set peAnchors to anTopLeftRight
-//                    Set Read_Only_State to True
-//                    Set Floating_Menu_Object to oViewContextMenu
-//                    Set Border_Style to Border_None
-//                    Set Skip_State to True
-//
-//                    // Dummy message. It is here for the compiler to embed the rtf-file
-//                    // in the program.
-//                    // The compiler will pick up the include_resource and read the file from
-//                    // the _Help_ folder.
-//                    Procedure _DummyEmbedFile
-//                        Include_Resource ..\Help\TopInfoBoxNew.rtf as res_TopInfoBoxHelp Type DF_RESOURCE_TYPE_BINARY
-//                    End_Procedure
-//
-//                    Procedure DoReadFile String sFileName Boolean bEmbedFile
-//                        Move "Resource:res_TopInfoBoxHelp" to sFileName
-//                        Forward Send DoReadFile sFileName bEmbedFile
-//                    End_Procedure
-//
-//                    // This is a fix for a bug in the cRichEdit class.
-//                    // When the skin changes, the color
-//                    // isn't respected until the app is re-started.
-//                    // When the skin changes the DoChangeSkin method is
-//                    // called and it makes a broadcast send DoSetCurrentRow.
-//                    Procedure DoSetCurrentRow
-//                        Set Color to clBtnFace
-//                    End_Procedure
-//                End_Object
-//
-//            End_Object
-//
-//            Procedure Mouse_Down2 Integer iWindowNumber Integer iPosition
-//                Forward Send Mouse_Down2 iWindowNumber iPosition
-//                Send Popup of oViewContextMenu
-//            End_Procedure
-//
-//        End_Object
+            Object oBrowse_btn is a cFTWebButton
+                Set psCaption to "Browse..."
+                Set psCSSClass to "ftbtn ftg-folderopen"
+                Set psToolTip to "Choose a manifest file on disk (Ctrl+O). The COM components it lists already are looked up in your fragment library."
 
-        Object oNotes_tp is a dbTabPage
-            Set Label to "Your Notes"
+                Procedure OnButtonClick
+                    Send DoBrowseManifestFile
+                End_Procedure
+            End_Object
+        End_Object
 
-            Object oRTFToolbar_Container is a Container3d
-                Set Size to 17 344
-                Set Location to 2 15
-                Set Border_Style to Border_None
-                Set peAnchors to anBottomLeftRight
-                Set Skip_State to True
+        Object oPath_wf is a cFTWebForm
+            Entry_Item ManHdr.Path
+            Set Server to oManHdr_DD
+            Set piRowIndex to 1
+            Set piColumnIndex to 0
+            Set piColumnSpan to 18
+            Set psLabel to "Folder:"
+            Set piLabelOffset to 100
+            Set pbEnabled to False
+            Set psToolTip to "The manifest file's folder. Press Enable path to type it in."
+        End_Object
 
-                Object oViewCommandBarSystem is a cCJCommandBarSystem
-                    Set pbTimerUpdate to True
-                    Set psLayoutSection to "CommandBarsRTF"
-                    Set pbAutoResizeIcons to True
-                    // Note: This is work curtesy of Vincent Oorsprong Data Access Worldwide.
-                    #Include oRTFButtonBand.pkg
+        Object oPath_btns is a cFTWebButtonRow
+            Set piRowIndex to 1
+            Set piColumnIndex to 18
+            Set piColumnSpan to 24
+
+            Object oEnablePath_btn is a cFTWebButton
+                Set psCaption to "Enable path"
+                Set psCSSClass to "ftbtn ftg-unlock"
+                Set psToolTip to "Lets you type in the manifest file's folder"
+
+                Procedure OnButtonClick
+                    Send DoTogglePath
+                End_Procedure
+            End_Object
+        End_Object
+
+        // ---- row 2: the steps
+
+        Object oSteps_box is a cFTWebHtmlBox
+            Set piRowIndex to 2
+            Set piColumnIndex to 0
+            Set piColumnSpan to 42
+            // What the Studio's Designer draws; the program draws the steps (StepsHtml).
+            Set psHtml to '<div class="ftph-cards"><b>1 Components</b><b>2 Build manifest</b><b>3 Copy COM files</b><b>4 Embed, compress</b><b>5 Test run</b></div>'
+
+            Procedure OnHtmlClick String sId String sParam
+                Send DoDashboardAction sId
+            End_Procedure
+        End_Object
+
+        // ---- row 3: the tabs, and the panels at the right
+
+        Object oTabs is a cWebTabContainer
+            Set piRowIndex to 3
+            Set piColumnIndex to 0
+            Set piColumnSpan to 1
+            Set pbFillHeight to True
+
+            /* THE PAGES ARE GRIDS TOO: a container inherits its host's layout (peLayoutType ltInherit), and on a grid a
+               row is as tall as its content unless psRowHeights gives it the rest - so each page says which row
+               takes the height. Without it the list was one header high (Nils's screenshot 2026-11-14). */
+            Object oFragments_tp is a cWebTabPage
+                Set psCaption to "Fragment Files"
+                Set piColumnCount to 1
+                Set psColumnWidths to "0/1fr"
+                Set psRowHeights to "1/1fr"       // row 1, the list
+
+                Object oFragment_btns is a cFTWebButtonRow
+                    Set piRowIndex to 0
+
+                    Object oAddFragments_btn is a cFTWebButton
+                        Set psCaption to "Add files..."
+                        Set psCSSClass to "ftbtn ftg-add"
+                        Set psToolTip to "Add fragment files from your library - one for each COM component the program uses"
+
+                        Procedure OnButtonClick
+                            Send DoAddFragmentFiles
+                        End_Procedure
+                    End_Object
+
+                    Object oRemoveFragment_btn is a cFTWebButton
+                        Set psCaption to "Remove"
+                        Set psCSSClass to "ftbtn ftg-remove"
+                        Set psToolTip to "Remove the selected fragment file from this manifest (the file stays in your library)"
+
+                        Procedure OnButtonClick
+                            Send DoRemoveFragment
+                        End_Procedure
+                    End_Object
+
+                    Object oEditFragment_btn is a cFTWebButton
+                        Set psCaption to "Edit fragment file"
+                        Set psCSSClass to "ftbtn ftg-edit"
+                        Set psToolTip to "Open the selected fragment file in the editor"
+
+                        Procedure OnButtonClick
+                            Send DoEditFragment
+                        End_Procedure
+                    End_Object
                 End_Object
 
+                /* THE FRAGMENT FILES, a data-aware list on the ManDet data dictionary, which the manifest's
+                   constrains: the framework reads the rows, and a row chosen is the DD's record - the record the
+                   menus' Edit fragment file and Register act on. The description and whether the file is in the
+                   library are worked out per row (OnSetCalculatedValue). */
+                Object oFragments_lst is a cFTWebList
+                    Set Server to oManDet_DD
+                    Set piRowIndex to 1
+                    Set pbFillHeight to True
+                    Set piOrdering to 3
+                    Set psPlaceHolder to "No fragment files yet - Add files..."
+
+                    Object oFragmentFile_col is a cWebColumn
+                        Entry_Item ManDet.ManifestFragmentFile
+                        Set psCaption to "Fragment file"
+                        Set piWidth to 290
+                        Set pbFixedWidth to True
+                    End_Object
+
+                    Object oDescription_col is a cWebColumn
+                        Set psCaption to "Description"
+                        Set piWidth to 1
+
+                        // The comment line at the top of the fragment file.
+                        Procedure OnSetCalculatedValue String ByRef sValue
+                            Move (Trim(ManDet.ManifestFragmentFile)) to sValue
+                            If (sValue contains ".txt") Begin
+                                Get ExtractManifestFragmentFileComment of ghoManifestFunctionLibrary sValue to sValue
+                            End
+                        End_Procedure
+                    End_Object
+
+                    // In words, not in a colour: a fragment file missing from the library - or a wrong path to the
+                    // library in Settings - says "Missing".
+                    Object oInLibrary_col is a cWebColumn
+                        Set psCaption to "In library"
+                        Set piWidth to 80
+                        Set pbFixedWidth to True
+
+                        Procedure OnSetCalculatedValue String ByRef sValue
+                            String sLibrary sFile
+                            Boolean bExists
+                            Move (Trim(ManDet.ManifestFragmentFile)) to sFile
+                            Move "" to sValue
+                            If (sFile <> "") Begin
+                                Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sLibrary
+                                Get vFilePathExists (vFolderFormat(sLibrary) + sFile) to bExists
+                                Move (If(bExists, "Yes", "Missing")) to sValue
+                            End
+                        End_Procedure
+                    End_Object
+
+                    // Another row: the panel at the right names its COM component.
+                    Procedure OnChangeCurrentRow String sFromRowID String sToRowID
+                        Forward Send OnChangeCurrentRow sFromRowID sToRowID
+                        Send ArmDashboardRow
+                    End_Procedure
+                End_Object
             End_Object
 
-            Object oManHdr_Comment_Edit is a cRDCDbRichEditor // Note: This is work curtesy of Vincent Oorsprong Data Access Worldwide.
-                Entry_Item ManHdr.Comment
-                Set Location to 22 16
-                Set Size to 35 344
-                Set Label_Justification_Mode to JMode_Right
-                Set Label_Col_Offset to 2
-                Set peAnchors to anBottomLeftRight
-                // Should skip_state be True or False? Don't know which is best...
-                //Set Skip_State to True
-                Procedure Activating
-                    Forward Send Activating
-                    Set psToolTip to (Status_Help(Self))
-                End_Procedure
+            // The notes: plain text since 2026-11-14 (Nils's choice) - the native editor's rich text cannot live in
+            // a web page. A note saved with formatting shows its RTF codes until it is written again.
+            Object oNotes_tp is a cWebTabPage
+                Set psCaption to "Your Notes"
+                Set piColumnCount to 1
+                Set psColumnWidths to "0/1fr"
+                Set psRowHeights to "0/1fr"       // the notes take it all
 
+                Object oNotes_we is a cWebEdit
+                    Entry_Item ManHdr.Comment
+                    Set Server to oManHdr_DD
+                    Set piRowIndex to 0
+                    Set pbShowLabel to False
+                    Set pbFillHeight to True
+                    Set psToolTip to "Your own notes about this manifest - saved with it (Ctrl+S)"
+                End_Object
             End_Object
 
-            Procedure Mouse_Down2 Integer iWindowNumber Integer iPosition
-                Forward Send Mouse_Down2 iWindowNumber iPosition
-                Send Popup of oViewContextMenu
-            End_Procedure
+            Object oRecordInfo_tp is a cWebTabPage
+                Set psCaption to "Record Info"
+                Set piColumnCount to 2
+                Set psColumnWidths to "0/1fr 1/1fr"   // two halves: when, and by whom
 
+                Object oCreated_wf is a cFTWebForm
+                    Entry_Item ManHdr.CreatedDateTime
+                    Set Server to oManHdr_DD
+                    Set piRowIndex to 0
+                    Set piColumnIndex to 0
+                    Set psLabel to "Created:"
+                    Set piLabelOffset to 80
+                    Set pbReadOnly to True
+                End_Object
+
+                Object oCreatedBy_wf is a cFTWebForm
+                    Entry_Item ManHdr.CreatedBy
+                    Set Server to oManHdr_DD
+                    Set piRowIndex to 0
+                    Set piColumnIndex to 1
+                    Set psLabel to "By:"
+                    Set piLabelOffset to 40
+                    Set pbReadOnly to True
+                End_Object
+
+                Object oChanged_wf is a cFTWebForm
+                    Entry_Item ManHdr.ChangedDateTime
+                    Set Server to oManHdr_DD
+                    Set piRowIndex to 1
+                    Set piColumnIndex to 0
+                    Set psLabel to "Last edited:"
+                    Set piLabelOffset to 80
+                    Set pbReadOnly to True
+                End_Object
+
+                Object oChangedBy_wf is a cFTWebForm
+                    Entry_Item ManHdr.ChangedBy
+                    Set Server to oManHdr_DD
+                    Set piRowIndex to 1
+                    Set piColumnIndex to 1
+                    Set psLabel to "By:"
+                    Set piLabelOffset to 40
+                    Set pbReadOnly to True
+                End_Object
+            End_Object
         End_Object
 
-        Object oRecordInfo_tp is a dbTabPage
-            Set Label to "Record Info"
+        Object oTools_box is a cFTWebHtmlBox
+            Set piRowIndex to 3
+            Set piColumnIndex to 1
+            Set piColumnSpan to 41
+            // What the Studio's Designer draws; the program draws the panels (ToolsHtml).
+            Set psHtml to '<div class="ftph-cards"><b>Selected component</b><b>Fragment Library</b><b>Folders</b></div>'
 
-            Object oManHdrCreatedDateTime_fm is a cRDCDbReadOnlyForm
-                Entry_Item ManHdr.CreatedDateTime
-                Set Size to 13 122
-                Set Location to 19 45
-                Set peAnchors to anNone
-                Set Label to "Created"
-            End_Object
-
-            Object oManHdrChangedDateTime_fm is a cRDCDbReadOnlyForm
-                Entry_Item ManHdr.ChangedDateTime
-                Set Size to 13 122
-                Set Location to 34 45
-                Set peAnchors to anNone
-                Set Label to "Last Edited"
-            End_Object
-
-            Object oManHdrCreatedBy_fm is a cRDCDbReadOnlyForm
-                Entry_Item ManHdr.CreatedBy
-                Set Size to 13 182
-                Set Location to 19 184
-                Set peAnchors to anTopLeftRight
-                Set Label to "By"
-            End_Object
-
-            Object oManHdrChangedBy_fm is a cRDCDbReadOnlyForm
-                Entry_Item ManHdr.ChangedBy
-                Set Size to 13 182
-                Set Location to 34 184
-                Set peAnchors to anTopLeftRight
-                Set Label to "By"
-            End_Object
-
-            Procedure Mouse_Down2 Integer iWindowNumber Integer iPosition
-                Forward Send Mouse_Down2 iWindowNumber iPosition
-                Send Popup of oViewContextMenu
+            Procedure OnHtmlClick String sId String sParam
+                Send DoDashboardAction sId
             End_Procedure
-
         End_Object
 
-//        Object oDebugOutput_tp is a dbTabPage
-//            Set Label to "Debugger"
-//
-//            Object oDebugOutput_edt is a cTextEdit
-//                Set Size to 51 325
-//                Set Location to 9 3
-//                Set Label to "Debugger Output:"
-//                Set peAnchors to anAll
-//            End_Object
-//
-//            Object oStartDebugger_btn is a cRDCButton
-//                Set Size to 25 38
-//                Set Location to 9 332
-//                Set Label to "Start Debugger"
-//                Set MultiLineState to True
-//                Set peAnchors to anTopRight
-//
-//                // ToDo: The debugger stuff needs to be finished...
-//                Procedure OnClick
-//                    Send DoDebug
-//                End_Procedure
-//
-//            End_Object
-//
-//            // ToDo: This logic needs some more work...
-//            Procedure DoDebug
-//                String sText sLogFileBin sLogFileText sParams sStartTrace sParseTrace sProgramPath
-//                Integer iCh
-//                Get psProgramPath of (phoWorkspace(ghoApplication))     to sProgramPath
-//                Get vFolderFormat sProgramPath to sProgramPath
-//                Move "sxstrace Trace -logfile:sxs.bin"                  to sStartTrace
-//                Move "sxstrace Parse -logfile:sxs.bin -outfile:sxs.txt" to sParseTrace
-//                Runprogram Shell Background (sProgramPath + sStartTrace)
-//                Runprogram Shell Background (sProgramPath + sParseTrace)
-//            End_Procedure
-//
-//        End_Object
-
-        // This is needed for navigational reasons. If not here the navigation
-        // gets "stuck" at this object when F6 is pressed. This gently moves
-        // the focus to the next group, which is the first entry form.
-        On_Key Key_F6 Send Activate of (phoMainPromptObject(ghoApplication))
-    End_Object
-
-    Object oViewContextMenu is a cCJContextMenu
-
-        Procedure OnCreate
-            Forward Send OnCreate
-            Send ComSetIconSize 24 24
+        // The FT button family and the dashboard's own sheet, in the page's head (palette.css comes with every FT host).
+        Procedure OnDefineScriptIncludes String[] ByRef aScriptHtml
+            Forward Send OnDefineScriptIncludes (&aScriptHtml)
+            Move (StyleSheetLink("RDCFlexTron/buttons.css")) to aScriptHtml[SizeOfArray(aScriptHtml)]
+            Move (CssLink("dashboard")) to aScriptHtml[SizeOfArray(aScriptHtml)]
         End_Procedure
 
-        Object oOpenManifestFile_MenuItem is a cCJMenuItem
-            Set psCaption to "Browse Application Manifest File"
-            Set psDescription to "Shows an open dialog where to select an application manifest file from"
-            Set psImage to "FolderOpen.ico"
-            Set pbControlBeginGroup to True
-            Procedure OnExecute Variant vCommandBarControl
-                Handle ho hoPath
-                Forward Send OnExecute vCommandBarControl
-                Get phoMainPromptObject      of ghoApplication to ho
-                Get phoManifestPathObject    of ghoApplication to hoPath
-                Send SelectAppManifestFile of ghoManifestFunctionLibrary ho hoPath
-            End_Procedure
-        End_Object
+        /* A FILE DROPPED ON THE PAGE. WebView2 would open it - navigate to the file and leave the page. A file:/// address
+           is never this page's own, so its navigation is cancelled, and the file is added as a fragment file, as one
+           dropped on the native view was (AddDroppedFiles): one tick later, after this event has returned. */
+        Procedure OnNavigationStarting UBigInt iNavigationId String sUrl Boolean bIsRedirected ;
+                                       Boolean bIsUserInitiated Boolean ByRef bCancelnavigation
+            If (Lowercase(Left(sUrl, 8)) = "file:///") Begin
+                Move True to bCancelnavigation
+                Send ArmAction of oDashboard_tmr CI_DashDrop sUrl
+                Procedure_Return
+            End
+            Forward Send OnNavigationStarting iNavigationId sUrl bIsRedirected bIsUserInitiated (&bCancelnavigation)
+        End_Procedure
 
-        Object oCheckAndMerge_MenuItem is a cCJMenuItem
-            Set psCaption to "&Build App Manifest File!"
-            Set psDescription to "Checks for duplicate TypeLib declarations and merges the selected fragment files with the application manifest file."
-            Set psImage to "Build.ico"
-            Set psShortcut to "Alt+B"
-            Procedure OnExecute Variant vCommandBarControl
-                String sFileName
-                String[] sFilesArray
-                Forward Send OnExecute vCommandBarControl
-                Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFileName
-                Get SelectedItems of (phoManifest_grid(ghoApplication)) to sFilesArray
-                Send BuildManifestFile of ghoManifestFunctionLibrary sFileName sFilesArray
-            End_Procedure
-            Function IsEnabled Returns Boolean
-                String sManifestFile
-                Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
-                Function_Return (sManifestFile <> "")
-            End_Function
-        End_Object
+        // F4 and the toolbar's Prompt with the focus in the page: the list of manifests, as F4 in the native name field
+        // gave it. cCJPromptMenuItem asks for a Prompt_Object before it enables itself.
+        Function Prompt_Object Returns Handle
+            Function_Return (oManHdr_sl(Self))
+        End_Function
 
-        Object oViewManifestFile_MenuItem is a cCJMenuItem
-            Set psCaption to "Edit Application Manifest &File"
-            Set psDescription to "Opens the application manifest file in the editor"
-            Set psImage to "EditDocument.ico"
-            Set psShortcut to "Ctrl+F"
-            Procedure OnExecute Variant vCommandBarControl
-                Forward Send OnExecute vCommandBarControl
-                Send EditAppManifestFile of ghoManifestFunctionLibrary
-            End_Procedure
-            Function IsEnabled Returns Boolean
-                String sManifestFile
-                Get psManifestFileName of ghoManifestFunctionLibrary to sManifestFile
-                Function_Return (sManifestFile <> "")
-            End_Function
-        End_Object
+        Procedure Prompt
+            Send DoOpenManifestList
+        End_Procedure
 
-        Object oSetup_MenuItem is a cCJMenuItem
-            Set psCaption to "Con&figure"
-            Set psDescription to "Change program settings"
-            Set psImage to "Configure032N32.ico"
-            Set psShortcut to "Alt+F"
-            Set pbControlBeginGroup to True
-            Procedure OnExecute Variant vCommandBarControl
-                Forward Send OnExecute vCommandBarControl
-                Send Popup of (oProgramSetup_Panel(Client_Id(ghoCommandBars)))
-                Send OnStartup of ghoManifestIniFile
-            End_Procedure
-        End_Object
-
+        // The program's shortcuts with the focus in the page - the menu bar shows them. The host's own are the data
+        // entry keys (F2 save, F5 clear, F7/F8 find ...).
+        On_Key Key_Alt+Key_O  Send DoOpenManifestList
+        On_Key Key_Ctrl+Key_O Send DoBrowseManifestFile
+        On_Key Key_Alt+Key_E  Send EditAppManifestFile            of ghoManifestFunctionLibrary
+        On_Key Key_Alt+Key_B  Send DoPreBuildManifestFile
+        On_Key Key_Ctrl+Key_P Send DoPreCopyCOMComponents
+        On_Key Key_Ctrl+Key_E Send EmbedManifestInProgram         of ghoManifestFunctionLibrary
+        On_Key Key_Ctrl+Key_R Send DoPreRunProgram
+        On_Key Key_Ctrl+Key_L Send OpenFragmentFolder             of ghoManifestFunctionLibrary
+        On_Key Key_Ctrl+Key_D Send OpenProgramsFolder             of ghoManifestFunctionLibrary
+        On_Key Key_Ctrl+Key_B Send OpenCommonCOMFolder            of ghoManifestFunctionLibrary
+        On_Key Key_Alt+Key_D  Send DownloadManifestFragmentFiles  of ghoManifestFunctionLibrary
+        On_Key Key_Alt+Key_S  Send DoShareManifestFragmentFiles   of (Client_Id(ghoCommandBars))
+        On_Key Key_Alt+Key_L  Send DoRegisterComponent
+        On_Key Key_Ctrl+Key_S Send Request_Save
     End_Object
 
-    // Context sensitive menu for the view
-    Procedure Mouse_Down2 Integer iWindowNumber Integer iPosition
-        Forward Send Mouse_Down2 iWindowNumber iPosition
-        Send Popup of oViewContextMenu
-    End_Procedure
+    // ---------------------------------------------------------------------------------------------------
+    // The manifest's fragment files - what the old grid gave: the build, the copy, the run and the menus take them
+    // through the application object (phoManifest_grid is this view).
+    // ---------------------------------------------------------------------------------------------------
 
-    Procedure DoPreBuildManifestFile
-        String sFileName
-        String[] sFilesArray
-        Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFileName
-        Get SelectedItems of oManifest_grid to sFilesArray
-        Send BuildManifestFile of ghoManifestFunctionLibrary sFileName sFilesArray
-    End_Procedure
+    // The index of ManDet that starts with its manifest's ID: the one to read a manifest's fragment files by.
+    Function ManDetHeaderIndex Returns Integer
+        Integer iLast iIndex iField
+        String sName
+        Get_Attribute DF_FILE_LAST_INDEX_NUMBER of ManDet.File_Number to iLast
+        For iIndex from 1 to iLast
+            Get_Attribute DF_INDEX_SEGMENT_FIELD of ManDet.File_Number iIndex 1 to iField
+            Get_Attribute DF_FIELD_NAME of ManDet.File_Number iField to sName
+            If (Uppercase(Trim(sName)) = "MANHDRID") Begin
+                Function_Return iIndex
+            End
+        Loop
+        Function_Return 0
+    End_Function
 
-    Procedure DoPreCopyCOMComponents
-        String[] sSelectedFileNames
-        Get SelectedItems of oManifest_grid to sSelectedFileNames
-        Send CopyCOMComponents of ghoManifestFunctionLibrary sSelectedFileNames
-    End_Procedure
-
-    Procedure DoPreRunProgram
-        String[] sSelectedFileNames
-        Get SelectedItems of oManifest_grid to sSelectedFileNames
-        Send Runprogram of ghoManifestFunctionLibrary sSelectedFileNames
-    End_Procedure
-
-    // Check to see if we should "auto-find" a record when the view is activated.
-    // It should be done if the program was started from e.g. the DataFlex Studio's Tools menu
-    Procedure Page Integer iPageObject
-        String sArgument sManifestFileName sPath
-        Integer iRetval
-        Handle ho
+    // The fragment files of the manifest on screen, read from the table. The record the data dictionary has - the
+    // list's chosen row - is in the buffer again afterwards.
+    Function SelectedItems Returns String[]
+        String[] sFiles
+        Integer iID iIndex
+        RowID riCurrent
         Boolean bFound
 
-        Forward Send Page iPageObject
+        Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
+        If (iID = 0) Begin
+            Function_Return sFiles
+        End
+        Get ManDetHeaderIndex to iIndex
+        If (iIndex = 0) Begin
+            Function_Return sFiles
+        End
+        Get CurrentRowId of oManDet_DD to riCurrent
 
-        // Note: The following line is essential for the resizing logic
-        // to work when starting the program.
-        Move (Client_Id(ghoCommandBars)) to ho
-//        Set Border_Style of ho to Border_ClientEdge
+        Clear ManDet
+        Move iID to ManDet.ManHdrID
+        Vfind ManDet.File_Number iIndex GE
+        While (Found and ManDet.ManHdrID = iID)
+            If (Trim(ManDet.ManifestFragmentFile) <> "") Begin
+                Move (Trim(ManDet.ManifestFragmentFile)) to sFiles[SizeOfArray(sFiles)]
+            End
+            Vfind ManDet.File_Number iIndex GT
+        Loop
 
-        // Read the embedded info rtf file from memory & display it.
-//        Move (oGeneralInfo_edt(Self)) to ho
-//        If (ho <> 0) Begin
-//            Set TextFile of oGeneralInfo_edt to CS_TopInfoHelp True
-//        End
+        Clear ManDet
+        If (not(IsNullRowID(riCurrent))) Begin
+            Move (FindByRowID(ManDet.File_Number, riCurrent)) to bFound
+        End
+        Function_Return sFiles
+    End_Function
 
-        // Check if program started with command line parameters, in
-        // case we auto-load that record.
+    // How many fragment files the manifest has - the Build menu item asks.
+    Function ItemCount Returns Integer
+        String[] sFiles
+        Get SelectedItems to sFiles
+        Function_Return (SizeOfArray(sFiles))
+    End_Function
+
+    /* THE LIST READ AGAIN. The framework's web list loads the rows AROUND ITS CURRENT ROW (cWebList.LoadData: no
+       psCurrentRowId, no rows at all), so a reload needs a current row: the ManDet data dictionary's - its first one
+       when bFromFirst (another manifest) or when it has none (rows just added). Stored for a page that draws the list
+       later (it loads itself then), and pushed with the reload to a page that is up. Until 2026-11-14 the list was
+       only read again, and after rows were added to a new manifest it stayed empty (Nils). */
+    Procedure ReloadFragmentList Boolean bFromFirst
+        Integer iID iIndex
+        Boolean bHasRecord
+        RowID riRow
+        String sRowId
+
+        Get HasRecord of oManDet_DD to bHasRecord
+        If (bFromFirst or (bHasRecord = False)) Begin
+            Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
+            Get ManDetHeaderIndex to iIndex
+            If (iID <> 0 and iIndex <> 0) Begin
+                Send Find of oManDet_DD FIRST_RECORD iIndex
+            End
+            Else Begin
+                Send Clear of oManDet_DD
+            End
+        End
+
+        Get CurrentRowId of oManDet_DD to riRow
+        Move "" to sRowId
+        If (not(IsNullRowID(riRow))) Begin
+            Move (SerializeRowID(riRow)) to sRowId
+        End
+        Set psCurrentRowId of oFragments_lst to sRowId
+        If (FTHostPageIsUp(oMain_host)) Begin
+            WebSet psCurrentRowId of oFragments_lst to sRowId
+            Send GridRefresh of oFragments_lst
+        End
+    End_Procedure
+
+    // The list read again after rows were added or removed outside it.
+    Procedure RefreshFragments
+        Send ReloadFragmentList False
+    End_Procedure
+
+    // Adds a row for each of the fragment files to the manifest with the ID iID. Used by Add files..., by a file
+    // dropped on the view, and when a new manifest file's COM components fill the list (FillGridFromManifestFile).
+    Procedure AddFragmentFiles Integer iID String[] sFragmentFiles
+        Integer i iRows iRetval
+
+        Move (SizeOfArray(sFragmentFiles)) to iRows
+        If (iID = 0 or iRows = 0) Begin
+            Procedure_Return
+        End
+
+        Lock
+            For i from 0 to (iRows - 1)
+                Clear ManDet
+                Get GlobalAutoCreateNewID File_Field ManDet.ID False to iRetval
+                Move iRetval to ManDet.ID
+                Move iID to ManDet.ManHdrID
+                Move sFragmentFiles[i] to ManDet.ManifestFragmentFile
+                SaveRecord ManDet
+            Loop
+        Unlock
+
+        Send RefreshFragments
+    End_Procedure
+
+    // Add files... - on the dashboard, in the Fragments menu and above the list: the fragment files prompt list.
+    Procedure DoAddFragmentFiles
+        String[] sFileNames sNewFiles
+        Integer iID
+
+        Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
+        If (iID = 0) Begin
+            Send Info_Box "Save the manifest first, then add its fragment files."
+            Procedure_Return
+        End
+        Get SelectedItems to sFileNames
+        Get ActivateFragmentFiles_sl (&sFileNames) to sNewFiles
+        Send AddFragmentFiles iID sNewFiles
+        Send ArmDashboard
+    End_Procedure
+
+    // Remove: the chosen row's fragment file out of this manifest. The file stays in the library.
+    Procedure DoRemoveFragment
+        Boolean bHasRecord
+        Get HasRecord of oManDet_DD to bHasRecord
+        If (bHasRecord = False) Begin
+            Procedure_Return
+        End
+        Send Request_Delete of oManDet_DD
+        Send RefreshFragments
+        Send ArmDashboard
+    End_Procedure
+
+    // Alt+L: the chosen row's COM component registered, as the Components menu's Register. (The native view's Alt+L
+    // sent RegisterOrUnregister without its argument - False - and so unregistered.)
+    Procedure DoRegisterComponent
+        Send RegisterOrUnregister of ghoManifestFunctionLibrary True
+        Send ArmDashboard
+    End_Procedure
+
+    // Edit fragment file: the chosen row's file in the editor.
+    Procedure DoEditFragment
+        Boolean bHasRecord
+        Get HasRecord of oManDet_DD to bHasRecord
+        If (bHasRecord) Begin
+            Send OpenCurrentGridItem of ghoManifestFunctionLibrary
+        End
+    End_Procedure
+
+    // ---------------------------------------------------------------------------------------------------
+    // The manifest
+    // ---------------------------------------------------------------------------------------------------
+
+    // A manifest found, saved or cleared (the name field's Refresh): the library's names and paths follow it.
+    Procedure OnHeaderRefresh
+        String sPath sFileName
+        Get Field_Current_Value of oManHdr_DD Field ManHdr.Path             to sPath
+        Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFileName
+        If (Trim(sPath) <> "") Begin
+            Get vFolderFormat sPath to sPath
+        End
+        Send SetApplicationStrings of ghoManifestFunctionLibrary (sPath + sFileName)
+        Send ArmDashboard
+    End_Procedure
+
+    // Select... - the button, the File menu's Select Manifest..., Alt+O, F4: the native list of the manifests this program keeps,
+    // as a list of its own (umPromptNonInvoking: no field to update), and the chosen one found here.
+    Procedure DoOpenManifestList
+        Handle hoPanel hoList
+        RowID[] riSelected
+        Boolean bCanceled
+
+        Move (oManHdr_sl(Self)) to hoPanel
+        Move (oSelList(hoPanel)) to hoList
+        Set peUpdateMode of hoList to umPromptNonInvoking
+        Send Popup of hoPanel
+        Get pbCanceled of hoList to bCanceled
+        If (bCanceled) Begin
+            Procedure_Return
+        End
+        Get SelectedRowIds of hoList to riSelected
+        If (SizeOfArray(riSelected) > 0) Begin
+            Send FindByRowId of oManHdr_DD ManHdr.File_Number riSelected[0]
+        End
+    End_Procedure
+
+    /* Browse... - the button, the File menu, Ctrl+O: a manifest file on disk. One the database knows is found; a new
+       one is saved at once - its name and folder are all a manifest record needs - and the fragment files of the COM
+       components it lists already are offered (FillGridFromManifestFile). Until 2026-11-14 a new one was left
+       unsaved in the native fields; a web field shows what its data dictionary holds, so it is saved instead. */
+    Procedure DoBrowseManifestFile
+        String sValue sFile sPath sStartPath
+        Boolean bFound
+
+        Get psTargetPath of ghoManifestFunctionLibrary to sStartPath
+        Move (vSelect_File("Program Manifest Files (*.manifest)|*.manifest", "Select a Program Manifest File", sStartPath)) to sValue
+        If (sValue = "") Begin
+            Procedure_Return
+        End
+        Move (ParseFileName(sValue))   to sFile
+        Move (ParseFolderName(sValue)) to sPath
+        Send SetApplicationStrings of ghoManifestFunctionLibrary sValue
+
+        Clear ManHdr
+        Move sFile to ManHdr.ManifestFileName
+        Move sPath to ManHdr.Path
+        Find Ge ManHdr by Index.2
+        Move (Found and (Trim(ManHdr.ManifestFileName) = sFile) and (Trim(ManHdr.Path) = sPath)) to bFound
+        If (bFound) Begin
+            Send Request_Assign of oManHdr_DD
+            Procedure_Return
+        End
+
+        Send Clear of oManHdr_DD
+        Set Field_Changed_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFile
+        Set Field_Changed_Value of oManHdr_DD Field ManHdr.Path             to sPath
+        Send Request_Save of oManHdr_DD
+        // A manifest file that already lists COM components: their fragment files, offered.
+        Send FillGridFromManifestFile sPath sFile
+        Send ArmDashboard
+    End_Procedure
+
+    // Enable path / Lock path: the folder field open for typing, or shut again.
+    Procedure DoTogglePath
+        Boolean bOn
+        Get pbPathEditable to bOn
+        Move (not(bOn)) to bOn
+        Set pbPathEditable to bOn
+        Set pbEnabled of oPath_wf to bOn
+        If (FTHostPageIsUp(oMain_host)) Begin
+            WebSet pbEnabled of oPath_wf to bOn
+        End
+        Send UpdateCaption of oEnablePath_btn (If(bOn, "Lock path", "Enable path"))
+    End_Procedure
+
+    // New Project (the wizard): the view cleared first - the wizard makes the manifest, and the view shows it after
+    // (LoadManifestFromApplication).
+    Procedure DoClearManifest
+        Send Request_Clear_All of oMain_host
+    End_Procedure
+
+    // The manifest named by psApplicationManifestName - given on the command line (the Studio's Tools menu starts the
+    // program so), or made by the New Project wizard - found and shown.
+    Procedure LoadManifestFromApplication
+        String sArgument sManifestFileName sPath
+        Integer iRetval
+        Boolean bFound
+
         Get psApplicationManifestName of ghoApplication to sArgument
         Move (Lowercase(sArgument)) to sArgument
         Get vFilePathExists sArgument to iRetval
@@ -974,7 +716,7 @@ Register_Object oViewContextMenu
             Move (Replace("programs", sArgument, "appsrc")) to sArgument
             Get vFilePathExists sArgument to iRetval
         End
-        
+
         If (sArgument <> "" and iRetval = True) Begin
             Get ParseFileName   sArgument to sManifestFileName
             Get ParseFolderName sArgument to sPath
@@ -990,6 +732,531 @@ Register_Object oViewContextMenu
                 Send Clear of oManHdr_DD
             End
         End
+    End_Procedure
+
+    // ---------------------------------------------------------------------------------------------------
+    // Files dropped on the view
+    // ---------------------------------------------------------------------------------------------------
+
+    // A file:/// address as WebView2 gives it, as a path: the slashes Windows', the %XX escapes undone (the bytes of
+    // UTF-8, so a name with national characters comes back whole).
+    Function FileUrlToPath String sUrl Returns String
+        UChar[] ucBytes ucChar
+        String sRest sChar sDigits
+        Integer i iLen iHigh iLow
+
+        Move (Right(sUrl, Length(sUrl) - 8)) to sRest
+        Move (Length(sRest)) to iLen
+        Move "0123456789ABCDEF" to sDigits
+        Move 1 to i
+        While (i <= iLen)
+            Move (Mid(sRest, 1, i)) to sChar
+            If (sChar = "%" and (i + 2) <= iLen) Begin
+                Move (Pos(Uppercase(Mid(sRest, 1, i + 1)), sDigits) - 1) to iHigh
+                Move (Pos(Uppercase(Mid(sRest, 1, i + 2)), sDigits) - 1) to iLow
+                If (iHigh >= 0 and iLow >= 0) Begin
+                    Move ((iHigh * 16) + iLow) to ucBytes[SizeOfArray(ucBytes)]
+                    Move (i + 3) to i
+                End
+                Else Begin
+                    Move (AppendArray(ucBytes, StringToUCharArray(sChar))) to ucBytes
+                    Increment i
+                End
+            End
+            Else Begin
+                If (sChar = "/") Begin
+                    Move "\" to sChar
+                End
+                Move (AppendArray(ucBytes, StringToUCharArray(sChar))) to ucBytes
+                Increment i
+            End
+        Loop
+        Function_Return (UCharArrayToString(ucBytes))
+    End_Function
+
+    // A file dropped on the page (oMain_host.OnNavigationStarting): added as a fragment file.
+    Procedure AddDroppedFileUrl String sUrl
+        String[] sFiles
+        String sFile
+        Get FileUrlToPath sUrl to sFile
+        Move (ParseFileName(sFile)) to sFiles[0]
+        Send AddDroppedFiles sFiles
+    End_Procedure
+
+    // Fragment files dropped on the view: the names, added to the manifest on screen, which must be saved first.
+    Procedure AddDroppedFiles String[] sFiles
+        Integer iID
+        Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
+        If (iID = 0) Begin
+            Send Stop_Box "You need to select a .manifest file first - or save the new one - and then drop its fragment files on it."
+            Procedure_Return
+        End
+        Send AddFragmentFiles iID sFiles
+        Send ArmDashboard
+    End_Procedure
+
+    // Files dropped on the native view - outside the page, which covers nearly all of it.
+    Procedure OnFileDropped String sFilename Boolean bLast
+        Integer  iFiles
+        String[] ArrayOfDroppedFiles EmptyArray
+
+        Get pArrayOfDroppedFiles to ArrayOfDroppedFiles
+        Move (SizeOfArray(ArrayOfDroppedFiles)) to iFiles
+        Move (ParseFileName(sFilename)) to ArrayOfDroppedFiles[iFiles]
+        If (bLast) Begin
+            Send AddDroppedFiles ArrayOfDroppedFiles
+            Move EmptyArray to ArrayOfDroppedFiles
+        End
+        Set pArrayOfDroppedFiles to ArrayOfDroppedFiles
+    End_Procedure
+
+    // ---------------------------------------------------------------------------------------------------
+    // The dashboard: the steps (oSteps_box) and the panels at the right (oTools_box), drawn by oDashboard_tmr
+    // a moment after a change - a manifest found, saved or cleared, rows added or removed, another row chosen,
+    // a button or a menu command done. What a step says is read from the files each time.
+    // ---------------------------------------------------------------------------------------------------
+
+    // The manifest whose fragment files the list shows (its ID), so that another manifest reloads the list.
+    Property Integer piListManifestID -1
+
+    /* ANOTHER MANIFEST: ITS FRAGMENT FILES IN THE LIST. The list's own refresh did not do it - a manifest chosen
+       with Select..., the toolbar's Find buttons or the name field left the list empty (Nils 2026-11-14): the
+       framework's web list reloads only while its Active_State is True, and the notice reaches it through the
+       constrained ManDet data dictionary. So the view reloads it itself, on the dashboard's tick - after the find,
+       outside its notices: the list from the manifest's first fragment file (ReloadFragmentList), so a row is
+       chosen and the panel at the right names its component. */
+    Procedure LoadFragmentsForManifest
+        Integer iID
+        Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
+        If (iID = piListManifestID(Self)) Begin
+            Procedure_Return
+        End
+        Set piListManifestID to iID
+        Send ReloadFragmentList True
+    End_Procedure
+
+    // The fragment files' tab says how many - stored for the page's next mount, pushed to a page that is up.
+    Procedure SetFragmentsCaption Integer iCount
+        String sCaption
+        Move ("Fragment Files (" + String(iCount) + ")") to sCaption
+        Set psCaption of oFragments_tp to sCaption
+        If (FTHostPageIsUp(oMain_host)) Begin
+            WebSet psCaption of oFragments_tp to sCaption
+        End
+    End_Procedure
+
+    // The number of fragment files in the library, counted when the whole dashboard is drawn.
+    Property Integer piLibraryFiles 0
+
+    // The whole dashboard, a moment from now. The application object's RefreshDashboard sends it after a menu
+    // command.
+    Procedure ArmDashboard
+        Send ArmAction of oDashboard_tmr CI_DashAll ""
+    End_Procedure
+
+    // The selected row's panel only - another row in the list. A whole drawing already asked for stays asked for.
+    Procedure ArmDashboardRow
+        Integer iPending
+        Get piPendingAction of oDashboard_tmr to iPending
+        If (iPending = 0) Begin
+            Send ArmAction of oDashboard_tmr CI_DashRow ""
+        End
+    End_Procedure
+
+    // A button of the dashboard: a glyph and its words, in the FT button family (buttons.css). The main action of
+    // the next step is amber. A shut button is faded and sends nothing (ButtonHtml). No glyph: its words alone.
+    Function DashButtonHtml String sId String sGlyph String sLabel String sTip Boolean bEnabled Boolean bMain Returns String
+        String sCls
+        Move "dfrbtn" to sCls
+        If (bMain) Begin
+            Move "dfrbtn amber" to sCls
+        End
+        If (sGlyph = "") Begin
+            Function_Return (ButtonHtml("span", sCls, sId, "", sLabel, sTip, bEnabled))
+        End
+        Function_Return (ButtonHtml("span", sCls, sId, "", IconLabel(sGlyph, sLabel), sTip, bEnabled))
+    End_Function
+
+    // One step's card: its number - a tick once it is done - its title, its state in words, a line on where it
+    // stands, and its buttons.
+    Function StepCardHtml Integer iStep String sTitle String sState String sText String sButtons Boolean bDone Boolean bNext Boolean bOptional Returns String
+        String sCls sMark sHtml
+        Move "cms-step" to sCls
+        If (bNext) Begin
+            Move (sCls + " next") to sCls
+        End
+        If (bOptional) Begin
+            Move (sCls + " opt") to sCls
+        End
+        If (bDone) Begin
+            Move (DashIcon(CS_GlyphCheck)) to sMark
+        End
+        Else Begin
+            Move (String(iStep)) to sMark
+        End
+        Move (DivOpen(sCls) + DivOpen("cms-top")) to sHtml
+        Move (sHtml + TagHtml("span", "cms-num", sMark) + TagText("span", "cms-title", sTitle) + TagText("span", "cms-state", sState) + CS_DivEnd) to sHtml
+        Move (sHtml + TagText("div", "cms-text", sText) + DivOpen("cms-btns") + sButtons + CS_DivEnd + CS_DivEnd) to sHtml
+        Function_Return sHtml
+    End_Function
+
+    // A state in words: done, next, or still to do.
+    Function StepStateText Boolean bDone Boolean bNext Returns String
+        If (bDone) Begin
+            Function_Return "Done"
+        End
+        If (bNext) Begin
+            Function_Return "Next"
+        End
+        Function_Return "To do"
+    End_Function
+
+    // The five steps, from what the files say now.
+    Function StepsHtml Returns String
+        String sManifest sTargetPath sExe sListed sCOM sText sButtons sHtml sCard
+        String[] sGrid sFragments
+        tManifestCOMFile[] ManifestFiles
+        tFileStruct[] COMFiles
+        Integer iID iFragments iListed iInFolder iNext i iPos
+        Boolean bManifest bBuilt bCopied bNext
+
+        Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
+        // The manifest file's name, set only while the file exists (SetApplicationStrings).
+        Get psManifestFileName of ghoManifestFunctionLibrary to sManifest
+        Get psTargetPath       of ghoManifestFunctionLibrary to sTargetPath
+        Get psExeFileName      of ghoManifestFunctionLibrary to sExe
+        Move (sManifest <> "") to bManifest
+
+        // The fragment files in the list - a new, empty row left out.
+        Get SelectedItems to sGrid
+        For i from 0 to (SizeOfArray(sGrid) - 1)
+            If (Trim(sGrid[i]) <> "") Begin
+                Move (Trim(sGrid[i])) to sFragments[SizeOfArray(sFragments)]
+            End
+        Loop
+        Move (SizeOfArray(sFragments)) to iFragments
+
+        // Which of their COM files the manifest file lists, and which are in the program's folder.
+        If (bManifest and iFragments > 0) Begin
+            Get ManifestCOMFiles of ghoManifestFunctionLibrary (vFolderFormat(sTargetPath) + sManifest) to ManifestFiles
+            Move "|" to sListed
+            For i from 0 to (SizeOfArray(ManifestFiles) - 1)
+                Move (sListed + ManifestFiles[i].sFileName + "|") to sListed
+            Loop
+            Get SelectedCOMComponents of ghoManifestFunctionLibrary (&sFragments) to COMFiles
+            For i from 0 to (SizeOfArray(COMFiles) - 1)
+                // The name as the manifest lists it: without a folder, in lowercase (ManifestCOMFiles).
+                Move (Lowercase(Trim(COMFiles[i].sFileNameSecondCol))) to sCOM
+                Move (RightPos("\", sCOM)) to iPos
+                If (iPos > 0) Begin
+                    Move (Right(sCOM, (Length(sCOM) - iPos))) to sCOM
+                End
+                If (sCOM <> "" and Pos(("|" + sCOM + "|"), sListed) > 0) Begin
+                    Increment iListed
+                End
+                If (COMFiles[i].bExists) Begin
+                    Increment iInFolder
+                End
+            Loop
+        End
+        Move (iFragments > 0 and iListed = iFragments) to bBuilt
+        Move (iFragments > 0 and iInFolder = iFragments) to bCopied
+
+        // The next step: the first that is not done. Embed and compress are optional, so after the copy it is the
+        // test run.
+        Move 0 to iNext
+        If (bManifest) Begin
+            If (iID = 0 or iFragments = 0) Begin
+                Move 1 to iNext
+            End
+            Else If (bBuilt = False) Begin
+                Move 2 to iNext
+            End
+            Else If (bCopied = False) Begin
+                Move 3 to iNext
+            End
+            Else Begin
+                Move 5 to iNext
+            End
+        End
+
+        Move (DivOpen("cms-steps")) to sHtml
+
+        // 1 Components
+        Move (iNext = 1) to bNext
+        If (bManifest = False and iID <> 0) Begin
+            Move "The manifest file is missing on disk." to sText
+        End
+        Else If (bManifest = False) Begin
+            Move "Open or make a manifest first." to sText
+        End
+        Else If (iID = 0) Begin
+            Move "Save the manifest first." to sText
+        End
+        Else If (iFragments = 0) Begin
+            Move "Add one for each COM component." to sText
+        End
+        Else Begin
+            Move (String(iFragments) * "fragment" * If(iFragments = 1, "file", "files") * "selected.") to sText
+        End
+        If (bManifest and iID = 0) Begin
+            Move (DashButtonHtml(Self, "save", CS_GlyphSave, "Save", "Save the manifest (Ctrl+S)", True, True)) to sButtons
+        End
+        Else Begin
+            Move (DashButtonHtml(Self, "add", CS_GlyphAdd, "Add files...", "Add fragment files from your library (F4 in the list)", (iID <> 0), bNext)) to sButtons
+        End
+        Get StepCardHtml 1 "Components" (StepStateText(Self, (iFragments > 0), bNext)) sText sButtons (iFragments > 0) bNext False to sCard
+        Move (sHtml + sCard) to sHtml
+
+        // 2 Build manifest
+        Move (iNext = 2) to bNext
+        If (bManifest = False or iFragments = 0) Begin
+            Move "Merges the fragment files into it." to sText
+        End
+        Else If (bBuilt) Begin
+            Move ("It lists all" * String(iFragments) * "COM files.") to sText
+        End
+        Else Begin
+            Move ("It lists" * String(iListed) * "of the" * String(iFragments) * "COM files.") to sText
+        End
+        Move (DashButtonHtml(Self, "build", CS_GlyphBolt, "Build", "Build the manifest file (Alt+B)", (bManifest and iFragments > 0), bNext)) to sButtons
+        Move (sButtons + DashButtonHtml(Self, "viewmanifest", "", "View", "Open the manifest file in the editor (Alt+E)", bManifest, False)) to sButtons
+        Get StepCardHtml 2 "Build manifest" (StepStateText(Self, bBuilt, bNext)) sText sButtons bBuilt bNext False to sCard
+        Move (sHtml + sCard) to sHtml
+
+        // 3 Copy COM files
+        Move (iNext = 3) to bNext
+        If (bManifest = False or iFragments = 0) Begin
+            Move "Copies them to the program's folder." to sText
+        End
+        Else If (bCopied) Begin
+            Move ("All" * String(iFragments) * "are in the program's folder.") to sText
+        End
+        Else Begin
+            Move (String(iInFolder) * "of" * String(iFragments) * "are in the program's folder.") to sText
+        End
+        Move (DashButtonHtml(Self, "copy", CS_GlyphCopy, "Copy COM files", "Check that the COM files are in the program's folder, and copy the missing ones (Ctrl+P)", (bManifest and iFragments > 0), bNext)) to sButtons
+        Get StepCardHtml 3 "Copy COM files" (StepStateText(Self, bCopied, bNext)) sText sButtons bCopied bNext False to sCard
+        Move (sHtml + sCard) to sHtml
+
+        // 4 Embed, compress - optional
+        Move (DashButtonHtml(Self, "embed", "", "Embed", "Embed the manifest file in the program (Ctrl+E)", bManifest, False)) to sButtons
+        Move (sButtons + DashButtonHtml(Self, "compress", "", "Compress", "Compress the program file", bManifest, False)) to sButtons
+        Get StepCardHtml 4 "Embed, compress" "Optional" "Puts it in the .exe, then shrinks it." sButtons False False True to sCard
+        Move (sHtml + sCard) to sHtml
+
+        // 5 Test run
+        Move (iNext = 5) to bNext
+        If (sExe <> "") Begin
+            Move ("Starts" * sExe + ".") to sText
+        End
+        Else Begin
+            Move "Starts the program." to sText
+        End
+        Move (DashButtonHtml(Self, "run", CS_GlyphPlay, "Run program", "Start the program (Ctrl+R)", bManifest, bNext)) to sButtons
+        Get StepCardHtml 5 "Test run" (StepStateText(Self, False, bNext)) sText sButtons False bNext False to sCard
+        Move (sHtml + sCard + CS_DivEnd) to sHtml
+
+        Function_Return sHtml
+    End_Function
+
+    /* The panels at the right: the COM component of the selected row, the fragment library, and the folders.
+       Measured 2026-11-14 in Edge with the real style sheets: 147 units high at 216 wide, and the longest name in the
+       library - Codejock.SkinFramework.Unicode.x64.v26.0.0.ocx - on one line (Nils: Codejock's Unicode builds have
+       the longest names). Narrower than about 206 units, a row of buttons wraps and the panel grows taller. The window's
+       first size (400 units high) gives the panel that height; a smaller window scrolls it. */
+    Function ToolsHtml Returns String
+        String sHtml sFragment sCOM sLibrary sExePath sState sName
+        Integer iCount
+        Boolean bRow bInLibrary bRegistered
+
+        // The COM component of the fragment file in the selected row - its state in words on the heading line.
+        Get Field_Current_Value of oManDet_DD Field ManDet.ManifestFragmentFile to sFragment
+        Move (Trim(sFragment)) to sFragment
+        Move (sFragment <> "") to bRow
+        If (bRow) Begin
+            Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sLibrary
+            Get vFilePathExists (vFolderFormat(sLibrary) + sFragment) to bInLibrary
+            If (bInLibrary) Begin
+                Get ExtractCOMFileName of ghoManifestFunctionLibrary sFragment to sCOM
+                Get CheckCOMRegistrationFromManifestFragmentFile of ghoManifestFunctionLibrary sFragment to bRegistered
+            End
+        End
+        Move "" to sState
+        If (bRow = False) Begin
+            Move (TagText("div", "cms-name", "No fragment file is selected in the list.")) to sName
+        End
+        Else If (bInLibrary = False) Begin
+            Move (TagHtml("span", "cms-warn", (DashIcon(CS_GlyphWarning) + "Not in library"))) to sState
+            Move (TagTipText("div", "cms-name", sFragment, sFragment)) to sName
+        End
+        Else Begin
+            If (bRegistered) Begin
+                Move (TagHtml("span", "cms-ok", (DashIcon(CS_GlyphCheck) + "Registered"))) to sState
+            End
+            Else Begin
+                Move (TagHtml("span", "cms-warn", (DashIcon(CS_GlyphWarning) + "Not registered"))) to sState
+            End
+            Move (TagTipText("div", "cms-name", sCOM, sCOM)) to sName
+        End
+        Move (DivOpen("cms-tools") + DivOpen("cms-tile") + DivOpen("cms-tile-h") + DashIcon(CS_GlyphPackage) + TagText("span", "", "Selected component") + sState + CS_DivEnd) to sHtml
+        Move (sHtml + sName + DivOpen("cms-row")) to sHtml
+        Move (sHtml + DashButtonHtml(Self, "check", CS_GlyphHelp, "Check", "Is the COM component registered with Windows?", bInLibrary, False)) to sHtml
+        Move (sHtml + DashButtonHtml(Self, "register", CS_GlyphShield, "Register", "Register the COM component with Windows (Alt+L)", bInLibrary, False)) to sHtml
+        Move (sHtml + DashButtonHtml(Self, "unregister", CS_GlyphBan, "Unregister", "Unregister the COM component from Windows", bInLibrary, False)) to sHtml
+        Move (sHtml + CS_DivEnd + CS_DivEnd) to sHtml
+
+        // The fragment library: its files counted when the whole dashboard is drawn (piLibraryFiles), and its four
+        // buttons two a row - short words, the whole story in the tooltip.
+        Get piLibraryFiles to iCount
+        Move (sHtml + DivOpen("cms-tile") + DivOpen("cms-tile-h") + DashIcon(CS_GlyphArchive) + TagText("span", "", "Fragment Library")) to sHtml
+        Move (sHtml + TagText("span", "cms-count", (String(iCount) * If(iCount = 1, "file", "files"))) + CS_DivEnd + DivOpen("cms-grid")) to sHtml
+        Move (sHtml + DashButtonHtml(Self, "create", CS_GlyphFile, "Create one...", "Create a fragment file for a COM (OCX/DLL) component", True, False)) to sHtml
+        Move (sHtml + DashButtonHtml(Self, "folderbatch", CS_GlyphFoldercheck, "For a folder...", "Create fragment files for all the COM (OCX) components in a folder, in one go", True, False)) to sHtml
+        Move (sHtml + DashButtonHtml(Self, "download", CS_GlyphDownload, "From GitHub...", "Get the files that are new, or that differ from your copy, from the global library on GitHub (Alt+D)", True, False)) to sHtml
+        Move (sHtml + DashButtonHtml(Self, "share", CS_GlyphUpload, "To GitHub...", "Share fragment files you made: upload them to the global library on GitHub (Alt+S)", True, False)) to sHtml
+        Move (sHtml + CS_DivEnd + CS_DivEnd) to sHtml
+
+        // The folders: one row of three buttons, each with the open-folder glyph. No heading - with one, the row did
+        // not fit the panel's width and took a second line (measured 2026-11-14); the glyph says what they do.
+        Get psExeFilePath of ghoManifestFunctionLibrary to sExePath
+        Move (sHtml + DivOpen("cms-tile cms-inline") + DivOpen("cms-row")) to sHtml
+        Move (sHtml + DashButtonHtml(Self, "programfolder", CS_GlyphFolderOpen, "Programs", "Open the program's folder (Ctrl+D)", (sExePath <> ""), False)) to sHtml
+        Move (sHtml + DashButtonHtml(Self, "fragmentfolder", CS_GlyphFolderOpen, "Fragments", "Open your fragment library's folder (Ctrl+L)", True, False)) to sHtml
+        Move (sHtml + DashButtonHtml(Self, "comfolder", CS_GlyphFolderOpen, "COM", "Open your COM library's folder, where COM files are copied from (Ctrl+B)", True, False)) to sHtml
+        Move (sHtml + CS_DivEnd + CS_DivEnd + CS_DivEnd) to sHtml
+
+        Function_Return sHtml
+    End_Function
+
+    // Draws the dashboard: all of it (CI_DashAll), or the selected row's panel (CI_DashRow).
+    Procedure UpdateDashboard Integer iWhat
+        String sHtml
+        String[] sLibraryFiles sFragments
+        If (iWhat = CI_DashAll) Begin
+            Send LoadFragmentsForManifest
+            Get SelectedItems to sFragments
+            Send SetFragmentsCaption (SizeOfArray(sFragments))
+            Get AllManifestFragmentFiles of ghoManifestFunctionLibrary to sLibraryFiles
+            Set piLibraryFiles to (SizeOfArray(sLibraryFiles))
+            Get StepsHtml to sHtml
+            Send UpdateHtml of oSteps_box sHtml
+        End
+        Get ToolsHtml to sHtml
+        Send UpdateHtml of oTools_box sHtml
+    End_Procedure
+
+    // A dashboard button's work, after the web click has returned; sId is the button's data-ServerOnClick.
+    // The same work as the menu command of the same name.
+    Procedure DoDashboardAction String sId
+        String sFragment sCOM sLibrary
+        Boolean bExists bRegistered
+
+        Case Begin
+            Case (sId = "add")
+                Send DoAddFragmentFiles
+                Case Break
+            Case (sId = "save")
+                Send Request_Save of oMain_host
+                Case Break
+            Case (sId = "build")
+                Send DoPreBuildManifestFile
+                Case Break
+            Case (sId = "viewmanifest")
+                Send EditAppManifestFile of ghoManifestFunctionLibrary
+                Case Break
+            Case (sId = "copy")
+                Send DoPreCopyCOMComponents
+                Case Break
+            Case (sId = "embed")
+                Send EmbedManifestInProgram of ghoManifestFunctionLibrary
+                Case Break
+            Case (sId = "compress")
+                Send CompressExeFile of ghoManifestFunctionLibrary
+                Case Break
+            Case (sId = "run")
+                Send DoPreRunProgram
+                Case Break
+            Case (sId = "create")
+                Send Popup of (oCreateManifestFragmentFile(Client_Id(ghoCommandBars)))
+                Case Break
+            Case (sId = "folderbatch")
+                Send Activate_oCreateFragmentFilesFromFolder of (Client_Id(ghoCommandBars)) ""
+                Case Break
+            Case (sId = "download")
+                Send DownloadManifestFragmentFiles of ghoManifestFunctionLibrary
+                Case Break
+            Case (sId = "share")
+                Send DoShareManifestFragmentFiles of (Client_Id(ghoCommandBars))
+                Case Break
+            Case (sId = "check")
+                // As the Components menu's Check registration, with its answer.
+                Get Field_Current_Value of oManDet_DD Field ManDet.ManifestFragmentFile to sFragment
+                Move (Trim(sFragment)) to sFragment
+                Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sLibrary
+                Get vFilePathExists (vFolderFormat(sLibrary) + sFragment) to bExists
+                If (sFragment <> "" and bExists) Begin
+                    Get CheckCOMRegistrationFromManifestFragmentFile of ghoManifestFunctionLibrary sFragment to bRegistered
+                    Get ExtractCOMFileName of ghoManifestFunctionLibrary sFragment to sCOM
+                    If (bRegistered) Begin
+                        Send Info_Box ("Yes, the" * sCOM * "component is registered with Windows.")
+                    End
+                    Else Begin
+                        Send Info_Box ("No, the" * sCOM * "component is not registered with Windows.")
+                    End
+                End
+                Case Break
+            Case (sId = "register")
+                Send RegisterOrUnregister of ghoManifestFunctionLibrary True
+                Case Break
+            Case (sId = "unregister")
+                Send RegisterOrUnregister of ghoManifestFunctionLibrary False
+                Case Break
+            Case (sId = "programfolder")
+                Send OpenProgramsFolder of ghoManifestFunctionLibrary
+                Case Break
+            Case (sId = "fragmentfolder")
+                Send OpenFragmentFolder of ghoManifestFunctionLibrary
+                Case Break
+            Case (sId = "comfolder")
+                Send OpenCommonCOMFolder of ghoManifestFunctionLibrary
+                Case Break
+        Case End
+        Send ArmDashboard
+    End_Procedure
+
+    Procedure DoPreBuildManifestFile
+        String sFileName
+        String[] sFilesArray
+        Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFileName
+        Get SelectedItems to sFilesArray
+        Send BuildManifestFile of ghoManifestFunctionLibrary sFileName sFilesArray
+    End_Procedure
+
+    Procedure DoPreCopyCOMComponents
+        String[] sSelectedFileNames
+        Get SelectedItems to sSelectedFileNames
+        Send CopyCOMComponents of ghoManifestFunctionLibrary sSelectedFileNames
+    End_Procedure
+
+    Procedure DoPreRunProgram
+        String[] sSelectedFileNames
+        Get SelectedItems to sSelectedFileNames
+        Send Runprogram of ghoManifestFunctionLibrary sSelectedFileNames
+    End_Procedure
+
+    // Check to see if we should "auto-find" a record when the view is activated - the program started with a
+    // program's name on its command line, as the Studio's Tools menu starts it.
+    Procedure Page Integer iPageObject
+        Forward Send Page iPageObject
+        Send ArmDashboard
+        Send LoadManifestFromApplication
+    End_Procedure
+
+    // The first drawing, once the view and its objects are built.
+    Procedure End_Construct_Object
+        Forward Send End_Construct_Object
+        Send ArmDashboard
     End_Procedure
 
     // A manifest file that is not in the database yet can list COM components already - one made elsewhere, or
@@ -1023,7 +1290,7 @@ Register_Object oViewContextMenu
             Move (sList + "\n   ... and" * String(iMissing - 15) * "more") to sList
         End
         If (iFound = 0) Begin
-            Send Info_Box ("The manifest file lists" * String(iMissing) * "COM components, but none of them has a fragment file in your local 'Manifest Fragment Library':" + sList + "\n\nYou can create fragment files with the 'Create' toolbar button.")
+            Send Info_Box ("The manifest file lists" * String(iMissing) * "COM components, but none of them has a fragment file in your local 'Manifest Fragment Library':" + sList + "\n\nYou can create fragment files with 'Create a fragment file...' in the Fragments menu.")
             Procedure_Return
         End
 
@@ -1037,7 +1304,7 @@ Register_Object oViewContextMenu
             Move (sText + "\n   ... and" * String(iFound - 15) * "more") to sText
         End
         If (iMissing > 0) Begin
-            Move (sText + "\n\nNo fragment file was found for:" + sList + "\nYou can create them with the 'Create' toolbar button.") to sText
+            Move (sText + "\n\nNo fragment file was found for:" + sList + "\nYou can create them with 'Create a fragment file...' in the Fragments menu.") to sText
         End
         Move (sText + "\n\nDo you want to save the manifest record and add the found fragment files to the grid?") to sText
         Get YesNo_Box sText to iRetval
@@ -1055,32 +1322,12 @@ Register_Object oViewContextMenu
             Send Info_Box "The manifest record could not be saved, so the grid was not filled."
             Procedure_Return
         End
-        Send AddFragmentFiles of oManifest_grid iID sFragments
+        Send AddFragmentFiles iID sFragments
     End_Procedure
 
-    Procedure OnFileDropped String sFilename Boolean bLast
-        Integer  iFiles
-        String[] ArrayOfDroppedFiles EmptyArray
-
-        Get pArrayOfDroppedFiles to ArrayOfDroppedFiles
-
-        // Add the filename to the list of dropped files....
-        Move (SizeOfArray(ArrayOfDroppedFiles)) to iFiles
-        Move sFilename to ArrayOfDroppedFiles[iFiles]
-
-        // If this was the last file, process them and clear the list
-        If (bLast) Begin
-            Send ProcessDroppedFiles of oManifest_grid ArrayOfDroppedFiles
-            // clear the property so it is ready for next drop
-            Move EmptyArray to ArrayOfDroppedFiles
-        End
-
-        Set pArrayOfDroppedFiles to ArrayOfDroppedFiles
-
-    End_Procedure
-
-    On_Key Key_Alt+Key_O  Send Prompt                         of (phoMainPromptObject(ghoApplication))
-    On_Key Key_Ctrl+Key_O Send KeyAction                      of oSelectManifest_btn
+    // The program's shortcuts with the focus on the view itself (the page has the same ones).
+    On_Key Key_Alt+Key_O  Send DoOpenManifestList
+    On_Key Key_Ctrl+Key_O Send DoBrowseManifestFile
     On_Key Key_Alt+Key_E  Send EditAppManifestFile            of ghoManifestFunctionLibrary
     On_Key Key_Alt+Key_B  Send DoPreBuildManifestFile
     On_Key Key_Ctrl+Key_P Send DoPreCopyCOMComponents
@@ -1089,12 +1336,9 @@ Register_Object oViewContextMenu
     On_Key Key_Ctrl+Key_L Send OpenFragmentFolder             of ghoManifestFunctionLibrary
     On_Key Key_Ctrl+Key_D Send OpenProgramsFolder             of ghoManifestFunctionLibrary
     On_Key Key_Ctrl+Key_B Send OpenCommonCOMFolder            of ghoManifestFunctionLibrary
-    On_Key Key_Ctrl+Key_Z Send CompressExeFile                of ghoManifestFunctionLibrary
     On_Key Key_Alt+Key_D  Send DownloadManifestFragmentFiles  of ghoManifestFunctionLibrary
-    On_Key Key_Alt+Key_R  Send Popup                          of (oCreateManifestFragmentFile(Client_Id(ghoCommandBars)))
-    On_Key Key_Alt+Key_S  Send DoShareManifestFragmentFiles   of ghoApplication
-    On_Key Key_Alt+Key_L  Send RegisterOrUnregister           of ghoManifestFunctionLibrary
-    On_Key Key_Alt+Key_F  Send Popup                          of (oProgramSetup_Panel(Client_Id(ghoCommandBars)))
+    On_Key Key_Alt+Key_S  Send DoShareManifestFragmentFiles   of (Client_Id(ghoCommandBars))
+    On_Key Key_Alt+Key_L  Send DoRegisterComponent
 
     On_Key Key_Ctrl+Key_S Send Request_Save
     On_Key kCancel        Send None
@@ -1103,6 +1347,7 @@ Register_Object oViewContextMenu
     On_Key Key_F3          Send None
 End_Object
 
+// The New Project wizard's last step: the manifest it made, shown in the main view.
 Procedure DoLoadDbMergerViewFromApplicationObject
-    Send Activating of (phoMainPromptObject(ghoApplication))
+    Send LoadManifestFromApplication of (phoMainView(ghoApplication))
 End_Procedure

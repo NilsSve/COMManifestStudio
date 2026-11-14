@@ -1,0 +1,12 @@
+/* COM Manifest Studio - the program's application.css.
+
+   The DataFlex web framework loads this sheet on every FlexTron host page, and the Studio's Designer loads no
+   other sheet of ours. The hosts link the RDCFlexTron sheets themselves when the program runs, but the
+   Designer runs no code, so these imports give it the FT look: palette.css for the --dfr-* tokens,
+   ftcontrols.css for the web controls and the mockups (ftph-*), ftglyphs.css for the button glyphs, and the
+   dashboard's own sheet. */
+@import url("../RDCFlexTron/palette.css");
+@import url("../RDCFlexTron/ftcontrols.css");
+@import url("../RDCFlexTron/ftglyphs.css");
+@import url("../RDCFlexTron/buttons.css");
+@import url("dashboard.css");

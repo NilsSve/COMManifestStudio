@@ -565,6 +565,57 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                     
                     End_Object
 
+                    // The theme (2026-11-14): the colours of the menus, the toolbars and the main view with its dashboard.
+                    // It is read as the program starts, so a new choice asks for a restart. Follow Windows takes
+                    // Windows' own setting for apps, when the program starts.
+                    Object oTheme_tp is a cConfigurePage
+                        Set Label to "Theme"
+
+                        Object oTheme_grp is a cConfigurePageGroup
+                            Set Location to 8 10
+                            Set Label to "Theme (after a restart)"
+
+                            Object oTheme_cf is a cRDCComboForm
+                                Set Size to 14 130
+                                Set Location to 18 0
+                                Set Entry_State to False
+                                Set Combo_Sort_State to False
+                                Set peAnchors to anNone
+                                Set Label_Justification_Mode to JMode_Top
+                                Set Label_Row_Offset to 1
+                                Set Label_Col_Offset to 0
+
+                                Procedure Combo_Fill_List
+                                    String sValue
+                                    Send Combo_Add_Item CS_ThemeLight
+                                    Send Combo_Add_Item CS_ThemeDark
+                                    Send Combo_Add_Item CS_ThemeWindows
+
+                                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_ThemeSetting CS_ThemeLight to sValue
+                                    Set Value 0 to sValue
+                                End_Procedure
+                                Send Combo_Fill_List
+
+                                Procedure OnCloseUp
+                                    Delegate Set pbRestart to True
+                                End_Procedure
+
+                                // The same bugfix as the toolbar combos': with Entry_State False the choice is read
+                                // from the list.
+                                Procedure WriteIniValue
+                                    Integer iItem
+                                    String sValue
+                                    Get WinCombo_Current_Item     to iItem
+                                    Get WinCombo_Value iItem to sValue
+                                    Set IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_ThemeSetting to sValue
+                                End_Procedure
+
+                            End_Object
+
+                        End_Object
+
+                    End_Object
+
                 End_Object
                 
             End_Object
@@ -623,6 +674,12 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                     Set Label to "Toolbars"
                     Set psImage to "Toolbars.ico" 
                 End_Object
+
+                Object oConfigureButton7 is a cConfigureButton
+                    Set Location to 139 1
+                    Set Label to "Theme"
+                    Set psImage to "Colors.ico"
+                End_Object
                                
             End_Object
             
@@ -665,12 +722,15 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                     // then sizes & locations of the ghoApplication object etc.
                     // We pass the object id of the oMain object and True to actually save changes.
                     Send DoSaveEnvironment of ghoApplication (Parent(Client_Id(ghoCommandBars))) True
-                    Move (Module_Name(Desktop)) to sProgram
-#IFDEF IS$WIN64
-    Append sProgram "64"
-#ENDIF                        
-                    // and restart the program.
-                    Runprogram (sProgram + ".exe")
+                    // and restart the program: a new copy from the program file's full path, and the end of this
+                    // one - as RDCFlexTron's cFTApplication restarts. Until 2026-11-14 it ran the module name
+                    // plus ".exe", which Runprogram looked for in the current folder: from the Studio that is not
+                    // Programs, and the restart stopped with error 4119, "File not found".
+                    Get GetApplicationFileName of ghoApplication to sProgram
+                    Runprogram Background ('"' + sProgram + '"')
+                    Send Close_Panel
+                    Send Exit_Application
+                    Procedure_Return
                 End
             End
 

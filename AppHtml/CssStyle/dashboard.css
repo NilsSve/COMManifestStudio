@@ -1,0 +1,276 @@
+/* COM Manifest Studio - the main view's dashboard (DbMergerViewNew.vw, 2026-11-14).
+
+   Two FlexTron pages: the steps under the manifest file (.cms-steps), and the panels at the right of the
+   list of fragment files (.cms-tools). The colours are the RDCFlexTron palette's tokens (palette.css), so
+   the light theme's values come with them. A state is always said in words, and the next step also has
+   the amber edge - never colour alone. The buttons are the FT button family (buttons.css: .dfrbtn, and
+   .dfrbtn.amber for the next step's main action). */
+
+body {
+    margin: 0;
+}
+
+/* ---- the steps ---- */
+.cms-steps {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    padding: 2px;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 12px;
+    color: var(--dfr-ink);
+}
+
+.cms-step {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    padding: 7px 9px;
+    background: var(--dfr-bg-card);
+    border: 1px solid var(--dfr-line-card);
+    border-radius: 6px;
+}
+
+/* The next step: a thicker amber edge, one pixel less padding so nothing moves. */
+.cms-step.next {
+    padding: 6px 8px;
+    border: 2px solid var(--dfr-amber);
+}
+
+.cms-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.cms-num {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--dfr-ink-4);
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.cms-num svg {
+    width: 12px;
+    height: 12px;
+}
+
+.cms-step.next .cms-num {
+    background: var(--dfr-amber);
+    border-color: var(--dfr-amber);
+    color: var(--dfr-ink-on-fill);
+}
+
+/* An optional step: a dashed ring, and the word Optional. */
+.cms-step.opt .cms-num {
+    border-style: dashed;
+}
+
+.cms-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-weight: 600;
+}
+
+.cms-state {
+    flex: none;
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--dfr-ink-4);
+}
+
+.cms-step.next .cms-state {
+    padding: 0 7px;
+    border-radius: 9px;
+    background: var(--dfr-amber);
+    color: var(--dfr-ink-on-fill);
+    font-weight: 700;
+}
+
+.cms-text {
+    min-height: 30px;
+    line-height: 1.3;
+    color: var(--dfr-ink-4);
+}
+
+.cms-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: auto;
+}
+
+/* No 76 px floor and less padding: two buttons share a card about 130 px wide, on one row - a second row made
+   every card 30 px taller, and the steps' host scrolled (measured 2026-11-14). */
+.cms-btns .dfrbtn {
+    min-width: 0;
+    padding: 0 6px;
+}
+
+/* ---- the list's empty text ("No fragment files yet") ----
+   The framework draws it at 25 px, bold, at 40 % opacity (system.css): far larger than the list's rows, and faint.
+   The page's own size here, in the secondary ink at full strength (Nils 2026-11-14). */
+.FtHost .WebList .WebList_PlaceHolder {
+    padding: 10px 0;
+    font-size: 13px;
+    font-weight: 400;
+    opacity: 1;
+    color: var(--dfr-ink-4);
+}
+
+/* ---- the panels ---- */
+.cms-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 2px;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 12px;
+    color: var(--dfr-ink);
+}
+
+/* THE PANELS' TOP IN LINE WITH THE LIST'S HEADER ROW (Nils 2026-11-14): the selected component is the list's chosen
+   row, so the panels start where the list does. They share a row of the host's grid with the tabs, and the list's
+   header is 92 px further down than the panels' first tile: the theme's 20 px above a tab container, its tab
+   header (37 px: 7 + a 24 px line + 3, and the 3 px line), the page's 4 px, the row of buttons (one FT row, 33 px)
+   and the list's 2 px - against the panels' own 4 px. Only on a page tall enough for the panels there (about
+   540 px); a smaller window keeps them at the top, so that they need not scroll. */
+@media (min-height: 540px) {
+    .cms-tools {
+        padding-top: 94px;
+    }
+}
+
+.cms-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 6px 8px;
+    background: var(--dfr-bg-card);
+    border: 1px solid var(--dfr-line-card);
+    border-radius: 6px;
+}
+
+.cms-tile-h {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.cms-tile-h svg {
+    flex: none;
+    width: 15px;
+    height: 15px;
+    color: var(--dfr-blue);
+}
+
+.cms-count {
+    margin-left: auto;
+    font-weight: 400;
+    color: var(--dfr-ink-4);
+}
+
+.cms-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cms-col .dfrbtn {
+    justify-content: flex-start;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.cms-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.cms-row .dfrbtn {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Two buttons a row - the fragment library's four in two rows. */
+.cms-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+}
+
+.cms-grid .dfrbtn {
+    justify-content: flex-start;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 0 8px;
+}
+
+/* A tile of one row: its heading, then its buttons - the folders. */
+.cms-tile.cms-inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.cms-inline .cms-tile-h {
+    flex: none;
+}
+
+.cms-inline .cms-row {
+    flex: 1 1 auto;
+}
+
+/* A state on its tile's heading line, at the right - the selected component's. */
+.cms-tile-h .cms-ok,
+.cms-tile-h .cms-warn {
+    flex: none;
+    margin-left: auto;
+}
+
+/* A component's or a fragment file's name: up to two lines, broken anywhere - the names have no spaces, and
+   the panel is narrow (Nils 2026-11-14: one line was too narrow). The whole name is the tooltip. */
+.cms-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    line-height: 1.3;
+    color: var(--dfr-ink-2);
+}
+
+/* A component's state: a word and a glyph. Not registered is also filled, so it differs in more than hue. */
+.cms-ok,
+.cms-warn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cms-ok svg,
+.cms-warn svg {
+    width: 13px;
+    height: 13px;
+}
+
+.cms-warn {
+    padding: 0 7px 0 5px;
+    background: var(--dfr-amber-bg);
+    border: 1px solid var(--dfr-amber-line);
+    border-radius: 9px;
+    font-weight: 600;
+}

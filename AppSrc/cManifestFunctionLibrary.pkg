@@ -4103,7 +4103,7 @@ Class cManifestFunctionLibrary is a cObject
         Get SelectedCOMComponents (&sSelectedFileNames) to COMComponentsArray
         Get IsCOMComponentsMissing COMComponentsArray to iItems
         If (iItems <> 0) Begin
-            Send Info_Box "There are COM (OCX/DLL) components missing from the application folder and the application would fail if started. Please press the 'Copy COM' toolbar button and try again."
+            Send Info_Box "There are COM (OCX/DLL) components missing from the application folder and the application would fail if started. Please press 'Copy COM files' - step 3 on the main view, or in the Manifest menu - and try again."
             Procedure_Return
         End
 
