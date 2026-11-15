@@ -385,8 +385,11 @@ Object oDbMerger_vw is a cRDCDbView
             Set piRowIndex to 3
             Set piColumnIndex to 1
             Set piColumnSpan to 41
-            // What the Studio's Designer draws; the program draws the panels (ToolsHtml).
-            Set psHtml to '<div class="ftph-cards"><b>Selected component</b><b>Fragment Library</b><b>Folders</b></div>'
+            // What the Studio's Designer draws; the program draws the panels (ToolsHtml). The same tiles, in the same
+            // classes - dashboard.css, which application.css imports for the Designer - so the three stand on top of
+            // each other at one width there too, and 12 px apart; only the glyphs are left out (Nils 2026-11-15: the
+            // Designer showed them side by side). A change to ToolsHtml's tiles is made here as well.
+            Set psHtml to '<div class="cms-tools"><div class="cms-tile"><div class="cms-tile-h"><span>Selected component</span></div><div class="cms-name">No fragment file is selected in the list.</div><div class="cms-row"><span class="dfrbtn">Check</span><span class="dfrbtn">Register</span><span class="dfrbtn">Unregister</span></div></div><div class="cms-tile"><div class="cms-tile-h"><span>Fragment Library</span><span class="cms-count">381 files</span></div><div class="cms-grid"><span class="dfrbtn">Create one...</span><span class="dfrbtn">For a folder...</span><span class="dfrbtn">From GitHub...</span><span class="dfrbtn">To GitHub...</span></div></div><div class="cms-tile"><div class="cms-tile-h"><span>Windows Explorer</span></div><div class="cms-row"><span class="dfrbtn">Programs</span><span class="dfrbtn">Fragments</span><span class="dfrbtn">COM</span></div></div></div>'
 
             Procedure OnHtmlClick String sId String sParam
                 Send DoDashboardAction sId
