@@ -276,6 +276,10 @@ Object oMain is a Panel
         Procedure OnCreateCommandBars
             Forward Send OnCreateCommandBars
             Set pbCenterTabbedViews to False
+            // Settings > Toolbars - the icon size, and the text below the icons - as the program starts: this event
+            // comes before the toolbars are made (Nils 2026-11-15). Until now the choice was applied only when
+            // Settings closed, and the restart Settings then offered started the program without it.
+            Send DoChangeToolbars
         End_Procedure
 
         // The views' tab strip ("Main view"): RDCToolsLib gives it Visual Studio 2010's light colours. The dark
@@ -314,7 +318,9 @@ Object oMain is a Panel
                 Move xtpButtonIcon to iState
             End
 
-            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_piToolbarIconSize 32 to iSize
+            // 16 when nothing is chosen: the small icons DataFlex's own programs have (Order Entry) - the same default as
+            // the Settings page's.
+            Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_piToolbarIconSize 16 to iSize
             Move (iSize >= 32) to bLargeIcons
             Set pbShowTextBelowIcons to (iState = xtpButtonIconAndCaptionBelow)
             Send ComSetIconSize      of hoOptions bLargeIcons iSize iSize  // Set icon size for Toolbar buttons.

@@ -481,7 +481,8 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                                     Send Combo_Add_Item CS_piToolbarSize24x24
                                     Send Combo_Add_Item CS_piToolbarSize32x32
         
-                                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_piToolbarIconSize 24 to iSize
+                                    // 16 when nothing is chosen - as the program starts (DoChangeToolbars).
+                                    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_piToolbarIconSize 16 to iSize
                                     If (iSize = 16) ;
                                         Move CS_piToolbarSize16x16 to sValue
                                     If (iSize = 24) ;
