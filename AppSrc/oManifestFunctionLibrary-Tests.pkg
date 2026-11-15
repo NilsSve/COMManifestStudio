@@ -163,4 +163,171 @@ Object oManifestFunctionLibrary_Tests is a cTestFixture
         Send AssertSAreEqual ("-1" + sTh + "234" + sTh + "567" + sDec + "89") sResult "Negative, with decimals."
     End_Procedure
 
+    // ---------------------------------------------------------------- Compile the program: what CompileProgram finds
+
+    // A scratch workspace folder under the user's temp folder: <temp>\CMSCompileTest\ with AppSrc\Prog.src.
+    Function ScratchWorkspaceFolder Returns String
+        String sFolder
+        Integer iVoid
+        Get vGetTempPath to sFolder
+        Move (vFolderFormat(sFolder) + "CMSCompileTest\") to sFolder
+        Send RemoveScratchWorkspace sFolder
+        Move (vCreateDirectory(sFolder)) to iVoid
+        Move (vCreateDirectory(sFolder + "AppSrc")) to iVoid
+        Send WriteScratchFile (sFolder + "AppSrc\Prog.src") "// a scratch program"
+        Function_Return sFolder
+    End_Function
+
+    // A file with one line of text.
+    Procedure WriteScratchFile String sFile String sText
+        Integer iCh
+        Get Seq_Open_Output_Channel sFile to iCh
+        If (iCh > DF_SEQ_CHANNEL_ERROR) Begin
+            Writeln channel iCh sText
+            Send Seq_Close_Channel iCh
+        End
+    End_Procedure
+
+    // The scratch folder emptied and removed: its .sws files, the source and the two folders.
+    Procedure RemoveScratchWorkspace String sFolder
+        Integer iVoid
+        Move (vDeleteFile(sFolder + "Listed.sws")) to iVoid
+        Move (vDeleteFile(sFolder + "Other.sws")) to iVoid
+        Move (vDeleteFile(sFolder + "Old.sws")) to iVoid
+        Move (vDeleteFile(sFolder + "AppSrc\Prog.src")) to iVoid
+        Move (vRemoveDirectory(sFolder + "AppSrc")) to iVoid
+        Move (vRemoveDirectory(sFolder)) to iVoid
+    End_Procedure
+
+    { Published=True }
+    Procedure Test_ManifestProgramName
+        String sSaved sName
+        Get psManifestFileName of ghoManifestFunctionLibrary to sSaved
+        Set psManifestFileName of ghoManifestFunctionLibrary to "RDCToolsLaptopAlarm.exe.manifest"
+        Get ManifestProgramName of ghoManifestFunctionLibrary to sName
+        Send AssertSAreEqual "RDCToolsLaptopAlarm" sName ".exe.manifest goes."
+        Set psManifestFileName of ghoManifestFunctionLibrary to "Order.MANIFEST"
+        Get ManifestProgramName of ghoManifestFunctionLibrary to sName
+        Send AssertSAreEqual "Order" sName "Any case."
+        Set psManifestFileName of ghoManifestFunctionLibrary to sSaved
+    End_Procedure
+
+    // Versions stay text: "19.1" read as a Number would follow the locale's decimal separator.
+    { Published=True }
+    Procedure Test_DataFlex_Versions
+        Send AssertSAreEqual "26.0" (NormalizedDataFlexVersion(ghoManifestFunctionLibrary, "26")) "26 is 26.0."
+        Send AssertSAreEqual "26.0" (NormalizedDataFlexVersion(ghoManifestFunctionLibrary, ' "26.0" ')) "Quotes and spaces go."
+        Send AssertSAreEqual "" (NormalizedDataFlexVersion(ghoManifestFunctionLibrary, "")) "No version."
+        Send AssertIAreEqual 19 (DataFlexVersionPart(ghoManifestFunctionLibrary, "19.1", 0)) "The major part."
+        Send AssertIAreEqual 1  (DataFlexVersionPart(ghoManifestFunctionLibrary, "19.1", 1)) "The minor part."
+        Send AssertIAreEqual -1 (CompareDataFlexVersions(ghoManifestFunctionLibrary, "19.1", "26.0")) "19.1 is before 26.0."
+        Send AssertIAreEqual 1  (CompareDataFlexVersions(ghoManifestFunctionLibrary, "25.0", "20.1")) "25.0 is after 20.1."
+        Send AssertIAreEqual 0  (CompareDataFlexVersions(ghoManifestFunctionLibrary, "25.0", "25.0")) "The same."
+        Send AssertIAreEqual 1  (CompareDataFlexVersions(ghoManifestFunctionLibrary, "19.10", "19.2")) "10 is after 2."
+    End_Procedure
+
+    // An INI .sws (DataFlex 25 and before): Version= under [Properties], the program under [Projects].
+    { Published=True }
+    Procedure Test_WorkspaceFileVersion_Ini
+        String sFolder sVersion sSws
+        Boolean bListed
+        Integer iCh
+        Get ScratchWorkspaceFolder to sFolder
+        Move (sFolder + "Old.sws") to sSws
+        Get Seq_Open_Output_Channel sSws to iCh
+        Writeln channel iCh "[Properties]"
+        Writeln channel iCh "Version=19.1"
+        Writeln channel iCh "[WorkspacePaths]"
+        Writeln channel iCh "ConfigFile=.\Programs\Config.ws"
+        Writeln channel iCh "[Projects]"
+        Writeln channel iCh "Project0=Other.src"
+        Writeln channel iCh "Project1=Prog.src"
+        Send Seq_Close_Channel iCh
+        Get WorkspaceFileVersion of ghoManifestFunctionLibrary sSws "Prog.src" (&bListed) to sVersion
+        Send AssertSAreEqual "19.1" sVersion "Version= under [Properties]."
+        Send Assert bListed "Prog.src is under [Projects]."
+        Get WorkspaceFileVersion of ghoManifestFunctionLibrary sSws "Missing.src" (&bListed) to sVersion
+        Send AssertFalse bListed "Missing.src is not."
+        Send RemoveScratchWorkspace sFolder
+    End_Procedure
+
+    // A JSON .sws (DataFlex 26 on): "df", and the program in "projects".
+    { Published=True }
+    Procedure Test_WorkspaceFileVersion_Json
+        String sFolder sVersion sSws
+        Boolean bListed
+        Integer iCh
+        Get ScratchWorkspaceFolder to sFolder
+        Move (sFolder + "Listed.sws") to sSws
+        Get Seq_Open_Output_Channel sSws to iCh
+        Writeln channel iCh "{"
+        Writeln channel iCh '    "df": 26.0,'
+        Writeln channel iCh '    "projects": ['
+        Writeln channel iCh '        "Prog.src"'
+        Writeln channel iCh "    ],"
+        Writeln channel iCh '    "workspaceName": "Scratch"'
+        Writeln channel iCh "}"
+        Send Seq_Close_Channel iCh
+        Get WorkspaceFileVersion of ghoManifestFunctionLibrary sSws "prog.SRC" (&bListed) to sVersion
+        Send AssertSAreEqual "26.0" sVersion '"df".'
+        Send Assert bListed "Prog.src is in projects, in any case."
+        Send RemoveScratchWorkspace sFolder
+    End_Procedure
+
+    // This test program is built by DataFlex 26, so 26.0 is installed: the registry's 64-bit view names its
+    // folder - this program is 32-bit - and its compiler is df-cli.
+    { Published=True }
+    Procedure Test_DataFlexRootFolder_And_Compiler_Of_26
+        String sRoot sCompiler
+        Boolean bExists
+        Get DataFlexRootFolder of ghoManifestFunctionLibrary "26.0" to sRoot
+        Send Assert (sRoot <> "") "DataFlex 26.0 is installed."
+        Send AssertSAreEqual "\" (Right(sRoot, 1)) "The folder ends with a backslash."
+        Get DataFlexCompiler of ghoManifestFunctionLibrary sRoot "26.0" "C:\X\AppSrc\X.src" to sCompiler
+        Send AssertSAreEqual "df-cli.exe" (Lowercase(Right(sCompiler, 10))) "26 compiles with df-cli."
+        Get vFilePathExists sCompiler to bExists
+        Send Assert bExists ("The compiler is there:" * sCompiler)
+        Get DataFlexRootFolder of ghoManifestFunctionLibrary "9.9" to sRoot
+        Send AssertSAreEqual "" sRoot "No DataFlex 9.9."
+    End_Procedure
+
+    // The workspace that lists the program wins over one that does not; with none listing it, any is taken; a
+    // version that is not installed is no use, and the reason says so.
+    { Published=True }
+    Procedure Test_ProgramWorkspace
+        String sFolder sSrc sSws sVersion sRoot sWhy
+        Integer iCh
+        Get ScratchWorkspaceFolder to sFolder
+        Move (sFolder + "AppSrc\Prog.src") to sSrc
+
+        Get Seq_Open_Output_Channel (sFolder + "Other.sws") to iCh
+        Writeln channel iCh '{ "df": 26.0, "projects": [ "Another.src" ] }'
+        Send Seq_Close_Channel iCh
+        Get ProgramWorkspace of ghoManifestFunctionLibrary sSrc (&sVersion) (&sRoot) (&sWhy) to sSws
+        Send AssertSAreEqual (sFolder + "Other.sws") sSws "None lists it: the one there is."
+        Send AssertSAreEqual "26.0" sVersion "Its version."
+
+        Get Seq_Open_Output_Channel (sFolder + "Listed.sws") to iCh
+        Writeln channel iCh "{"
+        Writeln channel iCh '    "df": 26.0,'
+        Writeln channel iCh '    "projects": [ "Prog.src" ]'
+        Writeln channel iCh "}"
+        Send Seq_Close_Channel iCh
+        Get ProgramWorkspace of ghoManifestFunctionLibrary sSrc (&sVersion) (&sRoot) (&sWhy) to sSws
+        Send AssertSAreEqual (sFolder + "Listed.sws") sSws "The one that lists it."
+
+        Send RemoveScratchWorkspace sFolder
+        Get ScratchWorkspaceFolder to sFolder
+        Get Seq_Open_Output_Channel (sFolder + "Old.sws") to iCh
+        Writeln channel iCh "[Properties]"
+        Writeln channel iCh "Version=9.9"
+        Writeln channel iCh "[Projects]"
+        Writeln channel iCh "Project0=Prog.src"
+        Send Seq_Close_Channel iCh
+        Get ProgramWorkspace of ghoManifestFunctionLibrary sSrc (&sVersion) (&sRoot) (&sWhy) to sSws
+        Send AssertSAreEqual "" sSws "DataFlex 9.9 is not installed."
+        Send Assert (Pos("9.9", sWhy) > 0) ("The reason names the version:" * sWhy)
+        Send RemoveScratchWorkspace sFolder
+    End_Procedure
+
 End_Object

@@ -591,6 +591,26 @@ Object oMain is a Panel
                     End_Function
                 End_Object
 
+                Object oCompileProgram_MenuItem is a cCJMenuItem
+                    Set psCaption to "Com&pile the program"
+                    Set psDescription to "Compiles the program with the DataFlex version of its workspace - in AppSrc beside the manifest"
+                    Set psImage to "CompileProject.ico"
+                    Set psShortcut to "Ctrl+F9"
+                    Set pbActiveUpdate to True
+
+                    Procedure OnExecute Variant vCommandBarControl
+                        Forward Send OnExecute vCommandBarControl
+                        Send CompileProgram of ghoManifestFunctionLibrary
+                        Send RefreshDashboard of ghoApplication
+                    End_Procedure
+
+                    Function IsEnabled Returns Boolean
+                        String sProgramName
+                        Get psExeFileName of ghoManifestFunctionLibrary to sProgramName
+                        Function_Return (sProgramName <> "")
+                    End_Function
+                End_Object
+
                 Object oRunProgram_MenuItem is a cCJMenuItem
                     Set psCaption to "&Run the program"
                     Set psDescription to "Starts the program, to check that its manifest file is right"

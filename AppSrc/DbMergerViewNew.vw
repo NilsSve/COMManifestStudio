@@ -124,6 +124,11 @@ Object oDbMerger_vw is a cRDCDbView
         Object oManifestName_wf is a cFTWebForm
             Entry_Item ManHdr.ManifestFileName
             Set Server to oManHdr_DD
+            // A save with the cursor in a header field is that field's own - it names its server - and a web field
+            // clears the record after its save unless told not to: the view's Auto_Clear_DEO_State is the
+            // desktop's, which the web save does not read (Nils 2026-11-15: a save from Your notes cleared the
+            // view). So every header field says so: the manifest stays on screen.
+            Set pbClearAfterSave to False
             Set piRowIndex to 0
             Set piColumnIndex to 0
             Set piColumnSpan to 18
@@ -160,6 +165,7 @@ Object oDbMerger_vw is a cRDCDbView
         Object oPath_wf is a cFTWebForm
             Entry_Item ManHdr.Path
             Set Server to oManHdr_DD
+            Set pbClearAfterSave to False        // a save from here keeps the manifest on screen (oManifestName_wf)
             Set piRowIndex to 1
             Set piColumnIndex to 0
             Set piColumnSpan to 18
@@ -321,6 +327,7 @@ Object oDbMerger_vw is a cRDCDbView
                 Object oNotes_we is a cWebEdit
                     Entry_Item ManHdr.Comment
                     Set Server to oManHdr_DD
+                    Set pbClearAfterSave to False        // a save from here keeps the manifest on screen (oManifestName_wf)
                     Set piRowIndex to 0
                     Set pbShowLabel to False
                     Set pbFillHeight to True
@@ -345,6 +352,7 @@ Object oDbMerger_vw is a cRDCDbView
                 Object oCreatedBy_wf is a cFTWebForm
                     Entry_Item ManHdr.CreatedBy
                     Set Server to oManHdr_DD
+                    Set pbClearAfterSave to False        // a save from here keeps the manifest on screen (oManifestName_wf)
                     Set piRowIndex to 0
                     Set piColumnIndex to 1
                     Set psLabel to "By:"
@@ -363,6 +371,7 @@ Object oDbMerger_vw is a cRDCDbView
                 Object oChangedBy_wf is a cFTWebForm
                     Entry_Item ManHdr.ChangedBy
                     Set Server to oManHdr_DD
+                    Set pbClearAfterSave to False        // a save from here keeps the manifest on screen (oManifestName_wf)
                     Set piRowIndex to 1
                     Set piColumnIndex to 1
                     Set psLabel to "By:"
@@ -423,6 +432,7 @@ Object oDbMerger_vw is a cRDCDbView
         On_Key Key_Ctrl+Key_P Send DoPreCopyCOMComponents
         On_Key Key_Ctrl+Key_E Send EmbedManifestInProgram         of ghoManifestFunctionLibrary
         On_Key Key_Ctrl+Key_R Send DoPreRunProgram
+        On_Key Key_Ctrl+Key_F9 Send DoPreCompileProgram
         On_Key Key_Ctrl+Key_L Send OpenFragmentFolder             of ghoManifestFunctionLibrary
         On_Key Key_Ctrl+Key_D Send OpenProgramsFolder             of ghoManifestFunctionLibrary
         On_Key Key_Ctrl+Key_B Send OpenCommonCOMFolder            of ghoManifestFunctionLibrary
@@ -940,7 +950,7 @@ Object oDbMerger_vw is a cRDCDbView
         tManifestCOMFile[] ManifestFiles
         tFileStruct[] COMFiles
         Integer iID iFragments iListed iInFolder iNext i iPos
-        Boolean bManifest bBuilt bCopied bNext bReady
+        Boolean bManifest bBuilt bCopied bNext bReady bSource bCompiled
 
         Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
         // The manifest file's name, set only while the file exists (SetApplicationStrings).
@@ -984,8 +994,8 @@ Object oDbMerger_vw is a cRDCDbView
         Move (iFragments > 0 and iListed = iFragments) to bBuilt
         Move (iFragments > 0 and iInFolder = iFragments) to bCopied
 
-        // The next step: the first that is not done. Embed and compress are optional, and the test run is the last
-        // step - never "Next" (Nils 2026-11-14) - so after the copy no step is next, and the test run says Ready.
+        // The next step: the first that is not done. Embed and compress are optional, so after the copy it is the
+        // test run - amber like any next step, but it says Ready, not Next: it is the last step (Nils 2026-11-14/15).
         Move 0 to iNext
         If (bManifest) Begin
             If (iID = 0 or iFragments = 0) Begin
@@ -1067,15 +1077,25 @@ Object oDbMerger_vw is a cRDCDbView
         Get StepCardHtml 4 "Embed, compress" "Optional" "Puts it in the .exe, then shrinks it." sButtons False False True to sCard
         Move (sHtml + sCard) to sHtml
 
-        // 5 Test run - Ready once the copy is done; no amber, no Next: there is no step after it.
+        // 5 Test run - Ready once the copy is done: the amber frame, as a next step has it. Compile when the program
+        // has no .exe yet - its source found beside the manifest - else Run is the amber button (Nils 2026-11-15).
+        Move ((ghoManifestFunctionLibrary <> 0) and (ProgramSourceFile(ghoManifestFunctionLibrary) <> "")) to bSource
+        Move False to bCompiled
         If (sExe <> "") Begin
+            Get vFilePathExists ((psExeFilePath(ghoManifestFunctionLibrary)) + sExe) to bCompiled
+        End
+        If ((sExe <> "") and bCompiled) Begin
             Move ("Starts" * sExe + ".") to sText
+        End
+        Else If (sExe <> "") Begin
+            Move (sExe * "is not compiled yet.") to sText
         End
         Else Begin
             Move "Starts the program." to sText
         End
-        Move (DashButtonHtml(Self, "run", CS_GlyphPlay, "Run program", "Start the program (Ctrl+R)", bManifest, False)) to sButtons
-        Get StepCardHtml 5 "Test run" (If(bReady, "Ready", "To do")) sText sButtons False False False to sCard
+        Move (DashButtonHtml(Self, "compile", CS_GlyphCode, "Compile", "Compile the program with the DataFlex version of its workspace (Ctrl+F9)", bSource, (bReady and bSource and not(bCompiled)))) to sButtons
+        Move (sButtons + DashButtonHtml(Self, "run", CS_GlyphPlay, "Run", "Start the program (Ctrl+R)", bManifest, (bReady and bCompiled))) to sButtons
+        Get StepCardHtml 5 "Test run" (If(bReady, "Ready", "To do")) sText sButtons False bReady False to sCard
         Move (sHtml + sCard + CS_DivEnd) to sHtml
 
         Function_Return sHtml
@@ -1196,6 +1216,9 @@ Object oDbMerger_vw is a cRDCDbView
             Case (sId = "compress")
                 Send CompressExeFile of ghoManifestFunctionLibrary
                 Case Break
+            Case (sId = "compile")
+                Send DoPreCompileProgram
+                Case Break
             Case (sId = "run")
                 Send DoPreRunProgram
                 Case Break
@@ -1259,6 +1282,13 @@ Object oDbMerger_vw is a cRDCDbView
         String[] sSelectedFileNames
         Get SelectedItems to sSelectedFileNames
         Send CopyCOMComponents of ghoManifestFunctionLibrary sSelectedFileNames
+    End_Procedure
+
+    // Compile - the Test run step's button, the Manifest menu and Ctrl+F9: the program, by the DataFlex version its
+    // workspace is for (CompileProgram). The steps are drawn again when the compiler has ended.
+    Procedure DoPreCompileProgram
+        Send CompileProgram of ghoManifestFunctionLibrary
+        Send ArmDashboard
     End_Procedure
 
     Procedure DoPreRunProgram
@@ -1355,6 +1385,7 @@ Object oDbMerger_vw is a cRDCDbView
     On_Key Key_Ctrl+Key_P Send DoPreCopyCOMComponents
     On_Key Key_Ctrl+Key_E Send EmbedManifestInProgram         of ghoManifestFunctionLibrary
     On_Key Key_Ctrl+Key_R Send DoPreRunProgram
+    On_Key Key_Ctrl+Key_F9 Send DoPreCompileProgram
     On_Key Key_Ctrl+Key_L Send OpenFragmentFolder             of ghoManifestFunctionLibrary
     On_Key Key_Ctrl+Key_D Send OpenProgramsFolder             of ghoManifestFunctionLibrary
     On_Key Key_Ctrl+Key_B Send OpenCommonCOMFolder            of ghoManifestFunctionLibrary
