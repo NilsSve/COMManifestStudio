@@ -290,9 +290,10 @@ Object oDbMerger_vw is a cRDCDbView
 
                     // In words, not in a colour: a fragment file missing from the library - or a wrong path to the
                     // library in Settings - says "Missing".
-                    Object oInLibrary_col is a cWebColumn
-                        Set psCaption to "In library"
-                        Set piWidth to 80
+                    Object oFragmentLibrary_col is a cWebColumn
+                        Set psCaption to "Fragment lib"  
+                        Set psToolTip to "Does the fragment file exist in the local fragment library?"
+                        Set piWidth to 90
                         Set pbFixedWidth to True
 
                         Procedure OnSetCalculatedValue String ByRef sValue
@@ -303,6 +304,26 @@ Object oDbMerger_vw is a cRDCDbView
                             If (sFile <> "") Begin
                                 Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sLibrary
                                 Get vFilePathExists (vFolderFormat(sLibrary) + sFile) to bExists
+                                Move (If(bExists, "Yes", "Missing")) to sValue
+                            End
+                        End_Procedure
+                    End_Object
+
+                    Object oCOMLibrary_col is a cWebColumn
+                        Set psCaption to "COM lib"
+                        Set psToolTip to "Does the COM file exist in the local COM/OCX library?"
+                        Set piWidth to 90
+                        Set pbFixedWidth to True
+
+                        Procedure OnSetCalculatedValue String ByRef sValue
+                            String sLibrary sFile sCOM
+                            Boolean bExists
+                            Move (Trim(ManDet.ManifestFragmentFile)) to sFile
+                            Move "" to sValue
+                            If (sFile <> "") Begin
+                                Get psCommonCOMLibrary of ghoManifestFunctionLibrary to sLibrary
+                                Get ExtractCOMFileName of ghoManifestFunctionLibrary sFile to sCOM
+                                Get vFilePathExists (vFolderFormat(sLibrary) + sCOM) to bExists
                                 Move (If(bExists, "Yes", "Missing")) to sValue
                             End
                         End_Procedure
