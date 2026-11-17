@@ -44,6 +44,9 @@ Define CS_ToolbarIconText          for "Toolbar Icon Text Setting"
     Define CS_ShowTextBelowIcon    for "Show text below toolbar icons"
 //End_Enum_List
 
+#IFNDEF CS_Section
+    Define CS_Section for "Settings"
+#ENDIF
 // The theme the program runs in (Settings > Theme, 2026-11-14): the ini key, and its three values.
 Define CS_ThemeSetting             for "Theme"
     Define CS_ThemeLight           for "Light"
