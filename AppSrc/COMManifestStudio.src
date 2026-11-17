@@ -67,6 +67,7 @@ Register_Procedure DoOpenManifestList
 Register_Procedure DoClearManifest
 Register_Procedure LoadManifestFromApplication
 
+Use Symdef.pkg
 Use cRDCApplication.pkg
 Object oApplication is a cRDCApplication
     Set psHelpFile to "COMManifestStudio.chm"
@@ -112,7 +113,7 @@ Object oApplication is a cRDCApplication
     // in the Studio.
     Procedure OnCreate
         Handle hoCmdLine
-        String sArgument
+        String sArgument sTheme
         Integer iRetval
 
         Get phoCommandLine to hoCmdLine
@@ -137,6 +138,11 @@ Object oApplication is a cRDCApplication
             End
         End
 
+        Get ReadString of ghoApplication CS_Section CS_ThemeSetting CS_ThemeWindows to sTheme
+        If (sTheme = CS_ThemeLight) ;
+            Set psBitmapPath of (phoWorkspace(Self)) to "Bitmaps"
+        Else ;
+            Set psBitmapPath of (phoWorkspace(Self)) to "Bitmaps\Dk;Bitmaps\RDCFlexTron\Dk;Bitmaps"
     End_Procedure
 
     // The main view's dashboard drawn again, after a menu command that changes what it shows - a build,
@@ -180,7 +186,7 @@ Use oDEOEditContextMenu.pkg
 // This package uses the Base64Functions which needs to have
 // the psProgramPath set to function. So it _must_ be used after
 // the ghoApplication object.
-Use cManifestIniFile.pkg
+//Use cManifestIniFile.pkg
 Use cManifestFunctionLibrary.pkg
 
 /* THE THEME (Settings > Theme, 2026-11-14): Light, Dark or Follow Windows, read once as the program starts - here,
@@ -233,7 +239,8 @@ Use FTThemeIcons.pkg
 Procedure SeedProgramTheme
     String sTheme
     Boolean bLight
-    Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_ThemeSetting CS_ThemeLight to sTheme
+
+    Get ReadString of ghoApplication CS_Section CS_ThemeSetting CS_ThemeWindows to sTheme
     Move CI_FTThemeLight to giFTThemeMode
     If (sTheme = CS_ThemeDark) Begin
         Move CI_FTThemeDark to giFTThemeMode
@@ -459,6 +466,7 @@ Object oMain is a Panel
 
                 Object oPromptMenuItem is a cCJPromptMenuItem
                     Set pbControlBeginGroup to True
+                    Set psImage to "ActionPrompt.ico"
                 End_Object
 
                 Object oFindMenuItem is a cCJFindMenuItem
@@ -1005,7 +1013,8 @@ Object oMain is a Panel
             End_Object
 
             Object oPromptToolItem is a cCJPromptMenuItem
-                Set pbControlBeginGroup to True
+                Set pbControlBeginGroup to True  
+                Set psImage to "ActionPrompt.ico"
             End_Object
         End_Object
 
