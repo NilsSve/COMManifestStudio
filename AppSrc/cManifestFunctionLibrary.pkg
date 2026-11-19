@@ -1687,6 +1687,50 @@ Class cManifestFunctionLibrary is a cObject
         Function_Return sValue
     End_Function
 
+    // The fragment files of sFiles (in sLibrary) that declare a COM class another of them declares too - a
+    // manifest may declare a class only once, and mt.exe stops at the second one ("Parsing of manifest failed").
+    // One line per pair of files, with the first class they share; "" when no class is declared twice. This is
+    // usually the 32-bit and the 64-bit file of one component - Codejock.GridControl.Unicode.v24.3.0 and
+    // Codejock.GridControl.Unicode.x64.v24.3.0 have the same classes (Nils 2026-11-19).
+    Function FragmentFilesSharingClasses String sLibrary String[] ByRef sFiles Returns String
+        String[] sClasses sOwners sPairs
+        String sLine sLow sClass sPair sReport
+        Integer i iFiles iCh iPos iEnd iFound
+        Get vFolderFormat sLibrary to sLibrary
+        Move (SizeOfArray(sFiles)) to iFiles
+        For i from 0 to (iFiles - 1)
+            Get Seq_Open_Input_Channel (sLibrary + sFiles[i]) to iCh
+            If (iCh > DF_SEQ_CHANNEL_ERROR) Begin
+                While (not(SeqEof))
+                    Readln channel iCh sLine
+                    Move (Lowercase(sLine)) to sLow
+                    Move (Pos('clsid="', sLow)) to iPos
+                    If ((iPos > 0) and (sLow contains "comclass")) Begin
+                        Move (Mid(sLow, Length(sLow), iPos + 7)) to sClass
+                        Move (Pos('"', sClass)) to iEnd
+                        If (iEnd > 1) Begin
+                            Move (Left(sClass, iEnd - 1)) to sClass
+                            Move (SearchArray(sClass, sClasses)) to iFound
+                            If (iFound = -1) Begin
+                                Move sClass    to sClasses[SizeOfArray(sClasses)]
+                                Move sFiles[i] to sOwners[SizeOfArray(sOwners)]
+                            End
+                            Else If (sOwners[iFound] <> sFiles[i]) Begin
+                                Move (sOwners[iFound] + " and " + sFiles[i]) to sPair
+                                If (SearchArray(sPair, sPairs) = -1) Begin
+                                    Move sPair to sPairs[SizeOfArray(sPairs)]
+                                    Move (sReport + "- " + sPair + " (both declare the class " + Uppercase(sClass) + ")\n") to sReport
+                                End
+                            End
+                        End
+                    End
+                Loop
+                Send Seq_Close_Channel iCh
+            End
+        Loop
+        Function_Return sReport
+    End_Function
+
     // *** Main Procedure ***
     // This does the actual update of the application manifest file.
     // - It first makes a backup copy of the application manifest file.
@@ -1716,6 +1760,14 @@ Class cManifestFunctionLibrary is a cObject
 
         Get psManifestFragmentLibrary to sManifestFragmentLibrary
         Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
+
+        // Two fragment files declaring the same class make a manifest mt.exe rejects: said first, and nothing written.
+        Get FragmentFilesSharingClasses sManifestFragmentLibrary (&sFilesArray) to sValue
+        If (sValue <> "") Begin
+            Send Info_Box ("The manifest file was not changed. These fragment files declare the same COM classes, and a manifest may declare a class only once:\n\n" + sValue + "\nThis is usually the 32-bit and the 64-bit file of one component. Remove the one that does not match the program - a 64-bit program needs the x64 file.")
+            Procedure_Return
+        End
+
         Get psManifestFileName        to sManifestFileName
         Get psExeFileName             to sExeFileName
         Get psExeFilePath             to sExePath
@@ -4370,19 +4422,19 @@ Class cManifestFunctionLibrary is a cObject
             Function_Return False
         End
 
+        // A failed check: mt.exe's own words, below - the line and what is wrong there. Exit code 31 is its general
+        // error, a manifest it cannot parse; until 2026-11-19 it was answered with "could be caused by an Anti-virus
+        // program", and mt.exe's lines were not shown (Nils: a class declared twice).
         Else If (iRetval > 0) Begin
-            If (iRetval = 31) Begin
-                Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code =" * String(iRetval) + ", and the application manifest file could not be verified. The error could be caused by an Anti-virus program.")
+            If (SizeOfArray(sValueArray) = 0) Begin
+                Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code" * String(iRetval) + ", without a message, and the application manifest file could not be verified.")
+                Function_Return False
             End
-            Else Begin
-                Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code =" * String(iRetval) + ", and the application manifest file could not be verified.")
-            End
-            Function_Return False
         End
 
         // If this is true the validation was a success.
         Move sValueArray[0] to sValue
-        Move (sValue = CS_ParsingSuccessful) to bOk
+        Move ((iRetval = 0) and (sValue = CS_ParsingSuccessful)) to bOk
 
         // If the parsing of the application manifest file didn't go according to plan,
         // load the faulty application manifest file in the editor, and display an error message.
@@ -4400,12 +4452,12 @@ Class cManifestFunctionLibrary is a cObject
             If (sEditorParams <> "") Begin
                 Runprogram Background sEditor ('"' + sEditorParams + '"' * '"' + (sTargetPath + sAppManifestFile) + '"')
                 // ...show error message:
-                Send Info_Box ("Error message:\n" + sValue)
+                Send Info_Box ("The application manifest file could not be verified. " + CS_MtExeProgram + " says:\n" + sValue)
             End
             Else Begin
                 Runprogram Background sEditor ('"' + (sTargetPath + sAppManifestFile) + '"')
                 // ...show error message:
-                Send Info_Box ("Error message:\n" + sValue)
+                Send Info_Box ("The application manifest file could not be verified. " + CS_MtExeProgram + " says:\n" + sValue)
             End
         End
 

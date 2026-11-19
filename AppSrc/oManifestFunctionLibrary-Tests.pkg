@@ -198,6 +198,9 @@ Object oManifestFunctionLibrary_Tests is a cTestFixture
         Move (vDeleteFile(sFolder + "AppSrc\Prog.cfg")) to iVoid
         Move (vDeleteFile(sFolder + "AppSrc\Tool.src")) to iVoid
         Move (vDeleteFile(sFolder + "AppSrc\Tool.cfg")) to iVoid
+        Move (vDeleteFile(sFolder + "AppSrc\Grid.txt")) to iVoid
+        Move (vDeleteFile(sFolder + "AppSrc\Grid.x64.txt")) to iVoid
+        Move (vDeleteFile(sFolder + "AppSrc\Skin.txt")) to iVoid
         Move (vRemoveDirectory(sFolder + "AppSrc")) to iVoid
         Move (vRemoveDirectory(sFolder)) to iVoid
     End_Procedure
@@ -364,6 +367,39 @@ Object oManifestFunctionLibrary_Tests is a cTestFixture
 
         Set psManifestFileName of ghoManifestFunctionLibrary to sSavedName
         Set psTargetPath of ghoManifestFunctionLibrary to sSavedPath
+        Send RemoveScratchWorkspace sFolder
+    End_Procedure
+
+    // Two fragment files that declare the same COM class - the 32-bit and the 64-bit file of one component - are named,
+    // as a manifest may declare a class only once (Nils 2026-11-19: mt.exe exit code 31). Case does not matter.
+    { Published=True }
+    Procedure Test_FragmentFilesSharingClasses
+        String sFolder sReport
+        String[] sFiles sNone
+        Get ScratchWorkspaceFolder to sFolder
+        Send WriteScratchFile (sFolder + "AppSrc\Grid.txt")     '<comClass clsid="{c0de2430-17a6-427a-972a-53bae2d968c7}" description="Codejock.GridRecord.24.3.0"></comClass>'
+        Send WriteScratchFile (sFolder + "AppSrc\Grid.x64.txt") '<comClass clsid="{C0DE2430-17A6-427A-972A-53BAE2D968C7}" description="Codejock.GridRecord.24.3.0"></comClass>'
+        Send WriteScratchFile (sFolder + "AppSrc\Skin.txt")     '<comClass clsid="{c0de2430-2217-42ee-b1b0-82c890431f17}" description="Xtreme SkinFramework Control"></comClass>'
+
+        Move "Grid.txt"     to sFiles[0]
+        Move "Grid.x64.txt" to sFiles[1]
+        Move "Skin.txt"     to sFiles[2]
+        Get FragmentFilesSharingClasses of ghoManifestFunctionLibrary (sFolder + "AppSrc") (&sFiles) to sReport
+        Send Assert (sReport contains "Grid.txt and Grid.x64.txt") ("Both files named: " + sReport)
+        Send Assert (sReport contains "{C0DE2430-17A6-427A-972A-53BAE2D968C7}") ("The class named: " + sReport)
+        Send AssertFalse (sReport contains "Skin.txt") "A file with classes of its own is not named."
+
+        Move sNone to sFiles
+        Move "Grid.x64.txt" to sFiles[0]
+        Move "Skin.txt"     to sFiles[1]
+        Get FragmentFilesSharingClasses of ghoManifestFunctionLibrary (sFolder + "AppSrc") (&sFiles) to sReport
+        Send AssertSAreEqual "" sReport "No class declared twice."
+
+        Move sNone to sFiles
+        Move "Grid.txt"    to sFiles[0]
+        Move "Missing.txt" to sFiles[1]
+        Get FragmentFilesSharingClasses of ghoManifestFunctionLibrary (sFolder + "AppSrc") (&sFiles) to sReport
+        Send AssertSAreEqual "" sReport "A missing file is no clash."
         Send RemoveScratchWorkspace sFolder
     End_Procedure
 
