@@ -195,6 +195,9 @@ Object oManifestFunctionLibrary_Tests is a cTestFixture
         Move (vDeleteFile(sFolder + "Other.sws")) to iVoid
         Move (vDeleteFile(sFolder + "Old.sws")) to iVoid
         Move (vDeleteFile(sFolder + "AppSrc\Prog.src")) to iVoid
+        Move (vDeleteFile(sFolder + "AppSrc\Prog.cfg")) to iVoid
+        Move (vDeleteFile(sFolder + "AppSrc\Tool.src")) to iVoid
+        Move (vDeleteFile(sFolder + "AppSrc\Tool.cfg")) to iVoid
         Move (vRemoveDirectory(sFolder + "AppSrc")) to iVoid
         Move (vRemoveDirectory(sFolder)) to iVoid
     End_Procedure
@@ -327,6 +330,40 @@ Object oManifestFunctionLibrary_Tests is a cTestFixture
         Get ProgramWorkspace of ghoManifestFunctionLibrary sSrc (&sVersion) (&sRoot) (&sWhy) to sSws
         Send AssertSAreEqual "" sSws "DataFlex 9.9 is not installed."
         Send Assert (Pos("9.9", sWhy) > 0) ("The reason names the version:" * sWhy)
+        Send RemoveScratchWorkspace sFolder
+    End_Procedure
+
+    // The compiler adds the .cfg's build suffix to the program file: CMBuilder64.exe is CMBuilder.src's (Nils
+    // 2026-11-19: "There is no xx64.src on disk").
+    { Published=True }
+    Procedure Test_ProgramSourceFile_Of_A_Suffixed_Build
+        String sFolder sSavedName sSavedPath sSrc
+        Get ScratchWorkspaceFolder to sFolder
+        Send WriteScratchFile (sFolder + "AppSrc\Prog.cfg") "[Compiler]"
+        Send WriteScratchFile (sFolder + "AppSrc\Tool.src") "// a scratch program"
+        Send WriteScratchFile (sFolder + "AppSrc\Tool.cfg") "64BitSuffix=_x64"
+        Get psManifestFileName of ghoManifestFunctionLibrary to sSavedName
+        Get psTargetPath of ghoManifestFunctionLibrary to sSavedPath
+        Set psTargetPath of ghoManifestFunctionLibrary to (sFolder + "AppSrc\")
+
+        Set psManifestFileName of ghoManifestFunctionLibrary to "Prog.exe.manifest"
+        Get ProgramSourceFile of ghoManifestFunctionLibrary to sSrc
+        Send AssertSAreEqual (sFolder + "AppSrc\Prog.src") sSrc "The program's own name."
+        Set psManifestFileName of ghoManifestFunctionLibrary to "Prog64.exe.manifest"
+        Get ProgramSourceFile of ghoManifestFunctionLibrary to sSrc
+        Send AssertSAreEqual (sFolder + "AppSrc\Prog.src") sSrc "64 - the suffix when the .cfg names none."
+        Set psManifestFileName of ghoManifestFunctionLibrary to "Tool_x64.exe.manifest"
+        Get ProgramSourceFile of ghoManifestFunctionLibrary to sSrc
+        Send AssertSAreEqual (sFolder + "AppSrc\Tool.src") sSrc "The suffix the .cfg names."
+        Set psManifestFileName of ghoManifestFunctionLibrary to "Tool64.exe.manifest"
+        Get ProgramSourceFile of ghoManifestFunctionLibrary to sSrc
+        Send AssertSAreEqual "" sSrc "64 is not Tool's suffix."
+        Set psManifestFileName of ghoManifestFunctionLibrary to "Other64.exe.manifest"
+        Get ProgramSourceFile of ghoManifestFunctionLibrary to sSrc
+        Send AssertSAreEqual "" sSrc "No such source."
+
+        Set psManifestFileName of ghoManifestFunctionLibrary to sSavedName
+        Set psTargetPath of ghoManifestFunctionLibrary to sSavedPath
         Send RemoveScratchWorkspace sFolder
     End_Procedure
 

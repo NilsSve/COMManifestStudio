@@ -4585,6 +4585,61 @@ Class cManifestFunctionLibrary is a cObject
         Function_Return sName
     End_Function
 
+    // A key's value in a program's .cfg - "64BitSuffix", say - or sDefault when the key is not there. A key that is
+    // there with nothing after = is "".
+    Function CfgFileValue String sCfg String sKey String sDefault Returns String
+        Integer iCh
+        String sLine sPrefix
+        Boolean bExists
+        Get vFilePathExists sCfg to bExists
+        If (not(bExists)) Begin
+            Function_Return sDefault
+        End
+        Get Seq_Open_Input_Channel sCfg to iCh
+        If (iCh <= DF_SEQ_CHANNEL_ERROR) Begin
+            Function_Return sDefault
+        End
+        Move (Lowercase(sKey) + "=") to sPrefix
+        While (not(SeqEof))
+            Readln channel iCh sLine
+            Move (Trim(sLine)) to sLine
+            If (Lowercase(Left(sLine, Length(sPrefix))) = sPrefix) Begin
+                Move (Trim(Mid(sLine, Length(sLine), Length(sPrefix) + 1))) to sDefault
+            End
+        Loop
+        Send Seq_Close_Channel iCh
+        Function_Return sDefault
+    End_Function
+
+    /* The source in sFolder of the program file sName (no extension). <sName>.src; else - the compiler adds the .cfg's
+       build suffix to the file it makes (Nils 2026-11-19: CMBuilder64.exe is CMBuilder.src's, and there is no
+       CMBuilder64.src) - a shorter name whose .src is there and whose .cfg gives the rest as its 64BitSuffix (64 when
+       the .cfg names none) or its 32BitSuffix. "" when neither is there. */
+    Function SourceInFolder String sFolder String sName Returns String
+        String sSrc sBase sTail s64 s32
+        Boolean bExists
+        Integer iTail
+        Move (sFolder + sName + ".src") to sSrc
+        Get vFilePathExists sSrc to bExists
+        If (bExists) Begin
+            Function_Return sSrc
+        End
+        For iTail from 1 to (Length(sName) - 1)
+            Move (Left(sName, Length(sName) - iTail)) to sBase
+            Move (Right(sName, iTail)) to sTail
+            Move (sFolder + sBase + ".src") to sSrc
+            Get vFilePathExists sSrc to bExists
+            If (bExists) Begin
+                Get CfgFileValue (sFolder + sBase + ".cfg") "64BitSuffix" "64" to s64
+                Get CfgFileValue (sFolder + sBase + ".cfg") "32BitSuffix" "" to s32
+                If (((s64 <> "") and (Lowercase(sTail) = Lowercase(s64))) or ((s32 <> "") and (Lowercase(sTail) = Lowercase(s32)))) Begin
+                    Function_Return sSrc
+                End
+            End
+        Loop
+        Function_Return ""
+    End_Function
+
     // The program's source file, or "" when it is not where it is looked for (above).
     Function ProgramSourceFile Returns String
         String sName sPath sSrc
@@ -4595,17 +4650,11 @@ Class cManifestFunctionLibrary is a cObject
             Function_Return ""
         End
         Get vFolderFormat sPath to sPath
-        Move (sPath + sName + ".src") to sSrc
-        Get vFilePathExists sSrc to bExists
-        If (bExists) Begin
-            Function_Return sSrc
+        Get SourceInFolder sPath sName to sSrc
+        If (sSrc = "") Begin
+            Get SourceInFolder (vParentPath(sPath) + "AppSrc\") sName to sSrc
         End
-        Move (vParentPath(sPath) + "AppSrc\" + sName + ".src") to sSrc
-        Get vFilePathExists sSrc to bExists
-        If (bExists) Begin
-            Function_Return sSrc
-        End
-        Function_Return ""
+        Function_Return sSrc
     End_Function
 
     // A DataFlex version as text, "19.1" or "26.0": "26" becomes "26.0", quotes and spaces go. "" stays "".
@@ -4880,6 +4929,9 @@ Class cManifestFunctionLibrary is a cObject
             Send Info_Box ("The program's source," * sName + ".src, was not found beside the manifest file, nor in an AppSrc folder beside it.")
             Procedure_Return
         End
+        // The project's name is the source's: CMBuilder, also when the manifest is CMBuilder64.exe's.
+        Move (ParseFileName(sSrc)) to sName
+        Move (Left(sName, Length(sName) - 4)) to sName
         Get ProgramWorkspace sSrc (&sVersion) (&sRoot) (&sWhy) to sSws
         If (sSws = "") Begin
             Send Info_Box ("The program cannot be compiled from here." * sWhy)
@@ -4890,14 +4942,19 @@ Class cManifestFunctionLibrary is a cObject
             Send Info_Box ("DataFlex" * sVersion * "is installed, but its compiler was not found in" * sRoot + ".")
             Procedure_Return
         End
+        // The hourglass while the compiler works (Nils 2026-11-19).
+        Send Cursor_Wait of Cursor_Control
         If (CompareDataFlexVersions(Self, sVersion, "26.0") >= 0) Begin
-            // df-cli writes to a console: one that stays open after a failure (pause), so the errors can be read.
-            RunProgram Wait "cmd.exe" ('/c ""' + sCompiler + '" build --target ' + sName + ' "' + sSws + '" || pause"')
+            // df-cli writes to a console: started through the shell, so its window shows while it works, with each
+            // file it compiles (--verbose; Nils 2026-11-19: show the compile as dfcomp's window does). It closes when
+            // the build succeeded and stays open after a failure (pause), so the errors can be read.
+            RunProgram Shell Wait "cmd.exe" ('/c ""' + sCompiler + '" build --verbose --target ' + sName + ' "' + sSws + '" || pause"')
         End
         Else Begin
             // dfcomp's own window: it closes when the compile succeeded and stays open with the errors.
             RunProgram Wait ('"' + sCompiler + '"') ('"' + sSrc + '" "-x' + sSws + '"')
         End
+        Send Cursor_Ready of Cursor_Control
     End_Procedure
 
 

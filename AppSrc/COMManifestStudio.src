@@ -276,6 +276,17 @@ Object oMain is a Panel
     Set Icon to "COMManifestManager.ico"  
 
     Object oCJCommandBarSystem is a cRDCCJCommandBarSystem
+        /* THE END OF THE PROGRAM (2026-11-19). As the program ends, the runtime destroys the command bars' update
+           timer before the command bars themselves (seen with a call-stack probe), and DataFlex's ReleaseComObject
+           then switches off a timer that is gone: "Invalid message SET_PBENABLED" when the program closes. So the
+           command bars are given a new timer, as they are destroyed, for that to switch off. */
+        Procedure Destroy_Object
+            Handle hoTimer
+            Get Create U_cCJIdleHandler to hoTimer
+            Set phoTimer to hoTimer
+            Forward Send Destroy_Object
+        End_Procedure
+
         Property Integer piDesiredIconSize 16 // The menus' icons
         Set pbLargeIcons to False             // small toolbar icons, as in DataFlex's own programs (Order Entry)
         Set peVisualTheme to (FTCJTheme())    // the theme's: Visual Studio 2022 Light, or 2017 Dark (RDCFlexTron)
@@ -618,10 +629,10 @@ Object oMain is a Panel
                         Send RefreshDashboard of ghoApplication
                     End_Procedure
 
+                    // Always on (Nils 2026-11-19): Embed or Compress can leave the program unusable, and it must then be
+                    // compiled again. With no manifest open, CompileProgram says so.
                     Function IsEnabled Returns Boolean
-                        String sProgramName
-                        Get psExeFileName of ghoManifestFunctionLibrary to sProgramName
-                        Function_Return (sProgramName <> "")
+                        Function_Return True
                     End_Function
                 End_Object
 

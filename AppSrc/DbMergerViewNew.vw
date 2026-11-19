@@ -610,12 +610,28 @@ Object oDbMerger_vw is a cRDCDbView
 
     // Remove: the chosen row's fragment file out of this manifest. The file stays in the library.
     Procedure DoRemoveFragment
-        Boolean bHasRecord
+        Boolean bHasRecord bDeleted
+        Integer iIndex
         Get HasRecord of oManDet_DD to bHasRecord
         If (bHasRecord = False) Begin
             Procedure_Return
         End
+        Move False to Err
         Send Request_Delete of oManDet_DD
+        Move (not(Err)) to bDeleted
+        /* A data dictionary does not clear after a delete: it kept the deleted row, and the list - which loads around
+           its current row - asked for a record that was gone (error 25, Nils 2026-11-19). So the next row of this
+           manifest becomes the current one, else the one before it, else none. */
+        If (bDeleted) Begin
+            Get ManDetHeaderIndex to iIndex
+            Send Find of oManDet_DD GT iIndex
+            If (not(Found)) Begin
+                Send Find of oManDet_DD LT iIndex
+            End
+            If (not(Found)) Begin
+                Send Clear of oManDet_DD
+            End
+        End
         Send RefreshFragments
         Send ArmDashboard
     End_Procedure
@@ -1117,7 +1133,9 @@ Object oDbMerger_vw is a cRDCDbView
         Else Begin
             Move "Starts the program." to sText
         End
-        Move (DashButtonHtml(Self, "compile", CS_GlyphCode, "Compile", "Compile the program with the DataFlex version of its workspace (Ctrl+F9)", bSource, (bReady and bSource and not(bCompiled)))) to sButtons
+        // The glyph is the program's own, AppHtml\FTGlyphs\compile.svg - traced from Bitmaps\Dk\CompileProject.ico in one
+        // colour, so it is drawn in the text colour and follows the theme (Nils 2026-11-19).
+        Move (DashButtonHtml(Self, "compile", "compile", "Compile", "Compile the program with the DataFlex version of its workspace (Ctrl+F9)", True, (bReady and bSource and not(bCompiled)))) to sButtons
         Move (sButtons + DashButtonHtml(Self, "run", CS_GlyphPlay, "Run", "Start the program (Ctrl+R)", bManifest, (bReady and bCompiled))) to sButtons
         Get StepCardHtml 5 "Test run" (If(bReady, "Ready", "To do")) sText sButtons False bReady False to sCard
         Move (sHtml + sCard + CS_DivEnd) to sHtml
