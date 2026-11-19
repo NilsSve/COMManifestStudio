@@ -6,7 +6,7 @@ Use cRDCSliderOffOn.pkg
 Use cRDCSpinForm.pkg
 
 Object oProgramSetup_Panel is a cConfigureDbModalPanel
-    Set Size to 194 413
+    Set Size to 219 413
     Set Icon to "Settings.ico"
     Set Border_Style to Border_Normal
 
@@ -27,7 +27,7 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
     End_Object
 
     Object oRightTop_grp is a Container3d
-        Set Size to 142 284
+        Set Size to 167 284
         Set Location to 20 125
         Set Border_Style to Border_Normal
         Set peAnchors to anAll
@@ -38,19 +38,21 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                 
                 Object oConfigureRigthWizardPane is a cConfigureRightSidePane  
                     Set peAnchors to anTopLeftRight
+                    Set Size to 152 282
 
                     Object oLibraries_tp is a cConfigurePage
                         Set Location to 0 0
                         Set Label to "Libraries"
+                        Set Size to 241 370
 
                         Object oManifestLibrariespath_grp is a cConfigurePageGroup
-                            Set Size to 42 260
+                            Set Size to 42 268
                             Set Location to 8 10
                             Set Label to "Manifest Fragment Library"
                             Set peAnchors to anTopLeftRight
 
                             Object oManifestLibraryFolder_fm is a cRDCIniFileForm
-                                Set Size to 14 192
+                                Set Size to 14 200
                                 Set Location to 18 0
                                 Set Status_Help to "Select path to the local Manifest Fragment Library. Click the 'Browse' button or press (F4)."
                                 Set psKey to CS_ManifestFolder
@@ -103,7 +105,7 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                             End_Object 
                             
                             Object oManifestLibraryFolder_Btn is a cRDCButton
-                                Set Location to 18 196
+                                Set Location to 18 204
                                 Set Label to "Browse..."
                                 Set Status_Help to "Set the path to the Manifest Fragment Library"
                                 Set psImage to "FolderOpen.ico"
@@ -120,9 +122,10 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                             Set Location to 64 10
                             Set Label to "Common COM Library"
                             Set peAnchors to anTopLeftRight
+                            Set Size to 42 268
 
                             Object oCommonComLibraryFolder_fm is a cRDCIniFileForm
-                                Set Size to 14 192
+                                Set Size to 14 200
                                 Set Location to 18 0
                                 Set Label_Col_Offset to 0
                                 Set Label_Justification_Mode to JMode_Top
@@ -176,7 +179,7 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                             
                             Object oCommonComLibraryFolder_Btn is a cRDCButton
                                 Set Size to 14 48
-                                Set Location to 18 196
+                                Set Location to 18 204
                                 Set Label to "Browse..."
                                 Set Status_Help to "Set the path to the Common COM Library folder"
                                 Set psImage to "FolderOpen.ico"
@@ -194,13 +197,15 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                     Object oEditor_tp is a cConfigurePage
                         Set Location to 0 1
                         Set Label to "Editor"
+                        Set Size to 241 370
 
                         Object oEditor_grp is a cConfigurePageGroup
                             Set Location to 8 10
                             Set Label to "Use Editor"
+                            Set Size to 55 268
 
                             Object oEditor_fm is a cRDCIniFileForm
-                                Set Size to 14 192
+                                Set Size to 14 200
                                 Set Location to 18 0
                                 Set Label_Col_Offset to 0
                                 Set Label_Justification_Mode to JMode_Top
@@ -215,7 +220,7 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                             End_Object        
                             
                             Object oSelect_Btn is a cRDCButton
-                                Set Location to 18 196
+                                Set Location to 18 204
                                 Set Label to "Browse..."
                                 Set Status_Help to "Select the editor program to be used to edit and viewing Manifest Fragment Files"
                                 Set psImage to "FolderOpen.ico"
@@ -231,6 +236,7 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                         Object oEditorParams_grp is a cConfigurePageGroup
                             Set Location to 64 10
                             Set Label to "Optional Parameters"
+                            Set Size to 55 268
 
                             Object oEditorParam_fm is a cRDCIniFileForm
                                 Set Size to 14 88
@@ -249,10 +255,12 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
 
                     Object oStudio_tp is a cConfigurePage
                         Set Label to "Studio"
+                        Set Size to 241 370
 
                         Object oStudio_grp is a cConfigurePageGroup
                             Set Location to 8 10
                             Set Label to "Add to Studio's Tools Menu"
+                            Set Size to 55 268
 
                             Object oStudioMinorVersion_sf is a cRDCSpinForm
                                 Set Size to 14 27
@@ -321,10 +329,12 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
 
                     Object oDialog_tp is a cConfigurePage
                         Set Label to "Dialog"
+                        Set Size to 241 370
 
                         Object oDialog_grp is a cConfigurePageGroup
                             Set Location to 8 10
                             Set Label to "Show 'First Time Usage' dialog on startup"
+                            Set Size to 55 268
 
                             Object oFirstTimeUsage_cb is a cRDCSliderOffOn
                                 Set Size to 20 40
@@ -338,10 +348,12 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
 
                     Object oGrid_tp is a cConfigurePage
                         Set Label to "Grid"
+                        Set Size to 241 370
 
                         Object oHighlightGrid_grp is a cConfigurePageGroup
                             Set Location to 8 10
                             Set Label to "Highlight current grid row"
+                            Set Size to 55 268
 
                             Object oUseHightligthRowState_cb is a cRDCSliderOffOn
                                 Set Size to 20 40
@@ -445,6 +457,7 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                         Object oAlternateGridRow_grp is a cConfigurePageGroup
                             Set Location to 64 10
                             Set Label to "Use Alternate Grid Row Background Color"
+                            Set Size to 55 268
 
                             Object oUseAlternateRowBackgroundColor_cb is a cRDCSliderOffOn
                                 Set Size to 20 40
@@ -459,10 +472,12 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
 
                     Object oToolbars_tp is a cConfigurePage
                         Set Label to "Toolbars"
+                        Set Size to 241 370
 
                         Object oToolbarIconSize_grp is a cConfigurePageGroup
                             Set Location to 8 10
                             Set Label to "Toolbar Icon Size"
+                            Set Size to 55 268
 
                             Object oToolbarIconSize_cf is a cRDCComboForm
                                 Set Size to 14 130
@@ -522,6 +537,7 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                         Object oToolbarProperties_grp is a cConfigurePageGroup
                             Set Location to 64 10
                             Set Label to "Toolbar Icons And Text"
+                            Set Size to 55 268
 
                             Object oShowTextBelowIcons_cb is a cRDCComboForm
                                 Set Size to 14 130
@@ -571,10 +587,12 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                     // Windows' own setting for apps, when the program starts.
                     Object oTheme_tp is a cConfigurePage
                         Set Label to "Theme"
+                        Set Size to 241 370
 
                         Object oTheme_grp is a cConfigurePageGroup
                             Set Location to 8 10
                             Set Label to "Theme (after a restart)"
+                            Set Size to 55 268
 
                             Object oTheme_cf is a cRDCComboForm
                                 Set Size to 14 130
@@ -632,6 +650,7 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
     End_Object    
 
     Object oConfigureLeftSideButtons is a cConfigureLeftSideButtons
+        Set Size to 166 118
     
         Object oScrollingContainerLeft is a cScrollingContainer
             
@@ -680,7 +699,7 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
                 Object oConfigureButton7 is a cConfigureButton
                     Set Location to 139 1
                     Set Label to "Theme"
-                    Set psImage to "Themes.ico"
+                    Set psImage to "Colors.ico"
                 End_Object
                                
             End_Object
@@ -690,7 +709,7 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
     End_Object
 
     Object oLeftButtonLineControl is a LineControl
-        Set Size to 171 3
+        Set Size to 196 3
         Set Location to 20 122
         Set Horizontal_State to False
         Set peAnchors to anTopBottomLeft
@@ -700,7 +719,7 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
     Object oOK_Btn is a cRDCButton
         Set Size to 14 50
         Set Label    to C_$OK
-        Set Location to 173 302
+        Set Location to 198 302
         Set peAnchors to anBottomRight
         Set Default_State to True
 
@@ -744,7 +763,7 @@ Object oProgramSetup_Panel is a cConfigureDbModalPanel
         Set Size to 14 50
         Set Label    to C_$Cancel
         Set Status_Help to "Close Panel"
-        Set Location to 173 358
+        Set Location to 198 358
         Set peAnchors to anBottomRight
         Procedure OnClick
             Send Close_Panel

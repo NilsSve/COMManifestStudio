@@ -1,4 +1,4 @@
-// **************************************************************************** 
+﻿// **************************************************************************** 
 // Class   : cConfigureDbModalPanel and child object classes.
 // 
 // Author  : Nils Svedmyr, RDC Tools International
@@ -164,10 +164,6 @@ Class cConfigureButton is a cCommandLinkButton
     Procedure Set TextColor Integer eColor
         Forward Set TextColor to clBlack
     End_Procedure
-    
-//    Procedure Set Color Integer eColor
-//        Forward Set Color to clControlGray
-//    End_Procedure
     
     // Register each button to the container class cConfigureDbModalPanel
     Procedure RegisterButton  

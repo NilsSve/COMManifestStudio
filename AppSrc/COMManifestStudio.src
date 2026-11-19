@@ -816,31 +816,6 @@ Object oMain is a Panel
                 End_Object
             End_Object
 
-            Object oNavigate_Menu is a cCJMenuItem
-                Set peControlType to xtpControlPopup
-                Set psCaption to "&Navigate"
-                Set psDescription to "Move to different areas of the application"
-
-                Object oNextAreaMenu is a cCJNextAreaMenu
-                End_Object
-
-                Object oPriorAreaMenu is a cCJPriorAreaMenu
-                End_Object
-
-                Object oNextViewMenu is a cCJNextViewMenu
-                End_Object
-
-                Object oPriorViewMenu is a cCJPriorViewMenu
-                End_Object
-
-                Object oPromptMenu is a cCJPromptMenuItem
-                    Set pbControlBeginGroup to True
-                End_Object
-
-                Object oZoomMenu is a cCJZoomMenuItem
-                End_Object
-            End_Object
-
             Object oTools_Menu is a cCJMenuItem
                 Set peControlType to xtpControlPopup
                 Set psCaption to "&Tools"
@@ -918,6 +893,31 @@ Object oMain is a Panel
                         Forward Send OnExecute vCommandBarControl
                         Send Popup of (oFirstTimeUsage_Dialog(Client_Id(ghoCommandBars)))
                     End_Procedure
+                End_Object
+            End_Object
+
+            Object oNavigate_Menu is a cCJMenuItem
+                Set peControlType to xtpControlPopup
+                Set psCaption to "&Navigate"
+                Set psDescription to "Move to different areas of the application"
+
+                Object oNextAreaMenu is a cCJNextAreaMenu
+                End_Object
+
+                Object oPriorAreaMenu is a cCJPriorAreaMenu
+                End_Object
+
+                Object oNextViewMenu is a cCJNextViewMenu
+                End_Object
+
+                Object oPriorViewMenu is a cCJPriorViewMenu
+                End_Object
+
+                Object oPromptMenu is a cCJPromptMenuItem
+                    Set pbControlBeginGroup to True
+                End_Object
+
+                Object oZoomMenu is a cCJZoomMenuItem
                 End_Object
             End_Object
 
@@ -1076,6 +1076,21 @@ Object oMain is a Panel
             Set pbCustomizable to False
             Set pbShowExpandButton to False
             Set peStretched to stStretchShared
+
+            Object oSetup_MenuItem is a cCJMenuItem
+                Set psCaption to "&Settings..."
+                Set psToolTip to "Program's settings"
+                Set psDescription to "Change the program's settings"
+                Set psImage to "Settings.ico"
+                Set pbControlBeginGroup to True
+
+                Procedure OnExecute Variant vCommandBarControl
+                    Forward Send OnExecute vCommandBarControl
+                    Send Popup of (oProgramSetup_Panel(Client_Id(ghoCommandBars)))
+                    Send OnStartup of ghoManifestIniFile
+                    Send RefreshDashboard of ghoApplication
+                End_Procedure
+            End_Object
 
             Object oAboutTool is a cCJAboutMenuItem
                 Set psImage to "ActionAbout.ico"
