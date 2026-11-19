@@ -201,6 +201,8 @@ Object oManifestFunctionLibrary_Tests is a cTestFixture
         Move (vDeleteFile(sFolder + "AppSrc\Grid.txt")) to iVoid
         Move (vDeleteFile(sFolder + "AppSrc\Grid.x64.txt")) to iVoid
         Move (vDeleteFile(sFolder + "AppSrc\Skin.txt")) to iVoid
+        Move (vDeleteFile(sFolder + "AppSrc\Prog.exe.manifest")) to iVoid
+        Move (vDeleteFile(sFolder + "AppSrc\Packed.exe")) to iVoid
         Move (vRemoveDirectory(sFolder + "AppSrc")) to iVoid
         Move (vRemoveDirectory(sFolder)) to iVoid
     End_Procedure
@@ -375,31 +377,75 @@ Object oManifestFunctionLibrary_Tests is a cTestFixture
     { Published=True }
     Procedure Test_FragmentFilesSharingClasses
         String sFolder sReport
-        String[] sFiles sNone
+        String[] asFiles asNone
         Get ScratchWorkspaceFolder to sFolder
         Send WriteScratchFile (sFolder + "AppSrc\Grid.txt")     '<comClass clsid="{c0de2430-17a6-427a-972a-53bae2d968c7}" description="Codejock.GridRecord.24.3.0"></comClass>'
         Send WriteScratchFile (sFolder + "AppSrc\Grid.x64.txt") '<comClass clsid="{C0DE2430-17A6-427A-972A-53BAE2D968C7}" description="Codejock.GridRecord.24.3.0"></comClass>'
         Send WriteScratchFile (sFolder + "AppSrc\Skin.txt")     '<comClass clsid="{c0de2430-2217-42ee-b1b0-82c890431f17}" description="Xtreme SkinFramework Control"></comClass>'
 
-        Move "Grid.txt"     to sFiles[0]
-        Move "Grid.x64.txt" to sFiles[1]
-        Move "Skin.txt"     to sFiles[2]
-        Get FragmentFilesSharingClasses of ghoManifestFunctionLibrary (sFolder + "AppSrc") (&sFiles) to sReport
+        Move "Grid.txt"     to asFiles[0]
+        Move "Grid.x64.txt" to asFiles[1]
+        Move "Skin.txt"     to asFiles[2]
+        Get FragmentFilesSharingClasses of ghoManifestFunctionLibrary (sFolder + "AppSrc") (&asFiles) to sReport
         Send Assert (sReport contains "Grid.txt and Grid.x64.txt") ("Both files named: " + sReport)
         Send Assert (sReport contains "{C0DE2430-17A6-427A-972A-53BAE2D968C7}") ("The class named: " + sReport)
         Send AssertFalse (sReport contains "Skin.txt") "A file with classes of its own is not named."
 
-        Move sNone to sFiles
-        Move "Grid.x64.txt" to sFiles[0]
-        Move "Skin.txt"     to sFiles[1]
-        Get FragmentFilesSharingClasses of ghoManifestFunctionLibrary (sFolder + "AppSrc") (&sFiles) to sReport
+        Move asNone to asFiles
+        Move "Grid.x64.txt" to asFiles[0]
+        Move "Skin.txt"     to asFiles[1]
+        Get FragmentFilesSharingClasses of ghoManifestFunctionLibrary (sFolder + "AppSrc") (&asFiles) to sReport
         Send AssertSAreEqual "" sReport "No class declared twice."
 
-        Move sNone to sFiles
-        Move "Grid.txt"    to sFiles[0]
-        Move "Missing.txt" to sFiles[1]
-        Get FragmentFilesSharingClasses of ghoManifestFunctionLibrary (sFolder + "AppSrc") (&sFiles) to sReport
+        Move asNone to asFiles
+        Move "Grid.txt"    to asFiles[0]
+        Move "Missing.txt" to asFiles[1]
+        Get FragmentFilesSharingClasses of ghoManifestFunctionLibrary (sFolder + "AppSrc") (&asFiles) to sReport
         Send AssertSAreEqual "" sReport "A missing file is no clash."
+        Send RemoveScratchWorkspace sFolder
+    End_Procedure
+
+    // What a program has embedded, beside its manifest file (Nils 2026-11-19): none, a manifest without COM files
+    // (DataFlex's basic one), the same COM files - written another way, as the Embed writes them - or other ones.
+    { Published=True }
+    Procedure Test_EmbeddedManifestCompare
+        String sFolder sManifest sHead sTail
+        Integer eState
+        Get ScratchWorkspaceFolder to sFolder
+        Move (sFolder + "AppSrc\Prog.exe.manifest") to sManifest
+        Move '<?xml version="1.0"?><assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">' to sHead
+        Move '</assembly>' to sTail
+        Send WriteScratchFile sManifest (sHead + '<file name="Grid.ocx"><comClass clsid="{C0DE2430-0001-0000-0000-000000000001}"></comClass><comClass clsid="{c0de2430-0002-0000-0000-000000000002}"></comClass></file>' + sTail)
+
+        Get EmbeddedManifestCompare of ghoManifestFunctionLibrary "" sManifest to eState
+        Send AssertIAreEqual CI_EmbedNone eState "Nothing embedded."
+        Get EmbeddedManifestCompare of ghoManifestFunctionLibrary (sHead + '<description>Basic</description>' + sTail) sManifest to eState
+        Send AssertIAreEqual CI_EmbedBasic eState "A manifest without COM files."
+        Get EmbeddedManifestCompare of ghoManifestFunctionLibrary (sHead + '<file name="GRID.ocx">' + Character(13) + Character(10) + '<comClass clsid="{c0de2430-0002-0000-0000-000000000002}" />' + '<comClass clsid="{c0de2430-0001-0000-0000-000000000001}" />' + '</file>' + sTail) sManifest to eState
+        Send AssertIAreEqual CI_EmbedSame eState "The same file and classes, written another way."
+        Get EmbeddedManifestCompare of ghoManifestFunctionLibrary (sHead + '<file name="Grid.ocx"><comClass clsid="{c0de2430-0001-0000-0000-000000000001}"></comClass></file>' + sTail) sManifest to eState
+        Send AssertIAreEqual CI_EmbedDiffers eState "A class less."
+        Get EmbeddedManifestCompare of ghoManifestFunctionLibrary (sHead + '<file name="Other.ocx"><comClass clsid="{C0DE2430-0001-0000-0000-000000000001}"></comClass><comClass clsid="{c0de2430-0002-0000-0000-000000000002}"></comClass></file>' + sTail) sManifest to eState
+        Send AssertIAreEqual CI_EmbedDiffers eState "Another file."
+        Send RemoveScratchWorkspace sFolder
+    End_Procedure
+
+    // A program compressed by UPX names its UPX0 section near the start; a file that is not a program has no
+    // embedded manifest.
+    { Published=True }
+    Procedure Test_IsUPXCompressed_And_No_Program
+        String sFolder sText
+        Boolean bPacked
+        Get ScratchWorkspaceFolder to sFolder
+        Send WriteScratchFile (sFolder + "AppSrc\Packed.exe") "MZ - .text UPX0 UPX1 .rsrc"
+        Get IsUPXCompressed of ghoManifestFunctionLibrary (sFolder + "AppSrc\Packed.exe") to bPacked
+        Send Assert bPacked "UPX0 in the header."
+        Get IsUPXCompressed of ghoManifestFunctionLibrary (sFolder + "AppSrc\Prog.src") to bPacked
+        Send AssertFalse bPacked "No UPX0."
+        Get IsUPXCompressed of ghoManifestFunctionLibrary (sFolder + "AppSrc\Missing.exe") to bPacked
+        Send AssertFalse bPacked "No file."
+        Get EmbeddedManifestText of ghoManifestFunctionLibrary (sFolder + "AppSrc\Prog.src") to sText
+        Send AssertSAreEqual "" sText "Not a program: nothing embedded."
         Send RemoveScratchWorkspace sFolder
     End_Procedure
 

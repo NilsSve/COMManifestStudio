@@ -522,11 +522,11 @@ Object oMain is a Panel
 
                     Procedure OnExecute Variant vCommandBarControl
                         String sFileName
-                        String[] sFilesArray
+                        String[] asFiles
                         Forward Send OnExecute vCommandBarControl
                         Get psManifestFileName of ghoManifestFunctionLibrary    to sFileName
-                        Get SelectedItems of (phoManifest_grid(ghoApplication)) to sFilesArray
-                        Send BuildManifestFile of ghoManifestFunctionLibrary sFileName sFilesArray
+                        Get SelectedItems of (phoManifest_grid(ghoApplication)) to asFiles
+                        Send BuildManifestFile of ghoManifestFunctionLibrary sFileName asFiles
                         Send RefreshDashboard of ghoApplication
                     End_Procedure
 
@@ -565,10 +565,10 @@ Object oMain is a Panel
                     Set pbActiveUpdate to True
 
                     Procedure OnExecute Variant vCommandBarControl
-                        String[] sSelectedFileNames
+                        String[] asSelectedFileNames
                         Forward Send OnExecute vCommandBarControl
-                        Get SelectedItems of (phoManifest_grid(ghoApplication)) to sSelectedFileNames
-                        Send CopyCOMComponents of ghoManifestFunctionLibrary sSelectedFileNames
+                        Get SelectedItems of (phoManifest_grid(ghoApplication)) to asSelectedFileNames
+                        Send CopyCOMComponents of ghoManifestFunctionLibrary asSelectedFileNames
                         Send RefreshDashboard of ghoApplication
                     End_Procedure
 

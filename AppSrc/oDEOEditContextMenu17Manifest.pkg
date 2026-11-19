@@ -31,12 +31,12 @@ Object oDEOEditContextMenuManifest is a cCJContextMenu
         Set psShortcut to "Alt+B"
         Procedure OnExecute Variant vCommandBarControl
             String sFileName
-            String[] sFilesArray
+            String[] asFiles
 
             Forward Send OnExecute vCommandBarControl
             Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFileName
-            Get SelectedItems of (phoManifest_grid(ghoApplication)) to sFilesArray
-            Send BuildManifestFile of ghoManifestFunctionLibrary sFileName sFilesArray
+            Get SelectedItems of (phoManifest_grid(ghoApplication)) to asFiles
+            Send BuildManifestFile of ghoManifestFunctionLibrary sFileName asFiles
         End_Procedure
         Function IsEnabled Returns Boolean
             String sManifestFile
@@ -51,11 +51,11 @@ Object oDEOEditContextMenuManifest is a cCJContextMenu
         Set psImage to "CopyComponents.ico"
         Set psShortcut to "Ctrl+P"
         Procedure OnExecute Variant vCommandBarControl
-            String[] sSelectedFileNames
+            String[] asSelectedFileNames
 
             Forward Send OnExecute vCommandBarControl
-            Get SelectedItems of (phoManifest_grid(ghoApplication)) to sSelectedFileNames
-            Send CopyCOMComponents of ghoManifestFunctionLibrary sSelectedFileNames
+            Get SelectedItems of (phoManifest_grid(ghoApplication)) to asSelectedFileNames
+            Send CopyCOMComponents of ghoManifestFunctionLibrary asSelectedFileNames
         End_Procedure
         Function IsEnabled Returns Boolean
             String sManifestFile
@@ -70,10 +70,10 @@ Object oDEOEditContextMenuManifest is a cCJContextMenu
         Set psImage to "RunProgram.ico"
         Set psShortcut to "Ctrl+R"
         Procedure OnExecute Variant vCommandBarControl
-            String[] sSelectedFileNames
+            String[] asSelectedFileNames
             Forward Send OnExecute vCommandBarControl
-            Get SelectedItems of (phoManifest_grid(ghoApplication)) to sSelectedFileNames
-            Send Runprogram of ghoManifestFunctionLibrary sSelectedFileNames
+            Get SelectedItems of (phoManifest_grid(ghoApplication)) to asSelectedFileNames
+            Send Runprogram of ghoManifestFunctionLibrary asSelectedFileNames
         End_Procedure
         Function IsEnabled Returns Boolean
             String sManifestFile

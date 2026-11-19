@@ -14,7 +14,7 @@ Object oFragmentFiles_sl is a cRDCModalPanel
     // We need this string array to return the selected items.
     // This is because we cannot ask the grid after the panel is closed (after popup)
     // because the grid object is by then already destroyd.
-    Property String[] psFilesArray
+    Property String[] pasFiles
     Property Boolean  pbOkButton False
 
     Object oInfo_tb is a TextBox
@@ -111,7 +111,7 @@ Object oFragmentFiles_sl is a cRDCModalPanel
 
         Procedure DoFillGrid
             Integer i iFiles
-            String[] sManifestLibraryArray sFilesArray
+            String[] asManifestLibrary asFiles
             Integer iCheckbox_Col iFileNameFirst_Col
             tFileStruct[] FilesStructArray
             Handle hoDataSource hoCol
@@ -124,15 +124,15 @@ Object oFragmentFiles_sl is a cRDCModalPanel
             Get piCheckboxCol                to iCheckbox_Col
             Get piFileNameFirstCol           to iFileNameFirst_Col
             Get psFilesStructArray           to FilesStructArray
-            Get FileStructArrayAsStringArray of ghoManifestFunctionLibrary FilesStructArray True to sFilesArray
-            Get AllManifestFragmentFiles     of ghoManifestFunctionLibrary to sManifestLibraryArray
+            Get FileStructArrayAsStringArray of ghoManifestFunctionLibrary FilesStructArray True to asFiles
+            Get AllManifestFragmentFiles     of ghoManifestFunctionLibrary to asManifestLibrary
 
-            Get FilesArrayDifference of ghoManifestFunctionLibrary (&sFilesArray) (&sManifestLibraryArray) to sManifestLibraryArray
-            Move (SizeOfArray(sManifestLibraryArray)) to iFiles
+            Get FilesArrayDifference of ghoManifestFunctionLibrary (&asFiles) (&asManifestLibrary) to asManifestLibrary
+            Move (SizeOfArray(asManifestLibrary)) to iFiles
             Decrement iFiles
             For i from 0 to iFiles
                 Move False                    to TheData[i].sValue[iCheckbox_Col]
-                Move sManifestLibraryArray[i] to TheData[i].sValue[iFileNameFirst_Col]
+                Move asManifestLibrary[i] to TheData[i].sValue[iFileNameFirst_Col]
             Loop
 
             // Initialize Grid with new data
@@ -146,7 +146,7 @@ Object oFragmentFiles_sl is a cRDCModalPanel
         Procedure AutoSelectCodeJockComponents Integer iMajorVersion Integer iMinorVersion
             Handle hoDataSource
             tDataSourceRow[] TheData
-            String[] sFilesArray
+            String[] asFiles
             String sFileName
             Integer i iCheckbox_Col iFileName_Col iItems
             Boolean bFound bSelected
@@ -418,13 +418,13 @@ Object oFragmentFiles_sl is a cRDCModalPanel
 
     Procedure Close_Panel
         Boolean bOkButton
-        String[] sFilesArray
+        String[] asFiles
         Get pbOkButton to bOkButton
         If (bOkButton = False) Begin
             Set SelectItems of oFragmentFiles_Grid to cx_Select_None
         End
-        Get SelectedItems of oFragmentFiles_Grid True to sFilesArray
-        Set psFilesArray to sFilesArray
+        Get SelectedItems of oFragmentFiles_Grid True to asFiles
+        Set pasFiles to asFiles
         Forward Send Close_Panel
     End_Procedure
 
@@ -440,24 +440,24 @@ End_Object
 // Public access method to this dialog
 // Pass an array with the files that should appear in the grid.
 // The function returns the selected files as an array.
-Function ActivateFragmentFiles_sl String[] ByRef sFilesArray Returns String[]
+Function ActivateFragmentFiles_sl String[] ByRef asFiles Returns String[]
     Integer iSize
-    String[] sReturnFilesArray sManifestLibraryArray
+    String[] asReturnFiles asManifestLibrary
     tFileStruct[] FilesStructArray
     Handle ho
     
     Move (oFragmentFiles_sl(Self)) to ho
     Set pbOkButton of ho to False
-    Get AllManifestFragmentFiles of ghoManifestFunctionLibrary to sManifestLibraryArray
-    Get FilesArrayDifference     of ghoManifestFunctionLibrary (&sFilesArray) (&sManifestLibraryArray) to sReturnFilesArray
-    Move (SizeOfArray(sReturnFilesArray)) to iSize
+    Get AllManifestFragmentFiles of ghoManifestFunctionLibrary to asManifestLibrary
+    Get FilesArrayDifference     of ghoManifestFunctionLibrary (&asFiles) (&asManifestLibrary) to asReturnFiles
+    Move (SizeOfArray(asReturnFiles)) to iSize
     If (iSize = 0) Begin
         Send Info_Box "There are no more local Manifest Fragment files to select. Press the 'Download' toolbar button to check if there exist any new Manifest Fragment files in the global library on GitHub."
     End
     Else Begin
-        Get StringArrayToFileStructArray of ghoManifestFunctionLibrary sFilesArray to FilesStructArray
+        Get StringArrayToFileStructArray of ghoManifestFunctionLibrary asFiles to FilesStructArray
         Send Activate_Dialog of ho FilesStructArray
-        Get psFilesArray of ho to sReturnFilesArray
+        Get pasFiles of ho to asReturnFiles
     End
-    Function_Return sReturnFilesArray
+    Function_Return asReturnFiles
 End_Function

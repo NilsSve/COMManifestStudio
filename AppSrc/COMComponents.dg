@@ -245,17 +245,17 @@ Object oCOMComponents_dg is a cRDCModalPanel
         Set Default_State to True
 
         Procedure OnClick
-            String[] sFragmentFilesArray sFilesArray
+            String[] asFragmentFiles asFiles
             Boolean bOK
             Integer iItems
-            Get SelectedItems of oCOMComponents_Grid True  to sFragmentFilesArray
-            Get SelectedItems of oCOMComponents_Grid False to sFilesArray
-            Move (SizeOfArray(sFilesArray)) to iItems
+            Get SelectedItems of oCOMComponents_Grid True  to asFragmentFiles
+            Get SelectedItems of oCOMComponents_Grid False to asFiles
+            Move (SizeOfArray(asFiles)) to iItems
             If (iItems = 0) Begin
                 Send Info_Box "No files to process."
                 Procedure_Return
             End
-            Get CopyCOMComponents of ghoManifestFunctionLibrary (&sFragmentFilesArray) (&sFilesArray) to bOK
+            Get CopyCOMComponents of ghoManifestFunctionLibrary (&asFragmentFiles) (&asFiles) to bOK
             If (bOK = True) Begin
                 Send Info_Box "Ready! The COM (OCX/DLL) controls that were marked as 'missing' were successfully copied to the application folder."
                 Send Close_Panel

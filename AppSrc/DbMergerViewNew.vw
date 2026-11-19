@@ -55,7 +55,7 @@ Object oDbMerger_vw is a cRDCDbView
     Set pbAcceptDropFiles to True
     Set pbAutoActivate to True
 
-    Property String[] pArrayOfDroppedFiles
+    Property String[] pasDroppedFiles
     // The path is typed in only after Enable path (DoTogglePath).
     Property Boolean pbPathEditable False
 
@@ -418,10 +418,10 @@ Object oDbMerger_vw is a cRDCDbView
         End_Object
 
         // The FT button family and the dashboard's own sheet, in the page's head (palette.css comes with every FT host).
-        Procedure OnDefineScriptIncludes String[] ByRef aScriptHtml
-            Forward Send OnDefineScriptIncludes (&aScriptHtml)
-            Move (StyleSheetLink("RDCFlexTron/buttons.css")) to aScriptHtml[SizeOfArray(aScriptHtml)]
-            Move (CssLink("dashboard")) to aScriptHtml[SizeOfArray(aScriptHtml)]
+        Procedure OnDefineScriptIncludes String[] ByRef asScriptHtml
+            Forward Send OnDefineScriptIncludes (&asScriptHtml)
+            Move (StyleSheetLink("RDCFlexTron/buttons.css")) to asScriptHtml[SizeOfArray(asScriptHtml)]
+            Move (CssLink("dashboard")) to asScriptHtml[SizeOfArray(asScriptHtml)]
         End_Procedure
 
         /* A FILE DROPPED ON THE PAGE. WebView2 would open it - navigate to the file and leave the page. A file:/// address
@@ -489,18 +489,18 @@ Object oDbMerger_vw is a cRDCDbView
     // The fragment files of the manifest on screen, read from the table. The record the data dictionary has - the
     // list's chosen row - is in the buffer again afterwards.
     Function SelectedItems Returns String[]
-        String[] sFiles
+        String[] asFiles
         Integer iID iIndex
         RowID riCurrent
         Boolean bFound
 
         Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
         If (iID = 0) Begin
-            Function_Return sFiles
+            Function_Return asFiles
         End
         Get ManDetHeaderIndex to iIndex
         If (iIndex = 0) Begin
-            Function_Return sFiles
+            Function_Return asFiles
         End
         Get CurrentRowId of oManDet_DD to riCurrent
 
@@ -509,7 +509,7 @@ Object oDbMerger_vw is a cRDCDbView
         Vfind ManDet.File_Number iIndex GE
         While (Found and ManDet.ManHdrID = iID)
             If (Trim(ManDet.ManifestFragmentFile) <> "") Begin
-                Move (Trim(ManDet.ManifestFragmentFile)) to sFiles[SizeOfArray(sFiles)]
+                Move (Trim(ManDet.ManifestFragmentFile)) to asFiles[SizeOfArray(asFiles)]
             End
             Vfind ManDet.File_Number iIndex GT
         Loop
@@ -518,14 +518,14 @@ Object oDbMerger_vw is a cRDCDbView
         If (not(IsNullRowID(riCurrent))) Begin
             Move (FindByRowID(ManDet.File_Number, riCurrent)) to bFound
         End
-        Function_Return sFiles
+        Function_Return asFiles
     End_Function
 
     // How many fragment files the manifest has - the Build menu item asks.
     Function ItemCount Returns Integer
-        String[] sFiles
-        Get SelectedItems to sFiles
-        Function_Return (SizeOfArray(sFiles))
+        String[] asFiles
+        Get SelectedItems to asFiles
+        Function_Return (SizeOfArray(asFiles))
     End_Function
 
     /* THE LIST READ AGAIN. The framework's web list loads the rows AROUND ITS CURRENT ROW (cWebList.LoadData: no
@@ -570,10 +570,10 @@ Object oDbMerger_vw is a cRDCDbView
 
     // Adds a row for each of the fragment files to the manifest with the ID iID. Used by Add files..., by a file
     // dropped on the view, and when a new manifest file's COM components fill the list (FillGridFromManifestFile).
-    Procedure AddFragmentFiles Integer iID String[] sFragmentFiles
+    Procedure AddFragmentFiles Integer iID String[] asFragmentFiles
         Integer i iRows iRetval
 
-        Move (SizeOfArray(sFragmentFiles)) to iRows
+        Move (SizeOfArray(asFragmentFiles)) to iRows
         If (iID = 0 or iRows = 0) Begin
             Procedure_Return
         End
@@ -584,7 +584,7 @@ Object oDbMerger_vw is a cRDCDbView
                 Get GlobalAutoCreateNewID File_Field ManDet.ID False to iRetval
                 Move iRetval to ManDet.ID
                 Move iID to ManDet.ManHdrID
-                Move sFragmentFiles[i] to ManDet.ManifestFragmentFile
+                Move asFragmentFiles[i] to ManDet.ManifestFragmentFile
                 SaveRecord ManDet
             Loop
         Unlock
@@ -594,7 +594,7 @@ Object oDbMerger_vw is a cRDCDbView
 
     // Add files... - on the dashboard, in the Fragments menu and above the list: the fragment files prompt list.
     Procedure DoAddFragmentFiles
-        String[] sFileNames sNewFiles
+        String[] asFileNames asNewFiles
         Integer iID
 
         Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
@@ -602,9 +602,9 @@ Object oDbMerger_vw is a cRDCDbView
             Send Info_Box "Save the manifest first, then add its fragment files."
             Procedure_Return
         End
-        Get SelectedItems to sFileNames
-        Get ActivateFragmentFiles_sl (&sFileNames) to sNewFiles
-        Send AddFragmentFiles iID sNewFiles
+        Get SelectedItems to asFileNames
+        Get ActivateFragmentFiles_sl (&asFileNames) to asNewFiles
+        Send AddFragmentFiles iID asNewFiles
         Send ArmDashboard
     End_Procedure
 
@@ -818,38 +818,38 @@ Object oDbMerger_vw is a cRDCDbView
 
     // A file dropped on the page (oMain_host.OnNavigationStarting): added as a fragment file.
     Procedure AddDroppedFileUrl String sUrl
-        String[] sFiles
+        String[] asFiles
         String sFile
         Get FileUrlToPath sUrl to sFile
-        Move (ParseFileName(sFile)) to sFiles[0]
-        Send AddDroppedFiles sFiles
+        Move (ParseFileName(sFile)) to asFiles[0]
+        Send AddDroppedFiles asFiles
     End_Procedure
 
     // Fragment files dropped on the view: the names, added to the manifest on screen, which must be saved first.
-    Procedure AddDroppedFiles String[] sFiles
+    Procedure AddDroppedFiles String[] asFiles
         Integer iID
         Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
         If (iID = 0) Begin
             Send Stop_Box "You need to select a .manifest file first - or save the new one - and then drop its fragment files on it."
             Procedure_Return
         End
-        Send AddFragmentFiles iID sFiles
+        Send AddFragmentFiles iID asFiles
         Send ArmDashboard
     End_Procedure
 
     // Files dropped on the native view - outside the page, which covers nearly all of it.
     Procedure OnFileDropped String sFilename Boolean bLast
         Integer  iFiles
-        String[] ArrayOfDroppedFiles EmptyArray
+        String[] asDroppedFiles asEmpty
 
-        Get pArrayOfDroppedFiles to ArrayOfDroppedFiles
-        Move (SizeOfArray(ArrayOfDroppedFiles)) to iFiles
-        Move (ParseFileName(sFilename)) to ArrayOfDroppedFiles[iFiles]
+        Get pasDroppedFiles to asDroppedFiles
+        Move (SizeOfArray(asDroppedFiles)) to iFiles
+        Move (ParseFileName(sFilename)) to asDroppedFiles[iFiles]
         If (bLast) Begin
-            Send AddDroppedFiles ArrayOfDroppedFiles
-            Move EmptyArray to ArrayOfDroppedFiles
+            Send AddDroppedFiles asDroppedFiles
+            Move asEmpty to asDroppedFiles
         End
-        Set pArrayOfDroppedFiles to ArrayOfDroppedFiles
+        Set pasDroppedFiles to asDroppedFiles
     End_Procedure
 
     // ---------------------------------------------------------------------------------------------------
@@ -986,11 +986,12 @@ Object oDbMerger_vw is a cRDCDbView
     // The five steps, from what the files say now.
     Function StepsHtml Returns String
         String sManifest sTargetPath sExe sListed sCOM sText sButtons sHtml sCard
-        String[] sGrid sFragments
+        String[] asGrid asFragments
         tManifestCOMFile[] ManifestFiles
         tFileStruct[] COMFiles
-        Integer iID iFragments iListed iInFolder iNext i iPos
-        Boolean bManifest bBuilt bCopied bNext bReady bSource bCompiled
+        Integer iID iFragments iListed iInFolder iNext i iPos eEmbed
+        Boolean bManifest bBuilt bCopied bNext bReady bSource bCompiled bCompressed bEmbedDone
+        String sEmbedState
 
         Get Field_Current_Value of oManHdr_DD Field ManHdr.ID to iID
         // The manifest file's name, set only while the file exists (SetApplicationStrings).
@@ -1000,13 +1001,13 @@ Object oDbMerger_vw is a cRDCDbView
         Move (sManifest <> "") to bManifest
 
         // The fragment files in the list - a new, empty row left out.
-        Get SelectedItems to sGrid
-        For i from 0 to (SizeOfArray(sGrid) - 1)
-            If (Trim(sGrid[i]) <> "") Begin
-                Move (Trim(sGrid[i])) to sFragments[SizeOfArray(sFragments)]
+        Get SelectedItems to asGrid
+        For i from 0 to (SizeOfArray(asGrid) - 1)
+            If (Trim(asGrid[i]) <> "") Begin
+                Move (Trim(asGrid[i])) to asFragments[SizeOfArray(asFragments)]
             End
         Loop
-        Move (SizeOfArray(sFragments)) to iFragments
+        Move (SizeOfArray(asFragments)) to iFragments
 
         // Which of their COM files the manifest file lists, and which are in the program's folder.
         If (bManifest and iFragments > 0) Begin
@@ -1015,7 +1016,7 @@ Object oDbMerger_vw is a cRDCDbView
             For i from 0 to (SizeOfArray(ManifestFiles) - 1)
                 Move (sListed + ManifestFiles[i].sFileName + "|") to sListed
             Loop
-            Get SelectedCOMComponents of ghoManifestFunctionLibrary (&sFragments) to COMFiles
+            Get SelectedCOMComponents of ghoManifestFunctionLibrary (&asFragments) to COMFiles
             For i from 0 to (SizeOfArray(COMFiles) - 1)
                 // The name as the manifest lists it: without a folder, in lowercase (ManifestCOMFiles).
                 Move (Lowercase(Trim(COMFiles[i].sFileNameSecondCol))) to sCOM
@@ -1111,10 +1112,45 @@ Object oDbMerger_vw is a cRDCDbView
         Get StepCardHtml 3 "Copy COM files" (StepStateText(Self, bCopied, bNext)) sText sButtons bCopied bNext False to sCard
         Move (sHtml + sCard) to sHtml
 
-        // 4 Embed, compress - optional
-        Move (DashButtonHtml(Self, "embed", "", "Embed", "Embed the manifest file in the program (Ctrl+E)", bManifest, False)) to sButtons
+        /* 4 Embed, compress - optional. What the program file has embedded, read from the file (Nils 2026-11-19: it
+           was never shown). A program with a manifest of its own is run with that one - Windows does not read the
+           manifest file then - so one that differs from the manifest file is the one to act on: Embed again, with
+           the next-step frame, and said in words. */
+        Move "Optional" to sEmbedState
+        Move "Puts it in the .exe, then shrinks it." to sText
+        Move False to bEmbedDone
+        Move False to bNext
+        Move CI_EmbedUnknown to eEmbed
+        Move False to bCompressed
+        If (bManifest and (sExe <> "")) Begin
+            Get EmbeddedManifestState of ghoManifestFunctionLibrary (vFolderFormat(psExeFilePath(ghoManifestFunctionLibrary)) + sExe) (vFolderFormat(sTargetPath) + sManifest) (&bCompressed) to eEmbed
+        End
+        Case Begin
+            Case (eEmbed = CI_EmbedNone)
+                Move "Not embedded: the program reads the manifest file." to sText
+                Case Break
+            Case (eEmbed = CI_EmbedBasic)
+                Move "Embedded, but without COM files: the program does not read the manifest file. Embed it." to sText
+                Move "Embed again" to sEmbedState
+                Move True to bNext
+                Case Break
+            Case (eEmbed = CI_EmbedSame)
+                Move "Embedded, the same as the manifest file." to sText
+                Move "Embedded" to sEmbedState
+                Move True to bEmbedDone
+                Case Break
+            Case (eEmbed = CI_EmbedDiffers)
+                Move "Embedded, but not the same as the manifest file - the program uses the embedded one. Embed again." to sText
+                Move "Embed again" to sEmbedState
+                Move True to bNext
+                Case Break
+        Case End
+        If (bCompressed) Begin
+            Move (sText * "Compressed.") to sText
+        End
+        Move (DashButtonHtml(Self, "embed", "", "Embed", "Embed the manifest file in the program (Ctrl+E)", bManifest, bNext)) to sButtons
         Move (sButtons + DashButtonHtml(Self, "compress", "", "Compress", "Compress the program file", bManifest, False)) to sButtons
-        Get StepCardHtml 4 "Embed, compress" "Optional" "Puts it in the .exe, then shrinks it." sButtons False False True to sCard
+        Get StepCardHtml 4 "Embed, compress" sEmbedState sText sButtons bEmbedDone bNext True to sCard
         Move (sHtml + sCard) to sHtml
 
         // 5 Test run - Ready once the copy is done: the amber frame, as a next step has it. Compile when the program
@@ -1215,14 +1251,14 @@ Object oDbMerger_vw is a cRDCDbView
     // Draws the dashboard: all of it (CI_DashAll), or the selected row's panel (CI_DashRow).
     Procedure UpdateDashboard Integer iWhat
         String sHtml
-        String[] sLibraryFiles sFragments
+        String[] asLibraryFiles asFragments
         If (iWhat = CI_DashAll) Begin
             Send LoadFragmentsForManifest
             Send ShowRecordDates
-            Get SelectedItems to sFragments
-            Send SetFragmentsCaption (SizeOfArray(sFragments))
-            Get AllManifestFragmentFiles of ghoManifestFunctionLibrary to sLibraryFiles
-            Set piLibraryFiles to (SizeOfArray(sLibraryFiles))
+            Get SelectedItems to asFragments
+            Send SetFragmentsCaption (SizeOfArray(asFragments))
+            Get AllManifestFragmentFiles of ghoManifestFunctionLibrary to asLibraryFiles
+            Set piLibraryFiles to (SizeOfArray(asLibraryFiles))
             Get StepsHtml to sHtml
             Send UpdateHtml of oSteps_box sHtml
         End
@@ -1314,16 +1350,16 @@ Object oDbMerger_vw is a cRDCDbView
 
     Procedure DoPreBuildManifestFile
         String sFileName
-        String[] sFilesArray
+        String[] asFilesArray
         Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFileName
-        Get SelectedItems to sFilesArray
-        Send BuildManifestFile of ghoManifestFunctionLibrary sFileName sFilesArray
+        Get SelectedItems to asFilesArray
+        Send BuildManifestFile of ghoManifestFunctionLibrary sFileName asFilesArray
     End_Procedure
 
     Procedure DoPreCopyCOMComponents
-        String[] sSelectedFileNames
-        Get SelectedItems to sSelectedFileNames
-        Send CopyCOMComponents of ghoManifestFunctionLibrary sSelectedFileNames
+        String[] asSelectedFileNames
+        Get SelectedItems to asSelectedFileNames
+        Send CopyCOMComponents of ghoManifestFunctionLibrary asSelectedFileNames
     End_Procedure
 
     // Compile - the Test run step's button, the Manifest menu and Ctrl+F9: the program, by the DataFlex version its
@@ -1334,9 +1370,9 @@ Object oDbMerger_vw is a cRDCDbView
     End_Procedure
 
     Procedure DoPreRunProgram
-        String[] sSelectedFileNames
-        Get SelectedItems to sSelectedFileNames
-        Send Runprogram of ghoManifestFunctionLibrary sSelectedFileNames
+        String[] asSelectedFileNames
+        Get SelectedItems to asSelectedFileNames
+        Send Runprogram of ghoManifestFunctionLibrary asSelectedFileNames
     End_Procedure
 
     // Check to see if we should "auto-find" a record when the view is activated - the program started with a
@@ -1358,16 +1394,16 @@ Object oDbMerger_vw is a cRDCDbView
     // describe them (FragmentFilesForManifest), so they need not be picked one by one. The header record is saved
     // first, as a detail row needs its ID; the user is asked before anything is saved.
     Procedure FillGridFromManifestFile String sPath String sManifestFile
-        String[] sFragments sMissing
+        String[] asFragments asMissing
         String sText sList
         Integer i iFound iMissing iRetval iID
         Boolean bHasRecord
 
         Send Cursor_Wait of Cursor_Control
-        Get FragmentFilesForManifest of ghoManifestFunctionLibrary (vFolderFormat(sPath) + sManifestFile) (&sMissing) to sFragments
+        Get FragmentFilesForManifest of ghoManifestFunctionLibrary (vFolderFormat(sPath) + sManifestFile) (&asMissing) to asFragments
         Send Cursor_Ready of Cursor_Control
-        Move (SizeOfArray(sFragments)) to iFound
-        Move (SizeOfArray(sMissing))   to iMissing
+        Move (SizeOfArray(asFragments)) to iFound
+        Move (SizeOfArray(asMissing))   to iMissing
         // No COM component in it: nothing to offer.
         If ((iFound + iMissing) = 0) Begin
             Procedure_Return
@@ -1377,7 +1413,7 @@ Object oDbMerger_vw is a cRDCDbView
         Move "" to sList
         For i from 0 to (iMissing - 1)
             If (i < 15) Begin
-                Move (sList + "\n   " + sMissing[i]) to sList
+                Move (sList + "\n   " + asMissing[i]) to sList
             End
         Loop
         If (iMissing > 15) Begin
@@ -1391,7 +1427,7 @@ Object oDbMerger_vw is a cRDCDbView
         Move ("The manifest file lists" * String(iFound + iMissing) * "COM components. Fragment files were found in your local 'Manifest Fragment Library' for" * String(iFound) * "of them:") to sText
         For i from 0 to (iFound - 1)
             If (i < 15) Begin
-                Move (sText + "\n   " + sFragments[i]) to sText
+                Move (sText + "\n   " + asFragments[i]) to sText
             End
         Loop
         If (iFound > 15) Begin
@@ -1416,7 +1452,7 @@ Object oDbMerger_vw is a cRDCDbView
             Send Info_Box "The manifest record could not be saved, so the grid was not filled."
             Procedure_Return
         End
-        Send AddFragmentFiles iID sFragments
+        Send AddFragmentFiles iID asFragments
     End_Procedure
 
     // The program's shortcuts with the focus on the view itself (the page has the same ones).

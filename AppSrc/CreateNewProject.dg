@@ -338,7 +338,7 @@ Object oCreateNewProject_Dg is a cDbModalPanelWizard
                     Set pbMultiLine to True
 
                     Procedure Prompt
-                        String[] sFileNames sRetvalsArray
+                        String[] asFileNames asRetvals
                         Integer i iRows iID iRetval
                         tDataSourceRow[] TheData
 
@@ -347,15 +347,15 @@ Object oCreateNewProject_Dg is a cDbModalPanelWizard
                             Procedure_Return
 
                         // Get the current grid fragment files
-                        Get SelectedItems to sFileNames
+                        Get SelectedItems to asFileNames
                         // Popup the selection list!
-                        Get ActivateFragmentFiles_sl (&sFileNames) to sRetvalsArray
+                        Get ActivateFragmentFiles_sl (&asFileNames) to asRetvals
                         // Get the selection from the popup list and add them to the grid:
-                        Move (SizeOfArray(sRetvalsArray)) to iRows
+                        Move (SizeOfArray(asRetvals)) to iRows
                         If (iRows = 0) ;
                             Procedure_Return
 
-                        // Create new records from the returned sRetvalsArray values
+                        // Create new records from the returned asRetvals values
                         Decrement iRows
                         Lock
                             For i from 0 to iRows
@@ -363,7 +363,7 @@ Object oCreateNewProject_Dg is a cDbModalPanelWizard
                                 Get GlobalAutoCreateNewID File_Field ManDet.ID False to iRetval
                                 Move iRetval to ManDet.ID
                                 Move iID to ManDet.ManHdrID
-                                Move sRetvalsArray[i] to ManDet.ManifestFragmentFile
+                                Move asRetvals[i] to ManDet.ManifestFragmentFile
                                 SaveRecord ManDet
                             Loop
                         Unlock
@@ -462,7 +462,7 @@ Object oCreateNewProject_Dg is a cDbModalPanelWizard
                     Integer i iRows iFileName_Col
                     Handle hoDataSource
                     tDataSourceRow[] TheData
-                    String[] sFilesArray
+                    String[] asFiles
                     String sFileName
 
                     Get phoDataSource              to hoDataSource
@@ -472,10 +472,10 @@ Object oCreateNewProject_Dg is a cDbModalPanelWizard
                     Decrement iRows
                     For i from 0 to iRows
                         Move TheData[i].sValue[iFileName_Col] to sFileName
-                        Move sFileName to sFilesArray[i]
+                        Move sFileName to asFiles[i]
                     Loop
 
-                    Function_Return sFilesArray
+                    Function_Return asFiles
                 End_Function
 
                 // Opens the current pointed to file name in an editor
@@ -736,10 +736,10 @@ Object oCreateNewProject_Dg is a cDbModalPanelWizard
                 Set peAnchors to anTopRight
                 Procedure OnClick
                     String sFileName
-                    String[] sFilesArray
+                    String[] asFiles
                     Get Field_Current_Value of oManHdr_DD Field ManHdr.ManifestFileName to sFileName
-                    Get SelectedItems of oWizardManifest_grid to sFilesArray
-                    Send BuildManifestFile of ghoManifestFunctionLibrary sFileName sFilesArray
+                    Get SelectedItems of oWizardManifest_grid to asFiles
+                    Send BuildManifestFile of ghoManifestFunctionLibrary sFileName asFiles
                     Set Enabled_State of oViewManifestFile_btn to True
                 End_Procedure
             End_Object
@@ -804,9 +804,9 @@ Object oCreateNewProject_Dg is a cDbModalPanelWizard
 //                Set psToolTip to "Displays a dialog that checks if the selected fragment files COM (OCX/DLL) components exists - and helps copy them to the program folder."
 //                Set peAnchors to anNone
 //                Procedure OnClick
-//                    String[] sSelectedFileNames
-//                    Get SelectedItems of oWizardManifest_grid to sSelectedFileNames
-//                    Send CopyCOMComponents of ghoManifestFunctionLibrary sSelectedFileNames
+//                    String[] asSelectedFileNames
+//                    Get SelectedItems of oWizardManifest_grid to asSelectedFileNames
+//                    Send CopyCOMComponents of ghoManifestFunctionLibrary asSelectedFileNames
 //                    Set Enabled_State of oRunApp_btn to True
 //                End_Procedure
 //            End_Object
@@ -818,9 +818,9 @@ Object oCreateNewProject_Dg is a cDbModalPanelWizard
                 Set psToolTip to "Runs the program associated with the manifest file"
                 Set peAnchors to anNone
                 Procedure OnClick
-                    String[] sSelectedFileNames
-                    Get SelectedItems of oWizardManifest_grid to sSelectedFileNames
-                    Send RunProgram of ghoManifestFunctionLibrary sSelectedFileNames
+                    String[] asSelectedFileNames
+                    Get SelectedItems of oWizardManifest_grid to asSelectedFileNames
+                    Send RunProgram of ghoManifestFunctionLibrary asSelectedFileNames
                 End_Procedure
             End_Object
 

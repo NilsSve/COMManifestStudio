@@ -286,7 +286,7 @@ Class cManifestCheckboxCJGrid is a cRDCCJGrid
         Boolean bChecked
         Handle hoDataSource
         tDataSourceRow[] TheData
-        String[] sFilesArray
+        String[] asFiles
 
         Get piCheckboxCol              to iCheckbox_Col
         Get phoDataSource              to hoDataSource
@@ -332,7 +332,7 @@ Class cManifestCheckboxCJGrid is a cRDCCJGrid
         Integer[] SelRows
         Integer i iItems iSize iCheckboxCol iFileNameFirstCol iFileNameSecondCol iFileNameCol iPos
         String sFileName
-        String[] sFilesArray
+        String[] asFiles
         Handle hoDataSource
         tDataSourceRow[] TheData
         Boolean bChecked
@@ -352,18 +352,18 @@ Class cManifestCheckboxCJGrid is a cRDCCJGrid
         For i from 0 to iItems
             Move TheData[i].sValue[iCheckboxCol] to bChecked
             If (bChecked = True) Begin
-                Move (SizeOfArray(sFilesArray)) to iSize
+                Move (SizeOfArray(asFiles)) to iSize
                 Move TheData[i].sValue[iFileNameCol] to sFileName
                 // If this is a dependency file - remove the manifest fragment filename:
                 If (sFileName contains "(" and sFileName contains ")") Begin
                     Move (Pos("(", sFileName)) to iPos
                     Move (Left(sFileName, (iPos -2))) to sFileName
                 End
-                Move sFileName to sFilesArray[iSize]
+                Move sFileName to asFiles[iSize]
             End
         Loop
 
-        Function_Return sFilesArray
+        Function_Return asFiles
     End_Function
 
     // Returns the number of items that has been selected.

@@ -81,7 +81,7 @@ Object oCheckManifests_dg is a cRDCModalPanel
         Procedure DoFillGrid
             Integer i iFiles iCheckbox_Col iFileNameFirst_Col iFileNameSecond_Col
             String sFileName
-            String[] sFilesArray
+            String[] asFiles
             tFileStruct[] TypeLibsArray FilesStructArray
             Handle hoDataSource hoCol
             tDataSourceRow[] TheData
@@ -94,8 +94,8 @@ Object oCheckManifests_dg is a cRDCModalPanel
             Get piFileNameFirstCol           to iFileNameFirst_Col
             Get piFileNameSecondCol          to iFileNameSecond_Col
             Get psFilesStructArray           to FilesStructArray
-            Get FileStructArrayAsStringArray of ghoManifestFunctionLibrary FilesStructArray True to sFilesArray
-            Get DuplicateTypeLibs            of ghoManifestFunctionLibrary (&sFilesArray) to TypeLibsArray
+            Get FileStructArrayAsStringArray of ghoManifestFunctionLibrary FilesStructArray True to asFiles
+            Get DuplicateTypeLibs            of ghoManifestFunctionLibrary (&asFiles) to TypeLibsArray
 
             Move (SizeOfArray(TypeLibsArray)) to iFiles
             Decrement iFiles
@@ -123,7 +123,7 @@ Object oCheckManifests_dg is a cRDCModalPanel
         Function SelectedItems Boolean bFileNameFirstCol Returns String[]
             Integer[] SelRows
             Integer i iItems iSize iCheckboxCol iFileNameFirstCol iFileNameSecondCol iFileNameCol
-            String[] sFilesArray
+            String[] asFiles
             Handle hoDataSource
             tDataSourceRow[] TheData
             Boolean bChecked
@@ -143,12 +143,12 @@ Object oCheckManifests_dg is a cRDCModalPanel
             For i from 0 to iItems
                 Move TheData[i].sValue[iCheckboxCol] to bChecked
                 If (bChecked = False) Begin
-                    Move (SizeOfArray(sFilesArray)) to iSize
-                    Move TheData[i].sValue[iFileNameCol] to sFilesArray[iSize]
+                    Move (SizeOfArray(asFiles)) to iSize
+                    Move TheData[i].sValue[iFileNameCol] to asFiles[iSize]
                 End
             Loop
 
-            Function_Return sFilesArray
+            Function_Return asFiles
         End_Function
 
         On_Key kEnter Send KeyAction of oOK_Btn
@@ -173,20 +173,20 @@ Object oCheckManifests_dg is a cRDCModalPanel
         Set Default_State to True
 
         Procedure OnClick
-            String[] sFilesArray sDuplicatesArray
+            String[] asFiles asDuplicates
             Integer iFiles
             tFileStruct[] FilesStructArray
 
             Get psFilesStructArray of oManifestDups_grid to FilesStructArray
-            Get FileStructArrayAsStringArray of ghoManifestFunctionLibrary FilesStructArray True to sFilesArray
-            Get SelectedItems of oManifestDups_grid True to sDuplicatesArray
+            Get FileStructArrayAsStringArray of ghoManifestFunctionLibrary FilesStructArray True to asFiles
+            Get SelectedItems of oManifestDups_grid True to asDuplicates
 
-            Move (SizeOfArray(sDuplicatesArray)) to iFiles
+            Move (SizeOfArray(asDuplicates)) to iFiles
             If (iFiles = 0) Begin
                 Send Info_Box "You must select the files with the correct type libs. Cannot continue."
                 Procedure_Return
             End
-            Send CreateAppManifestFile of ghoManifestFunctionLibrary (&sFilesArray) (&sDuplicatesArray)
+            Send CreateAppManifestFile of ghoManifestFunctionLibrary (&asFiles) (&asDuplicates)
             Send Close_Panel
         End_Procedure
 
@@ -235,7 +235,7 @@ Object oCheckManifests_dg is a cRDCModalPanel
     End_Object
 
     Procedure Activate_Dialog tFileStruct[] FilesStructArray
-        String[] sFilesArray
+        String[] asFiles
         Set psFilesStructArray of oManifestDups_grid to FilesStructArray
         Send Popup
     End_Procedure
@@ -251,14 +251,14 @@ End_Object
 
 // Public access method to this dialog
 // Pass an array with the files that should appear in the grid.
-Procedure Activate_oCheckManifests String[] sFilesArray
+Procedure Activate_oCheckManifests String[] asFiles
     Integer iSize
     tFileStruct[] FilesStructArray
-    Move (SizeOfArray(sFilesArray)) to iSize
+    Move (SizeOfArray(asFiles)) to iSize
     If (iSize = 0) Begin
         Send Info_Box "No files selected. Please try again."
         Procedure_Return
     End
-    Get StringArrayToFileStructArray of ghoManifestFunctionLibrary sFilesArray to FilesStructArray
+    Get StringArrayToFileStructArray of ghoManifestFunctionLibrary asFiles to FilesStructArray
     Send Activate_Dialog of oCheckManifests_dg FilesStructArray
 End_Procedure

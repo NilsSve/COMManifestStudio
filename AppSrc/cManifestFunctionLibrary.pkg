@@ -154,6 +154,32 @@ Use RDCRunProgram.pkg          // RDCShellExecuteEx, RDC_SEE_MASK_NOCLOSEPROCESS
     External_Function GetWindowThreadProcessIdEf "GetWindowThreadProcessId" user32.dll Handle hWnd Pointer lpdwProcessId Returns Integer
 #ENDIF
 
+// A program file's resources, read without running it: LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE.
+#IFNDEF get_CMS_LoadLibraryExW
+    External_Function CMS_LoadLibraryExW "LoadLibraryExW" Kernel32.dll WString sFile Handle hFile DWord dwFlags Returns Handle
+#ENDIF
+// A file's size and times without opening it - so also of a program that is running (GetFileExInfoStandard, 0).
+#IFNDEF _struct_tCMSFileAttributeData
+    Struct tCMSFileAttributeData
+        DWord dwFileAttributes
+        DWord dwCreationLow
+        DWord dwCreationHigh
+        DWord dwLastAccessLow
+        DWord dwLastAccessHigh
+        DWord dwLastWriteLow
+        DWord dwLastWriteHigh
+        DWord dwSizeHigh
+        DWord dwSizeLow
+    End_Struct
+#ENDIF
+#IFNDEF get_CMS_GetFileAttributesExW
+    External_Function CMS_GetFileAttributesExW "GetFileAttributesExW" Kernel32.dll WString sFile Integer iInfoLevel Pointer pData Returns Integer
+#ENDIF
+// FindResourceW with a resource number and a type number (MAKEINTRESOURCE): RT_MANIFEST is 24, the program's own is 1.
+#IFNDEF get_CMS_FindResourceNumW
+    External_Function CMS_FindResourceNumW "FindResourceW" Kernel32.dll Handle hModule Pointer pName Pointer pType Returns Handle
+#ENDIF
+
 #IFNDEF get_Win32AllocConsole
     External_Function Win32AllocConsole "AllocConsole" Kernel32.dll Returns Integer
 #ENDIF
@@ -271,6 +297,10 @@ Class cManifestFunctionLibrary is a cObject
         Property String psTargetPath
         Property String psExeFilePath
         Property String psExeFileName
+        // EmbeddedManifestState's last answer, and the two files' size and time it holds for.
+        Property String  psEmbedStateKey ""
+        Property Integer piEmbedState 0
+        Property Boolean pbEmbedCompressed False
         Property Boolean pbApplicationStringsOk False
         // The files of the global Manifest Fragment Library on GitHub, as last listed by
         // CheckForNewManifestFragmentFiles. DownloadNewFiles finds each file's address here.
@@ -389,7 +419,7 @@ Class cManifestFunctionLibrary is a cObject
     // standard manifest fragment library path of this workspace.
     // Note: The ini-file must reside in the Home folder.
     Function AllManifestFragmentFiles Returns String[]
-        String[] sFilesArray
+        String[] asFiles
         tsSearchResult[] SearchFileArray
         Handle ho
         String sManifestFolder sHome sFiles
@@ -409,29 +439,29 @@ Class cManifestFunctionLibrary is a cObject
         Move (SizeOfArray(SearchFileArray)) to iItems
         Decrement iItems
         For i from 0 to iItems
-            Move SearchFileArray[i].sFilename to sFilesArray[i]
+            Move SearchFileArray[i].sFilename to asFiles[i]
         Loop
         Send Destroy of ho
 
-        Function_Return sFilesArray
+        Function_Return asFiles
     End_Function
 
     // Reads all TypeLib declarations from the Manifest library folder.
     // Pass a string array with all manifest fragment files to search
     // Returns an struct array with the filenames and typelib values
-    Function AllTypeLibsAsArray String[] ByRef sFilesArray Returns tFileStruct[]
+    Function AllTypeLibsAsArray String[] ByRef asFiles Returns tFileStruct[]
         String sFileName sValue sManifestFragmentLibrary
         Integer i iFiles iItem iCh
         tFileStruct[] AllTypeLibIdsArray
 
-        Move (SizeOfArray(sFilesArray)) to iFiles
+        Move (SizeOfArray(asFiles)) to iFiles
         Decrement iFiles
         Move 0 to iItem
         Get psManifestFragmentLibrary to sManifestFragmentLibrary
         Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
 
         For i from 0 to iFiles
-            Move sFilesArray[i] to sFileName
+            Move asFiles[i] to sFileName
             Get Seq_Open_Input_Channel (sManifestFragmentLibrary - sFileName) to iCh
 
             If (iCh > 0) Begin
@@ -468,8 +498,8 @@ Class cManifestFunctionLibrary is a cObject
         Get vRenameFile (sPath + sFileName) (sPath + sFile + "-" + sDateTimeStamp + "." + sExt) to iRetval
     End_Procedure
 
-    Procedure BuildManifestFile String sFileName String[] sFilesArray
-        String[] sDuplicatesArray
+    Procedure BuildManifestFile String sFileName String[] asFiles
+        String[] asDuplicates
         Integer iDuplicates iSize
         Boolean bApplicationStringsOk bExists
 
@@ -483,23 +513,23 @@ Class cManifestFunctionLibrary is a cObject
             Procedure_Return
         End
 
-        Move (SizeOfArray(sFilesArray)) to iSize
+        Move (SizeOfArray(asFiles)) to iSize
         If (iSize = 0) Begin
             Send Info_Box "No files selected. Please try again."
             Procedure_Return
         End
-        Get CheckLocalManifestFragmentFiles (&sFilesArray) to bExists
+        Get CheckLocalManifestFragmentFiles (&asFiles) to bExists
         If (bExists = False) Begin
             Send Info_Box "Not all selected Manifest Fragment files exists in your local Manifest Fragment Library. Those files missing are marked with red in the grid.\n\nYou could try to press the 'Download New Fragment Files' button to download the missing file(s) from the global library on GitHub."
             Procedure_Return
         End
 
-        Get CheckForDuplicateTypeLibs (&sFilesArray) to iDuplicates
+        Get CheckForDuplicateTypeLibs (&asFiles) to iDuplicates
 //        If (iDuplicates > 0) Begin
-//            Send Activate_oCheckManifests of (Client_Id(ghoCommandBars)) sFilesArray
+//            Send Activate_oCheckManifests of (Client_Id(ghoCommandBars)) asFiles
 //        End
 //        Else Begin
-            Send CreateAppManifestFile (&sFilesArray) (&sDuplicatesArray)
+            Send CreateAppManifestFile (&asFiles) (&asDuplicates)
 //        End
     End_Procedure
 
@@ -512,15 +542,15 @@ Class cManifestFunctionLibrary is a cObject
     //      //#=dynapdf.dll
     // This info tells the program to also copy those components to an applications program folder
     // when the "Copy COM Components" is triggered.
-    Function CheckForDependecies String[] sFragmentFiles Returns tFileStruct[]
+    Function CheckForDependecies String[] asFragmentFiles Returns tFileStruct[]
         tFileStruct[] sComponentFilesArray sDependencyFilesArray
         Integer iItems i iDependecyItems j iSize
         String sFragmentFileName
 
-        Move (SizeOfArray(sFragmentFiles)) to iItems
+        Move (SizeOfArray(asFragmentFiles)) to iItems
         Decrement iItems
         For i from 0 to iItems
-            Move sFragmentFiles[i] to sFragmentFileName
+            Move asFragmentFiles[i] to sFragmentFileName
             Get IsCOMDependencies sFragmentFileName to sDependencyFilesArray
             Move (SizeOfArray(sDependencyFilesArray)) to iDependecyItems
             // If there are dependency files we need to loop through them and
@@ -540,10 +570,10 @@ Class cManifestFunctionLibrary is a cObject
     End_Function
 
     // Returns the number of typelib declarations
-    Function CheckForDuplicateTypeLibs String[] ByRef sFilesArray Returns Integer
+    Function CheckForDuplicateTypeLibs String[] ByRef asFiles Returns Integer
         Integer iRetval
         tFileStruct[] DuplicateLibIdsArray
-        Get DuplicateTypeLibs (&sFilesArray) to DuplicateLibIdsArray
+        Get DuplicateTypeLibs (&asFiles) to DuplicateLibIdsArray
         Move (SizeOfArray(DuplicateLibIdsArray)) to iRetval
         Function_Return iRetval
     End_Function
@@ -808,7 +838,7 @@ Class cManifestFunctionLibrary is a cObject
     Function COMComponentRegistration String sCOMComponentPath String sCOMComponentFileName String ByRef sRegisteredTo Returns Integer
         Integer iRetval i iItems
         String sProgramsPath sCLSID sPath sOther
-        String[]   sCLSIDArray
+        String[]   asCLSID
         tSxSInfo[] sCLSIDArraystruct
         Boolean bOk
 
@@ -822,11 +852,11 @@ Class cManifestFunctionLibrary is a cObject
         Get vFolderFormat sProgramsPath to sProgramsPath
 
         // Execute command:
-        Get ExternalProgramResult of ghoExternalProgramResult ('"' + sProgramsPath + CS_CLSExportExe + '"') ('"' + sCOMComponentPath + sCOMComponentFileName + '"') sProgramsPath (&sCLSIDArray) to iRetval
+        Get ExternalProgramResult of ghoExternalProgramResult ('"' + sProgramsPath + CS_CLSExportExe + '"') ('"' + sCOMComponentPath + sCOMComponentFileName + '"') sProgramsPath (&asCLSID) to iRetval
 
         // Was the ExternalProgramResult call successful?
         If (iRetval > 0) Begin
-            Get ConvertFromCLSIDArrayToStruct sCLSIDArray to sCLSIDArraystruct
+            Get ConvertFromCLSIDArrayToStruct asCLSID to sCLSIDArraystruct
             Move (SizeOfArray(sCLSIDArraystruct)) to iItems
             // Loop through the screen dump looking for CLSID's. One class registered to this file is enough.
             For i from 0 to (iItems - 1)
@@ -889,15 +919,15 @@ Class cManifestFunctionLibrary is a cObject
     End_Procedure
 
     // Helper function that returns True if duplicate typelibs exists for the passed sFileName.
-    Function CheckIfDuplicateTypeLib String sFileName String[] ByRef sDuplicatesArray Returns Boolean
+    Function CheckIfDuplicateTypeLib String sFileName String[] ByRef asDuplicates Returns Boolean
         Boolean bSkipLine
         Integer i iItems
         String sDupFileName
 
-        Move (SizeOfArray(sDuplicatesArray)) to iItems
+        Move (SizeOfArray(asDuplicates)) to iItems
         Decrement iItems
         For i from 0 to iItems
-            Move sDuplicatesArray[i] to sDupFileName
+            Move asDuplicates[i] to sDupFileName
             If (Trim(sFileName) = Trim(sDupFileName)) Begin
                 Move True to bSkipLine
                 Move iItems to i // And we are out of here.
@@ -909,17 +939,17 @@ Class cManifestFunctionLibrary is a cObject
 
     // Function takes an array with fragment files
     // Returns: True if all files in the array exists in the Manifest Fragment Library.
-    Function CheckLocalManifestFragmentFiles String[] ByRef sFilesArray Returns Boolean
+    Function CheckLocalManifestFragmentFiles String[] ByRef asFiles Returns Boolean
         Boolean bExists
         Integer i iItems
         String sFileName sManifestFragmentLibrary
 
         Get psManifestFragmentLibrary to sManifestFragmentLibrary
         Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
-        Move (SizeOfArray(sFilesArray)) to iItems
+        Move (SizeOfArray(asFiles)) to iItems
         Decrement iItems
         For i from 0 to iItems
-            Move sFilesArray[i] to sFileName
+            Move asFiles[i] to sFileName
             Get vFilePathExists (sManifestFragmentLibrary + sFileName) to bExists
             If (bExists = False) Begin
                 Move iItems to i // End loop
@@ -955,38 +985,23 @@ Class cManifestFunctionLibrary is a cObject
         Function_Return (EQ)
     End_Function
 
-    // Compresses a program (.exe file) with the help of the UpxCompress.exe program.
-    // If successful it displays how much the .exe was compressed in %.
-    Procedure CompressExeFile
-        String sPath sProgram sProgramPath sPreSize sPostSize sOutput sValue
-        String[] sOutputArray
-        Boolean bExists
+    // One run of UpxCompress.exe on sFile, with sOptions ("" or "--force") before the file name: its exit code, and
+    // its output - tidied up for a message box - in sOutput.
+    Function RunExeCompressor String sProgramPath String sFile String sOptions String ByRef sOutput Returns Integer
+        String sValue sParams
+        String[] asOutput
         Integer iRetval i iItems
-        Number nPreSize nPostSize
 
-        Get psProgramPath of (phoWorkspace(ghoApplication)) to sProgramPath
-        Get vFolderFormat sProgramPath to sProgramPath
-        Get vFilePathExists (sProgramPath + CS_CompressExeProgram) to bExists
-        If (bExists = False) Begin
-            Send Info_Box ("The Exe file compress program does not exist in the Programs folder. Process stopped. (" + CS_CompressExeProgram + ")")
+        Move ('"' + sFile + '"') to sParams
+        If (sOptions <> "") Begin
+            Move (sOptions * sParams) to sParams
         End
-
-        Send Cursor_Wait of Cursor_Control
-
-        Get psExeFilePath to sPath
-        Get vFolderFormat sPath to sPath
-        Get psExeFileName to sProgram
-        Get vWin32_APIFileSize (sPath + sProgram)  to nPreSize
-        
-        // Convert bytes to MB.
-        Move (nPreSize/1024/1024) to nPreSize
-        Get NumberToString nPreSize 2 to sPreSize
-
-        Get ExternalProgramResult of ghoExternalProgramResult CS_CompressExeProgram ('"' + sPath + sProgram + '"') sProgramPath (&sOutputArray) to iRetval
-        Move (SizeOfArray(sOutputArray)) to iItems
+        Get ExternalProgramResult of ghoExternalProgramResult CS_CompressExeProgram sParams sProgramPath (&asOutput) to iRetval
+        Move "" to sOutput
+        Move (SizeOfArray(asOutput)) to iItems
         Decrement iItems
         For i from 0 to iItems
-            Move sOutputArray[i] to sValue
+            Move asOutput[i] to sValue
             If (sValue contains CS_CompressionLines) Begin
                 Move (sOutput + "\n" + sValue + "\n") to sOutput
             End
@@ -1001,14 +1016,72 @@ Class cManifestFunctionLibrary is a cObject
             End
         Loop
         Move (Trim(sOutput)) to sOutput
+        Function_Return iRetval
+    End_Function
 
+    // Compresses a program (.exe file) with the help of the UpxCompress.exe program.
+    // If successful it displays how much the .exe was compressed in %.
+    //
+    // CONTROL FLOW GUARD (2026-11-19). DataFlex 26 is the first version that builds its programs with Control Flow
+    // Guard (the GUARD_CF flag; DataFlex 17.1 to 25.0 never set it), and UPX does not pack such a program: "GUARD_CF
+    // enabled PE files are not supported (use --force to disable)". With --force it packs it and removes the flag,
+    // as its unpacking code is not built for Control Flow Guard. So the user is told what that means and asked,
+    // "No" the default, and only then is it run again with --force (Nils 2026-11-19).
+    Procedure CompressExeFile
+        String sPath sProgram sProgramPath sPreSize sPostSize sOutput sQuestion
+        Boolean bExists bGuardRemoved
+        Integer iRetval iAnswer
+        Number nPreSize nPostSize
+
+        Get psProgramPath of (phoWorkspace(ghoApplication)) to sProgramPath
+        Get vFolderFormat sProgramPath to sProgramPath
+        Get vFilePathExists (sProgramPath + CS_CompressExeProgram) to bExists
+        If (bExists = False) Begin
+            Send Info_Box ("The Exe file compress program does not exist in the Programs folder. Process stopped. (" + CS_CompressExeProgram + ")")
+            Procedure_Return
+        End
+
+        Get psExeFilePath to sPath
+        Get vFolderFormat sPath to sPath
+        Get psExeFileName to sProgram
+        Get vWin32_APIFileSize (sPath + sProgram)  to nPreSize
+
+        // Convert bytes to MB.
+        Move (nPreSize/1024/1024) to nPreSize
+        Get NumberToString nPreSize 2 to sPreSize
+
+        Move False to bGuardRemoved
+        Send Cursor_Wait of Cursor_Control
+        Get RunExeCompressor sProgramPath (sPath + sProgram) "" (&sOutput) to iRetval
         Send Cursor_Ready of Cursor_Control
+
+        If ((iRetval <> 0) and (Uppercase(sOutput) contains "GUARD_CF")) Begin
+            Move ("The program cannot be compressed as it is. DataFlex 26 builds its programs with Control Flow Guard (the GUARD_CF flag), and " + CS_CompressExeProgram + " cannot compress a program that has it.") to sQuestion
+            Move (sQuestion + "\n\nControl Flow Guard is a Windows protection: it makes it much harder for an attacker to take over the running program through a flaw in its code, or in a DLL or COM component it loads.") to sQuestion
+            Move (sQuestion + "\n\nThe program can be compressed all the same, but Control Flow Guard is then REMOVED from it. It works as before, but without that protection. Programs built with DataFlex 25 and earlier never had it. Virus scanners also flag compressed programs more often.") to sQuestion
+            Move (sQuestion + "\n\nCompress the program and remove Control Flow Guard from it?") to sQuestion
+            Get YesNo_Box sQuestion "Compress - Control Flow Guard" MB_DEFBUTTON2 to iAnswer
+            If (iAnswer <> MBR_Yes) Begin
+                Send Info_Box "The program was not compressed, and is unchanged."
+                Procedure_Return
+            End
+            Send Cursor_Wait of Cursor_Control
+            Get RunExeCompressor sProgramPath (sPath + sProgram) "--force" (&sOutput) to iRetval
+            Send Cursor_Ready of Cursor_Control
+            Move (iRetval = 0) to bGuardRemoved
+        End
+
         If (iRetval = 0) Begin
             Get vWin32_APIFileSize (sPath + sProgram) to nPostSize
             // Convert bytes to MB.
             Move (nPostSize/1024/1024)     to nPostSize
             Get NumberToString nPostSize 2 to sPostSize
-            Send Info_Box ("The compression of the selected program ended successfully. The size before compression was:" * String(sPreSize) * "MB and the size after the compression is:" * String(sPostSize) * "MB.\n\n" + sOutput)
+            If (bGuardRemoved) Begin
+                Send Info_Box ("The compression of the selected program ended successfully, and Control Flow Guard was removed from it. The size before compression was:" * String(sPreSize) * "MB and the size after the compression is:" * String(sPostSize) * "MB.\n\n" + sOutput)
+            End
+            Else Begin
+                Send Info_Box ("The compression of the selected program ended successfully. The size before compression was:" * String(sPreSize) * "MB and the size after the compression is:" * String(sPostSize) * "MB.\n\n" + sOutput)
+            End
         End
         Else If (iRetval = 2) Begin
             Send Info_Box ("The program has previously been compressed. No further compression was attempted. The file size is:" * String(sPreSize) * "MB.\n\n" + sOutput)
@@ -1019,15 +1092,15 @@ Class cManifestFunctionLibrary is a cObject
     End_Procedure
 
     // Helper function that converts CLSID's to a struct array with CLSID's + Description's
-    Function ConvertFromCLSIDArrayToStruct String[] sCLSIDArray Returns tSxSInfo[]
+    Function ConvertFromCLSIDArrayToStruct String[] asCLSID Returns tSxSInfo[]
         tSxSInfo[] sCLSIDStructArray
         Integer i iItems iPos iStart iEnd
         String sValue
 
-        Move (SizeOfArray(sCLSIDArray)) to iItems
+        Move (SizeOfArray(asCLSID)) to iItems
         Decrement iItems
         For i from 0 to iItems
-            Move sCLSIDArray[i] to sValue
+            Move asCLSID[i] to sValue
             Move (Trim(sValue)) to sValue
             Move (Pos("{",sValue)) to iStart
             Move (Pos("}",sValue)) to iEnd
@@ -1071,10 +1144,10 @@ Class cManifestFunctionLibrary is a cObject
         Function_Return sShort
     End_Function
 
-    Procedure CopyCOMComponents String[] sSelectedFileNames
+    Procedure CopyCOMComponents String[] asSelectedFileNames
         Integer iItems
         tFileStruct[] COMComponentsArray
-        Get CheckForDependecies sSelectedFileNames to COMComponentsArray
+        Get CheckForDependecies asSelectedFileNames to COMComponentsArray
         Get IsCOMComponentsMissing COMComponentsArray to iItems
         If (iItems = 0) Begin
             Send Info_Box "All COM (OCX/DLL) components are present in the application folder."
@@ -1092,13 +1165,13 @@ Class cManifestFunctionLibrary is a cObject
     //    "C:\Program Files (x86)\Codejock Software\ActiveX\Xtreme SuitePro ActiveX v13.4.2"
     // 3. Searches the registry for the path to the component and checks that the component listed in
     //    Windows registry exists. Then asks if it should be copied to the target.
-    Function CopyCOMComponents String[] ByRef sFragmentFilesArray String[] ByRef sFilesArray Returns Boolean
+    Function CopyCOMComponents String[] ByRef asFragmentFiles String[] ByRef asFiles Returns Boolean
         String sProgramsPath sFileName sVersion sExeFilePath sCommonComLibraryPath
         String sCLSID sCOMComponentWithPath sFragmentFile
         Integer i iItems iRetval
         Boolean bExists bCodeJock bRetval bOk
 
-        Move (SizeOfArray(sFilesArray)) to iItems
+        Move (SizeOfArray(asFiles)) to iItems
         If (iItems = 0) Begin
             Function_Return False
         End
@@ -1115,9 +1188,9 @@ Class cManifestFunctionLibrary is a cObject
         Move (sProgramsPath + CS_CodeJockBaseFolder) to sProgramsPath
         Decrement iItems
         For i from 0 to iItems
-            Move sFragmentFilesArray[i] to sFragmentFile
+            Move asFragmentFiles[i] to sFragmentFile
             Get ExtractCLSID sFragmentFile to sCLSID
-            Move sFilesArray[i] to sFileName
+            Move asFiles[i] to sFileName
 
             // First check the 'Common COM Library' folder for existence
             Get vFilePathExists (sCommonComLibraryPath + sFileName) to bExists
@@ -1399,7 +1472,7 @@ Class cManifestFunctionLibrary is a cObject
     Function CreateManifestFragmentFileEx String sCOMComponentPath String sCOMComponentFileName String sCustomFileName String sCustomDescription Boolean bQuiet Boolean bReplaceExisting String ByRef sMessage Returns String
         Integer iRetval
         String sManifestFragmentFileName sProgramsPath sRetval
-        String[]   sCLSIDArray
+        String[]   asCLSID
         tSxSInfo[] sCLSIDStructArray
 
         Move "" to sMessage
@@ -1420,12 +1493,12 @@ Class cManifestFunctionLibrary is a cObject
         Get vFolderFormat sProgramsPath to sProgramsPath
 
         // Extract data from the COM component with the help of the CLSExport command program and memory piping.
-        // The result will be placed in the sCLSIDArray string array variable.
-        Get ExternalProgramResult of ghoExternalProgramResult ('"' + sProgramsPath + CS_CLSExportExe + '"') ('"' + sCOMComponentPath + sCOMComponentFileName + '"') sProgramsPath (&sCLSIDArray) to iRetval
+        // The result will be placed in the asCLSID string array variable.
+        Get ExternalProgramResult of ghoExternalProgramResult ('"' + sProgramsPath + CS_CLSExportExe + '"') ('"' + sCOMComponentPath + sCOMComponentFileName + '"') sProgramsPath (&asCLSID) to iRetval
 
         // Did the command execute OK?
         If (iRetval > 0) Begin
-            Get ConvertFromCLSIDArrayToStruct sCLSIDArray to sCLSIDStructArray
+            Get ConvertFromCLSIDArrayToStruct asCLSID to sCLSIDStructArray
             // This will create the actual manifest fragment file in the manifest fragment library:
             Get CreateFromCLSIDArray sManifestFragmentFileName sCOMComponentPath sCOMComponentFileName sCLSIDStructArray sCustomDescription bQuiet bReplaceExisting (&sMessage) to sRetval
         End
@@ -1505,7 +1578,7 @@ Class cManifestFunctionLibrary is a cObject
     // views are read. Returns "" when the type library is not registered.
     Function TypeLibRegisteredName String sTlbId String sCOMComponentFileName Returns String
         UInteger[] uiViews
-        String[] sVersions sPlatforms
+        String[] asVersions asPlatforms
         String sKey sName sFirst sPath
         Handle hoReg
         Integer iView j k
@@ -1515,8 +1588,8 @@ Class cManifestFunctionLibrary is a cObject
         Move 0               to uiViews[0]
         Move KEY_WOW64_64KEY to uiViews[1]
         Move KEY_WOW64_32KEY to uiViews[2]
-        Move "win32" to sPlatforms[0]
-        Move "win64" to sPlatforms[1]
+        Move "win32" to asPlatforms[0]
+        Move "win64" to asPlatforms[1]
         Move ("TypeLib" + "\" + sTlbId) to sKey
 
         For iView from 0 to 2
@@ -1525,11 +1598,11 @@ Class cManifestFunctionLibrary is a cObject
             Set pfAccessRights of hoReg to (KEY_READ ior uiViews[iView])
             Get OpenKey of hoReg sKey to bOpen
             If (bOpen = True) Begin
-                Get Subkeys of hoReg to sVersions
+                Get Subkeys of hoReg to asVersions
                 Send CloseKey of hoReg
-                For j from 0 to (SizeOfArray(sVersions) - 1)
+                For j from 0 to (SizeOfArray(asVersions) - 1)
                     Move "" to sName
-                    Get OpenKey of hoReg (sKey + "\" + sVersions[j]) to bOpen
+                    Get OpenKey of hoReg (sKey + "\" + asVersions[j]) to bOpen
                     If (bOpen = True) Begin
                         Get ReadString of hoReg "" to sName
                         Send CloseKey of hoReg
@@ -1541,7 +1614,7 @@ Class cManifestFunctionLibrary is a cObject
                         End
                         For k from 0 to 1
                             Move "" to sPath
-                            Get OpenKey of hoReg (sKey + "\" + sVersions[j] + "\0\" + sPlatforms[k]) to bOpen
+                            Get OpenKey of hoReg (sKey + "\" + asVersions[j] + "\0\" + asPlatforms[k]) to bOpen
                             If (bOpen = True) Begin
                                 Get ReadString of hoReg "" to sPath
                                 Send CloseKey of hoReg
@@ -1692,14 +1765,14 @@ Class cManifestFunctionLibrary is a cObject
     // One line per pair of files, with the first class they share; "" when no class is declared twice. This is
     // usually the 32-bit and the 64-bit file of one component - Codejock.GridControl.Unicode.v24.3.0 and
     // Codejock.GridControl.Unicode.x64.v24.3.0 have the same classes (Nils 2026-11-19).
-    Function FragmentFilesSharingClasses String sLibrary String[] ByRef sFiles Returns String
-        String[] sClasses sOwners sPairs
+    Function FragmentFilesSharingClasses String sLibrary String[] ByRef asFiles Returns String
+        String[] asClasses asOwners asPairs
         String sLine sLow sClass sPair sReport
         Integer i iFiles iCh iPos iEnd iFound
         Get vFolderFormat sLibrary to sLibrary
-        Move (SizeOfArray(sFiles)) to iFiles
+        Move (SizeOfArray(asFiles)) to iFiles
         For i from 0 to (iFiles - 1)
-            Get Seq_Open_Input_Channel (sLibrary + sFiles[i]) to iCh
+            Get Seq_Open_Input_Channel (sLibrary + asFiles[i]) to iCh
             If (iCh > DF_SEQ_CHANNEL_ERROR) Begin
                 While (not(SeqEof))
                     Readln channel iCh sLine
@@ -1710,15 +1783,15 @@ Class cManifestFunctionLibrary is a cObject
                         Move (Pos('"', sClass)) to iEnd
                         If (iEnd > 1) Begin
                             Move (Left(sClass, iEnd - 1)) to sClass
-                            Move (SearchArray(sClass, sClasses)) to iFound
+                            Move (SearchArray(sClass, asClasses)) to iFound
                             If (iFound = -1) Begin
-                                Move sClass    to sClasses[SizeOfArray(sClasses)]
-                                Move sFiles[i] to sOwners[SizeOfArray(sOwners)]
+                                Move sClass    to asClasses[SizeOfArray(asClasses)]
+                                Move asFiles[i] to asOwners[SizeOfArray(asOwners)]
                             End
-                            Else If (sOwners[iFound] <> sFiles[i]) Begin
-                                Move (sOwners[iFound] + " and " + sFiles[i]) to sPair
-                                If (SearchArray(sPair, sPairs) = -1) Begin
-                                    Move sPair to sPairs[SizeOfArray(sPairs)]
+                            Else If (asOwners[iFound] <> asFiles[i]) Begin
+                                Move (asOwners[iFound] + " and " + asFiles[i]) to sPair
+                                If (SearchArray(sPair, asPairs) = -1) Begin
+                                    Move sPair to asPairs[SizeOfArray(asPairs)]
                                     Move (sReport + "- " + sPair + " (both declare the class " + Uppercase(sClass) + ")\n") to sReport
                                 End
                             End
@@ -1743,14 +1816,14 @@ Class cManifestFunctionLibrary is a cObject
     //   .exe file. This is because Windows can cache .manifest file data!
     //   So even if the .manifest file is changed and the .exe file is not,
     //   Windows will read from cached manifest data and discard your latest changes!
-    Procedure CreateAppManifestFile String[] ByRef sFilesArray String[] ByRef sDuplicatesArray
+    Procedure CreateAppManifestFile String[] ByRef asFiles String[] ByRef asDuplicates
         String sManifestFileName sExeFileName sTargetPath sExePath sFileName sManifestFragmentLibrary
         Boolean bApplicationStringsOk bSkipLine bOk
         Integer i iFiles iDuplicates iRetval iChIn iChOut
         String sValue sTabChar sComment sCompare
         Boolean bCommentRow bOfInterest
         tWinFileTimeCS stFileTime
-        String[] sSelectedFileNames
+        String[] asSelectedFileNames
 
         Get pbApplicationStringsOk to bApplicationStringsOk
         If (bApplicationStringsOk = False) Begin
@@ -1762,7 +1835,7 @@ Class cManifestFunctionLibrary is a cObject
         Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
 
         // Two fragment files declaring the same class make a manifest mt.exe rejects: said first, and nothing written.
-        Get FragmentFilesSharingClasses sManifestFragmentLibrary (&sFilesArray) to sValue
+        Get FragmentFilesSharingClasses sManifestFragmentLibrary (&asFiles) to sValue
         If (sValue <> "") Begin
             Send Info_Box ("The manifest file was not changed. These fragment files declare the same COM classes, and a manifest may declare a class only once:\n\n" + sValue + "\nThis is usually the 32-bit and the 64-bit file of one component. Remove the one that does not match the program - a 64-bit program needs the x64 file.")
             Procedure_Return
@@ -1807,13 +1880,13 @@ Class cManifestFunctionLibrary is a cObject
             Loop
             Send Seq_Close_Channel iChIn
 
-            Move (SizeOfArray(sFilesArray))      to iFiles
-            Move (SizeOfArray(sDuplicatesArray)) to iDuplicates
+            Move (SizeOfArray(asFiles))      to iFiles
+            Move (SizeOfArray(asDuplicates)) to iDuplicates
             Decrement iFiles
 
             // Loop trough the selected list of manifest fragments
             For i from 0 to iFiles
-                Move sFilesArray[i] to sFileName
+                Move asFiles[i] to sFileName
                 // Now all that is needed is to read from the selected manifest fragment files and
                 // add them to the application manifest file.
                 Get Seq_Open_Input_Channel (sManifestFragmentLibrary + sFileName) to iChIn
@@ -1830,7 +1903,7 @@ Class cManifestFunctionLibrary is a cObject
                             // If duplicate TypeLib's exists we need to remove the typelib
                             // for the selected fragment file.
                             If (iDuplicates > 0 and sValue contains CS_XMLTypeLibStart) Begin
-                                Get CheckIfDuplicateTypeLib sFileName (&sDuplicatesArray) to bSkipLine
+                                Get CheckIfDuplicateTypeLib sFileName (&asDuplicates) to bSkipLine
                                 If (bSkipLine = True) ;
                                     Move "" to sValue
                             End
@@ -1870,11 +1943,11 @@ Class cManifestFunctionLibrary is a cObject
 
             If (bOk = True) Begin
                 Send Info_Box "Ready. The application manifest file was successfully created and checked for syntactical errors."
-                Get YesNo_Box "You also need to check/copy COM components to the Programs folder. Do that now?" to iRetval
-                If (iRetval = MBR_Yes) Begin
-                    Get SelectedItems of (phoManifest_grid(ghoApplication)) to sSelectedFileNames
-                    Send CopyCOMComponents sSelectedFileNames
-                End
+//                Get YesNo_Box "You also need to check/copy COM components to the Programs folder. Do that now?" to iRetval
+//                If (iRetval = MBR_Yes) Begin
+//                    Get SelectedItems of (phoManifest_grid(ghoApplication)) to asSelectedFileNames
+//                    Send CopyCOMComponents asSelectedFileNames
+//                End
             End
         End
         Else Begin
@@ -2091,7 +2164,7 @@ Class cManifestFunctionLibrary is a cObject
     // on GitHub to the local Manifest Fragment Library. Each file is saved with CRLF line ends, like the
     // local files. A local file of the same name is replaced - but only after its download has worked.
     // Returns False if at least one file could not be downloaded.
-    Function DownloadNewFiles String[] ByRef sFilesArray Returns Boolean
+    Function DownloadNewFiles String[] ByRef asFiles Returns Boolean
         tRemoteFragmentFile[] RemoteFiles
         Integer i j iItems iRemote iPos
         Boolean bOk bRetval bVoid
@@ -2105,9 +2178,9 @@ Class cManifestFunctionLibrary is a cObject
         Get WindowsTempDirectory to sTempFile
         Move (vFolderFormat(sTempFile) + "COMManifestStudioDownload.tmp") to sTempFile
 
-        Move (SizeOfArray(sFilesArray)) to iItems
+        Move (SizeOfArray(asFiles)) to iItems
         For i from 0 to (iItems - 1)
-            Move sFilesArray[i] to sFileName
+            Move asFiles[i] to sFileName
             Move "" to sUrl
             For j from 0 to (iRemote - 1)
                 If (RemoteFiles[j].sFileName = sFileName) Begin
@@ -2143,21 +2216,21 @@ Class cManifestFunctionLibrary is a cObject
     End_Function
 
     // Returns all duplicate typelib declarations.
-    Function DuplicateTypeLibs String[] ByRef sFilesArray Returns tFileStruct[]
-        String[] sDuplicatesArray
+    Function DuplicateTypeLibs String[] ByRef asFiles Returns tFileStruct[]
+        String[] asDuplicates
         Integer i iFiles iItem iDuplicates iIndex j iDupExists
         tFileStruct[] AllTypeLibIdsArray SortedLibIdsArray DuplicateLibIdsArray ZeroTypeLibs
         tFileStruct TypeLibIdValue
 
         // Get the numer of items
-        Move (SizeOfArray(sFilesArray)) to iFiles
+        Move (SizeOfArray(asFiles)) to iFiles
         If (iFiles = 0) Begin
             Send UserError "No files to process"
             Function_Return ZeroTypeLibs
         End
 
         // Get all typelibs' as an array
-        Get AllTypeLibsAsArray (&sFilesArray) to AllTypeLibIdsArray
+        Get AllTypeLibsAsArray (&asFiles) to AllTypeLibIdsArray
         // Sort the array alphabetically
         Move (SortArray(AllTypeLibIdsArray, Self, get_CompareTypeLibIDs)) to SortedLibIdsArray
         Move (SizeOfArray(SortedLibIdsArray)) to iFiles
@@ -2222,7 +2295,7 @@ Class cManifestFunctionLibrary is a cObject
 
     Procedure EmbedManifestInProgram
         String sPath sExePath sManifestFileName sExeName sCurrProgPath sParams sText sValue
-        String[] sOutputArray
+        String[] asOutput
         Boolean bExist bBusy
         Integer iRetval iItems iCount
         tWinFileTimeCS stFileTime
@@ -2272,16 +2345,16 @@ Class cManifestFunctionLibrary is a cObject
         // that way the Studio doesn't think it needs to recompile the program.
         Get FileTimeWinApi (sExePath + sExeName) to stFileTime
 
-        Get ExternalProgramResult of ghoExternalProgramResult CS_MtExeProgram sParams sCurrProgPath (&sOutputArray) to iRetval
+        Get ExternalProgramResult of ghoExternalProgramResult CS_MtExeProgram sParams sCurrProgPath (&asOutput) to iRetval
 
         // And reset the last modified datetime of the file to what it was before signing the file:
 
         Send Cursor_Ready of Cursor_Control
 
-        Move (SizeOfArray(sOutputArray)) to iItems
+        Move (SizeOfArray(asOutput)) to iItems
         Decrement iItems
         For iCount from 0 to iItems
-            Move sOutputArray[iCount] to sValue
+            Move asOutput[iCount] to sValue
             If (sValue <> "") Begin
                 Move (sText + String(sValue) + "\n") to sText
             End
@@ -2446,7 +2519,7 @@ Class cManifestFunctionLibrary is a cObject
     { MethodType=Event  NoDoc=True }
     Function ExtractTypeLib String sPath String sCOMFileName Boolean bQuiet String ByRef sComponentDescription String ByRef sVersionText Returns String
         String sCurrProgPath sRetval sValue sParams sTempPath
-        String[] sValueArray
+        String[] asValue
         Boolean bExist
         Integer iRetval iStart iEnd iCh
 
@@ -2541,76 +2614,76 @@ Class cManifestFunctionLibrary is a cObject
 
     // Takes a string array with manifest fragment files that has been selected by user
     // The second param is the total number of fragment files in the Manifest Fragment Library.
-    // Returns a string array with unique file names from the sManifestLibraryArray that does not exists in sFilesArray.
-    Function FilesArrayDifference String[] ByRef sFilesArray String[] ByRef sManifestLibraryArray Returns String[]
-        String[] sRetvalArray sEmptyArrary
+    // Returns a string array with unique file names from asManifestLibrary that does not exists in asFiles.
+    Function FilesArrayDifference String[] ByRef asFiles String[] ByRef asManifestLibrary Returns String[]
+        String[] asRetval asEmpty
         Integer i iItems iSize iSize2 iCount iIndex
         String sFileName sManifestFile
 
-        Move (SizeOfArray(sFilesArray))           to iSize
-        Move (SizeOfArray(sManifestLibraryArray)) to iSize2
+        Move (SizeOfArray(asFiles))           to iSize
+        Move (SizeOfArray(asManifestLibrary)) to iSize2
         If (iSize = 0) Begin
-            Function_Return sManifestLibraryArray
+            Function_Return asManifestLibrary
         End
 
         Decrement iSize
         Decrement iSize2
 
-        Move (SortArray(sFilesArray))             to sFilesArray
-        Move (SortArray(sManifestLibraryArray))   to sManifestLibraryArray
+        Move (SortArray(asFiles))             to asFiles
+        Move (SortArray(asManifestLibrary))   to asManifestLibrary
         Move (iSize min iSize2)                   to iItems
 
         For i from 0 to iItems
             Move "" to sFileName
             If (iSize < iSize2) Begin
                 If (i <= iSize) Begin
-                    Move sFilesArray[i] to sFileName
+                    Move asFiles[i] to sFileName
                 End
 
-                // Try to find a match in the sManifestLibraryArray.
+                // Try to find a match in the asManifestLibrary.
                 // If a match Move "" to the value so it can be removed later.
-                Move (SearchArray(sFileName, sManifestLibraryArray)) to iIndex
+                Move (SearchArray(sFileName, asManifestLibrary)) to iIndex
                 If (iIndex <> -1) Begin
-                    Move "" to sManifestLibraryArray[iIndex]
+                    Move "" to asManifestLibrary[iIndex]
                 End
             End
         Loop
 
-        // Finally move all files from the sManifestLibraryArray to
+        // Finally move all files from the asManifestLibrary to
         // the return array, but not the blank ones (those were duplicates).
         Move 0 to iCount
-        Move (SizeOfArray(sManifestLibraryArray)) to iItems
+        Move (SizeOfArray(asManifestLibrary)) to iItems
         Decrement iItems
         For i from 0 to iItems
-            Move sManifestLibraryArray[i] to sManifestFile
+            Move asManifestLibrary[i] to sManifestFile
             If (sManifestFile <> "") Begin
-                Move sManifestFile to sRetvalArray[iCount]
+                Move sManifestFile to asRetval[iCount]
                 Increment iCount
             End
         Loop
 
         // One final test needs to be done. Check that the result array is
-        // the same as the passed sFilesArray. Then all files have been selected by user
+        // the same as the passed asFiles. Then all files have been selected by user
         // and we should return an emply array.
         Move 0 to iCount
-        Move (SizeOfArray(sFilesArray))  to iSize
-        Move (SizeOfArray(sRetvalArray)) to iSize2
+        Move (SizeOfArray(asFiles))  to iSize
+        Move (SizeOfArray(asRetval)) to iSize2
         If (iSize = iSize2) Begin
             Move iSize to iItems
             Decrement iItems
             For i from 0 to iItems
-                Move sFilesArray[i]           to sFileName
-                Move sManifestLibraryArray[i] to sManifestFile
+                Move asFiles[i]           to sFileName
+                Move asManifestLibrary[i] to sManifestFile
                 If (sFileName = sManifestFile) Begin
                     Increment iCount
                 End
             Loop
             If (iCount = iSize) Begin
-                Move sEmptyArrary to sRetvalArray
+                Move asEmpty to asRetval
             End
         End
 
-        Function_Return sRetvalArray
+        Function_Return asRetval
     End_Function
 
     // Function takes a tFileStruct array as parameter and
@@ -2618,19 +2691,19 @@ Class cManifestFunctionLibrary is a cObject
     // else the sFileNameSecondCol values
     // Values are returned as string array.
     Function FileStructArrayAsStringArray tFileStruct[] FilesStructArray Boolean bFileNameFirstCol Returns String[]
-        String[] sFilesArray
+        String[] asFiles
         Integer i iItems
         Move (SizeOfArray(FilesStructArray)) to iItems
         Decrement iItems
         For i from 0 to iItems
             If (bFileNameFirstCol = True) Begin
-                Move FilesStructArray[i].sFileNameFirstCol to sFilesArray[i]
+                Move FilesStructArray[i].sFileNameFirstCol to asFiles[i]
             End
             Else Begin
-                Move FilesStructArray[i].sFileNameSecondCol to sFilesArray[i]
+                Move FilesStructArray[i].sFileNameSecondCol to asFiles[i]
             End
         Loop
-        Function_Return sFilesArray
+        Function_Return asFiles
     End_Function
 
     // The return value for this function is a struct with two DWord datetime values.
@@ -2714,7 +2787,7 @@ Class cManifestFunctionLibrary is a cObject
         Handle hWnd hProcess
         Integer iProcessId iThreadId iRet iCount
         String sProgram sPreviousProgram
-        String[] sModulesNames
+        String[] asModulesNames
         WString wProgram
 
         Move (FindWindowExEf(0,0,0,0)) to hWnd
@@ -2731,7 +2804,7 @@ Class cManifestFunctionLibrary is a cObject
                     Move (CloseHandleEf(hProcess)) to iRet
                     Move (CString(wProgram)) to sProgram
                     If (sProgram <> "?" and sProgram <> sPreviousProgram) Begin
-                        Move sProgram to sModulesNames[iCount]
+                        Move sProgram to asModulesNames[iCount]
                         Increment iCount
                         Move sProgram to sPreviousProgram
                     End
@@ -2739,7 +2812,7 @@ Class cManifestFunctionLibrary is a cObject
             End
             Move (FindWindowExEf(0, hWnd, 0, 0)) to hWnd
         End
-        Function_Return sModulesNames
+        Function_Return asModulesNames
     End_Function
 
     // NOTE: Function borrowed from Sture Andersens "StureAPSPublicLib" - Stringfunctions.pkg!
@@ -2780,15 +2853,15 @@ Class cManifestFunctionLibrary is a cObject
     // Returns: True if the program is running.
     Function IsAppRunning String sFileName Returns Boolean
         Boolean bFound
-        String[] sProgramNamesArray
+        String[] asProgramNames
         Integer i iItems
         String sProgramName
 
-        Get GetProcessesForWindows to sProgramNamesArray
-        Move (SizeOfArray(sProgramNamesArray)) to iItems
+        Get GetProcessesForWindows to asProgramNames
+        Move (SizeOfArray(asProgramNames)) to iItems
         Decrement iItems
         For i from 0 to iItems
-            Move sProgramNamesArray[i] to sProgramName
+            Move asProgramNames[i] to sProgramName
             Move (Uppercase(sProgramName) = Uppercase(sFileName)) to bFound
             If (bFound = True) Begin
                 Move iItems to i // We're out of here
@@ -3024,17 +3097,17 @@ Class cManifestFunctionLibrary is a cObject
     End_Function
 
     // The CLSIDs of a COM file as one text that two files can be compared by: lowercase, sorted, joined by ";".
-    Function CLSIDKey String[] sCLSIDs Returns String
+    Function CLSIDKey String[] asCLSIDs Returns String
         String sKey
         Integer i
 
         Move "" to sKey
-        Move (SortArray(sCLSIDs)) to sCLSIDs
-        For i from 0 to (SizeOfArray(sCLSIDs) - 1)
+        Move (SortArray(asCLSIDs)) to asCLSIDs
+        For i from 0 to (SizeOfArray(asCLSIDs) - 1)
             If (i > 0) Begin
                 Move (sKey + ";") to sKey
             End
-            Move (sKey + Lowercase(Trim(sCLSIDs[i]))) to sKey
+            Move (sKey + Lowercase(Trim(asCLSIDs[i]))) to sKey
         Loop
         Function_Return sKey
     End_Function
@@ -3043,9 +3116,162 @@ Class cManifestFunctionLibrary is a cObject
     // comInterfaceProxyStub element. Read with the XML parser, so a manifest written on one line (mt.exe and other
     // tools write them so) reads the same as one written by this program. Returns an empty array when the file
     // cannot be read as XML, or lists no COM file.
+    /* THE EMBEDDED MANIFEST (2026-11-19). A program file can hold a manifest of its own - resource 1 of type
+       RT_MANIFEST - and when it does, Windows reads that one and not the manifest file beside the program: a manifest
+       file changed after the Embed is not used until it is embedded again. Almost every DataFlex program has one: the
+       compiler embeds the basic one (common controls, DPI), or the AppSrc manifest file when there is one. So what
+       counts is whether the embedded one lists the manifest file's COM files (EmbeddedManifestState). */
+
+    // The manifest embedded in sExeFile, as text; "" when it has none, or the file cannot be read. Read as data - the
+    // program is not run - and UPX leaves the manifest of a program it compresses as it is, so it is read there too.
+    Function EmbeddedManifestText String sExeFile Returns String
+        Handle hModule hRes hData
+        Pointer pData
+        Integer iSize iVoid
+        String sText
+
+        Move (CMS_LoadLibraryExW(sExeFile, 0, (|CI$00000002 ior |CI$00000020))) to hModule
+        If (hModule = 0) Begin
+            Function_Return ""
+        End
+        Move "" to sText
+        Move (CMS_FindResourceNumW(hModule, 1, 24)) to hRes
+        If (hRes <> 0) Begin
+            Move (SizeofResource(hModule, hRes)) to iSize
+            Move (LoadResource(hModule, hRes)) to hData
+            If ((iSize > 0) and (hData <> 0)) Begin
+                Move (LockResource(hData)) to pData
+                If (pData <> 0) Begin
+                    Move (Repeat(" ", iSize)) to sText
+                    Move (MemCopy(AddressOf(sText), pData, iSize)) to iVoid
+                End
+            End
+        End
+        Move (FreeLibrary(hModule)) to iVoid
+        // A UTF-8 byte order mark first, as some tools write it.
+        If (Left(sText, 3) = (Character(239) + Character(187) + Character(191))) Begin
+            Move (Right(sText, (Length(sText) - 3))) to sText
+        End
+        Function_Return sText
+    End_Function
+
+    // True when sExeFile is compressed by UPX: its section table names UPX0, near the start of the file.
+    Function IsUPXCompressed String sExeFile Returns Boolean
+        Integer iCh
+        String sHead
+        Boolean bExists
+        Get vFilePathExists sExeFile to bExists
+        If (not(bExists)) Begin
+            Function_Return False
+        End
+        Get Seq_New_Channel to iCh
+        If (iCh = DF_SEQ_CHANNEL_NOT_AVAILABLE) Begin
+            Function_Return False
+        End
+        Direct_Input channel iCh ("binary: " + sExeFile)
+        Read_Block channel iCh sHead 1024
+        Close_Input channel iCh
+        Send Seq_Release_Channel iCh
+        Move (Replaces(Character(0), sHead, " ")) to sHead
+        Function_Return (sHead contains "UPX0")
+    End_Function
+
+    // The COM files of a manifest given as text, as ManifestCOMFiles reads a manifest file: written to a file of
+    // its own in the temp folder, read with the XML parser, and the file removed.
+    Function ManifestTextCOMFiles String sText Returns tManifestCOMFile[]
+        tManifestCOMFile[] COMFiles
+        String sFile
+        Integer iCh iVoid
+        Get WindowsTempDirectory to sFile
+        Move (vFolderFormat(sFile) + "CMS_EmbeddedManifest.xml") to sFile
+        Get Seq_Open_Output_Channel sFile to iCh
+        If (iCh <= DF_SEQ_CHANNEL_ERROR) Begin
+            Function_Return COMFiles
+        End
+        Write channel iCh sText
+        Send Seq_Close_Channel iCh
+        Get ManifestCOMFiles sFile to COMFiles
+        Move (vDeleteFile(sFile)) to iVoid
+        Function_Return COMFiles
+    End_Function
+
+    // The COM files as one text to compare: "name=classes", sorted, joined by "|".
+    Function COMFilesKey tManifestCOMFile[] COMFiles Returns String
+        String[] asEntries
+        String sKey
+        Integer i
+        For i from 0 to (SizeOfArray(COMFiles) - 1)
+            Move (COMFiles[i].sFileName + "=" + COMFiles[i].sCLSIDs) to asEntries[i]
+        Loop
+        Move (SortArray(asEntries)) to asEntries
+        For i from 0 to (SizeOfArray(asEntries) - 1)
+            Move (sKey + asEntries[i] + "|") to sKey
+        Loop
+        Function_Return sKey
+    End_Function
+
+    // What the text sEmbedded - a program's embedded manifest - holds beside the manifest file sManifestFile: none
+    // (""), a manifest without COM files, the manifest file's COM files with the same classes, or other ones
+    // (CI_Embed*, Symdef.pkg). The files and their classes are compared, not the text: the Embed writes the XML
+    // in a form of its own.
+    Function EmbeddedManifestCompare String sEmbedded String sManifestFile Returns Integer
+        tManifestCOMFile[] Embedded InFile
+        If (Trim(sEmbedded) = "") Begin
+            Function_Return CI_EmbedNone
+        End
+        Get ManifestTextCOMFiles sEmbedded to Embedded
+        If (SizeOfArray(Embedded) = 0) Begin
+            Function_Return CI_EmbedBasic
+        End
+        Get ManifestCOMFiles sManifestFile to InFile
+        If (COMFilesKey(Self, Embedded) = COMFilesKey(Self, InFile)) Begin
+            Function_Return CI_EmbedSame
+        End
+        Function_Return CI_EmbedDiffers
+    End_Function
+
+    // A file's size and time of change, as one text - "" when it is not there. What the state below is kept for.
+    // Read without opening the file: FileTimeWinApi opens it to write - Embed changes the time with it - and a
+    // program that is running cannot be opened so: after Run, every redraw of the dashboard said "Could not open the
+    // file ... Is the program perhaps running?" (Nils 2026-11-19).
+    Function FileStamp String sFile Returns String
+        tCMSFileAttributeData Data
+        Integer iOk
+        Move (CMS_GetFileAttributesExW(sFile, 0, AddressOf(Data))) to iOk
+        If (iOk = 0) Begin
+            Function_Return ""
+        End
+        Function_Return (sFile + "/" + String(Data.dwSizeHigh) + "/" + String(Data.dwSizeLow) + "/" + String(Data.dwLastWriteHigh) + "/" + String(Data.dwLastWriteLow))
+    End_Function
+
+    // The program file sExeFile's embedded manifest beside the manifest file sManifestFile (CI_Embed*), and in
+    // bCompressed whether UPX compressed it. Kept until either file changes: the dashboard asks on every redraw.
+    Function EmbeddedManifestState String sExeFile String sManifestFile Boolean ByRef bCompressed Returns Integer
+        String sKey sText
+        Integer eState
+        Move (FileStamp(Self, sExeFile) + "|" + FileStamp(Self, sManifestFile)) to sKey
+        If (sKey = psEmbedStateKey(Self)) Begin
+            Get pbEmbedCompressed to bCompressed
+            Function_Return (piEmbedState(Self))
+        End
+        If (Left(sKey, 1) = "|") Begin
+            Move CI_EmbedUnknown to eState
+            Move False to bCompressed
+        End
+        Else Begin
+            Get EmbeddedManifestText sExeFile to sText
+            Get EmbeddedManifestCompare sText sManifestFile to eState
+            Get IsUPXCompressed sExeFile to bCompressed
+        End
+        Set psEmbedStateKey   to sKey
+        Set piEmbedState      to eState
+        Set pbEmbedCompressed to bCompressed
+        Function_Return eState
+    End_Function
+
     Function ManifestCOMFiles String sManifestFile Returns tManifestCOMFile[]
         tManifestCOMFile[] COMFiles
-        String[] sCLSIDs sEmpty
+        String[] asCLSIDs asEmpty
         Handle hoXML hoRoot hoFile hoNextFile hoChild hoNextChild
         String sName sBaseName sClsid sKey
         Integer iCount
@@ -3070,7 +3296,7 @@ Class cManifestFunctionLibrary is a cObject
             If (piNodeType(hoFile) = 1 and Lowercase(psBaseName(hoFile)) = CS_XMLFileTag) Begin
                 Get AttributeValue of hoFile CS_XMLNameTag to sName
                 Move False  to bCOM
-                Move sEmpty to sCLSIDs
+                Move asEmpty to asCLSIDs
                 Get FirstChild of hoFile to hoChild
                 While (hoChild <> 0)
                     If (piNodeType(hoChild) = 1) Begin
@@ -3081,7 +3307,7 @@ Class cManifestFunctionLibrary is a cObject
                         If (sBaseName = "comclass") Begin
                             Get AttributeValue of hoChild CS_XMLclsidTag to sClsid
                             If (Trim(sClsid) <> "") Begin
-                                Move (Lowercase(Trim(sClsid))) to sCLSIDs[SizeOfArray(sCLSIDs)]
+                                Move (Lowercase(Trim(sClsid))) to asCLSIDs[SizeOfArray(asCLSIDs)]
                             End
                         End
                     End
@@ -3095,7 +3321,7 @@ Class cManifestFunctionLibrary is a cObject
                     Move (SizeOfArray(COMFiles)) to iCount
                     Move sName to COMFiles[iCount].sDisplayName
                     Move (Lowercase(sName)) to COMFiles[iCount].sFileName
-                    Get CLSIDKey sCLSIDs to sKey
+                    Get CLSIDKey asCLSIDs to sKey
                     Move sKey to COMFiles[iCount].sCLSIDs
                 End
             End
@@ -3114,7 +3340,7 @@ Class cManifestFunctionLibrary is a cObject
     Function FragmentLibraryIndex Returns tFragmentIndexEntry[]
         tFragmentIndexEntry[] Index
         tsSearchResult[] SearchArray
-        String[] sCLSIDs sEmpty
+        String[] asCLSIDs asEmpty
         Handle hoFileSystem
         String sLibrary sFile sData sLow sName sKey
         Integer i iItems iPos iCount
@@ -3138,18 +3364,18 @@ Class cManifestFunctionLibrary is a cObject
                     Move (Left(sName, (Pos('"', sName) - 1))) to sName
                     Move (Lowercase(ParseFileName(Replaces("/", Trim(sName), "\")))) to sName
                     // Every clsid="{...}" of the file.
-                    Move sEmpty to sCLSIDs
+                    Move asEmpty to asCLSIDs
                     Move (Pos('clsid="', sLow)) to iPos
                     While (iPos > 0)
                         Move (Mid(sLow, Length(sLow), (iPos + 7))) to sLow
-                        Move (Left(sLow, (Pos('"', sLow) - 1))) to sCLSIDs[SizeOfArray(sCLSIDs)]
+                        Move (Left(sLow, (Pos('"', sLow) - 1))) to asCLSIDs[SizeOfArray(asCLSIDs)]
                         Move (Pos('clsid="', sLow)) to iPos
                     Loop
                     If (sName <> "") Begin
                         Move (SizeOfArray(Index)) to iCount
                         Move sFile to Index[iCount].sFragmentFile
                         Move sName to Index[iCount].sCOMFileName
-                        Get CLSIDKey sCLSIDs to sKey
+                        Get CLSIDKey asCLSIDs to sKey
                         Move sKey to Index[iCount].sCLSIDs
                     End
                 End
@@ -3165,18 +3391,18 @@ Class cManifestFunctionLibrary is a cObject
     // ManifestFragmentFileName names, then the first. Each fragment file is returned once, in the manifest's order.
     // sMissing returns the COM files (as the manifest names them) that no fragment file describes.
     // Both arrays are empty when the manifest lists no COM file.
-    Function FragmentFilesForManifest String sManifestFile String[] ByRef sMissing Returns String[]
+    Function FragmentFilesForManifest String sManifestFile String[] ByRef asMissing Returns String[]
         tManifestCOMFile[] COMFiles
         tFragmentIndexEntry[] Index
-        String[] sFragments sEmpty
+        String[] asFragments asEmpty
         String sPreferred
         Integer i j iItems iEntries iBest iBestScore iScore
 
-        Move sEmpty to sMissing
+        Move asEmpty to asMissing
         Get ManifestCOMFiles sManifestFile to COMFiles
         Move (SizeOfArray(COMFiles)) to iItems
         If (iItems = 0) Begin
-            Function_Return sFragments
+            Function_Return asFragments
         End
 
         Get FragmentLibraryIndex to Index
@@ -3202,15 +3428,15 @@ Class cManifestFunctionLibrary is a cObject
                 End
             Loop
             If (iBest >= 0) Begin
-                If (SearchArray(Index[iBest].sFragmentFile, sFragments) = -1) Begin
-                    Move Index[iBest].sFragmentFile to sFragments[SizeOfArray(sFragments)]
+                If (SearchArray(Index[iBest].sFragmentFile, asFragments) = -1) Begin
+                    Move Index[iBest].sFragmentFile to asFragments[SizeOfArray(asFragments)]
                 End
             End
             Else Begin
-                Move COMFiles[i].sDisplayName to sMissing[SizeOfArray(sMissing)]
+                Move COMFiles[i].sDisplayName to asMissing[SizeOfArray(asMissing)]
             End
         Loop
-        Function_Return sFragments
+        Function_Return asFragments
     End_Function
 
     // Calling the function below will convert the number passed in nNumber to a
@@ -3373,7 +3599,7 @@ Class cManifestFunctionLibrary is a cObject
     { MethodType=Event  NoDoc=True }
     Function ParseTempFile String sInputFile String sToFile String sCOMComponentFileName Returns String
         String sRetval sValue sManifestFragmentLibrary sTabChar
-        String[] sCLSIDsArray
+        String[] asCLSIDs
         String sClsid sDescription sVersion sOutputString sTypeLibOutput
         Integer iChOut iRetval i iItems
         Boolean bExists bTypeLibValueWritten
@@ -3392,8 +3618,8 @@ Class cManifestFunctionLibrary is a cObject
         End
 
         // Get the temp file's all CLSID's to an array:
-        Get ParseTempFileCLSIDs sInputFile to sCLSIDsArray
-        Move (SizeOfArray(sCLSIDsArray)) to iItems
+        Get ParseTempFileCLSIDs sInputFile to asCLSIDs
+        Move (SizeOfArray(asCLSIDs)) to iItems
         If (iItems = 0) Begin
             Send Info_Box "The CLSID array was empty and the temporary manifest fragment file could not be created."
             Function_Return ""
@@ -3409,7 +3635,7 @@ Class cManifestFunctionLibrary is a cObject
         Decrement iItems
         For i from 0 to iItems
 
-            Move sCLSIDsArray[i] to sClsid
+            Move asCLSIDs[i] to sClsid
             Get RegistrySxSInfo sClsid to SxSInfoOutInfo
 
             // It happens that CLSID's from the component doesn't exist
@@ -3482,7 +3708,7 @@ Class cManifestFunctionLibrary is a cObject
     { Visibility=Private }
     { MethodType=Event  NoDoc=True }
     Function ParseTempFileCLSIDs String sInputFile Returns String[]
-        String[] sCLSIDsArray
+        String[] asCLSIDs
         String sValue
         Integer iCh iCount iPos
 
@@ -3494,13 +3720,13 @@ Class cManifestFunctionLibrary is a cObject
             If (Left(sValue, 1) = "{") Begin
                 Move (Pos("}", sValue)) to iPos
                 Move (Left(sValue, iPos)) to sValue
-                Move sValue to sCLSIDsArray[iCount]
+                Move sValue to asCLSIDs[iCount]
                 Increment iCount
             End
         Loop
         Send Seq_Close_Channel iCh
 
-        Function_Return sCLSIDsArray
+        Function_Return asCLSIDs
     End_Function
 
     // Helper function that reads and parses a side-by-side xml assembly manifest text file (sInputFile)
@@ -3766,13 +3992,13 @@ Class cManifestFunctionLibrary is a cObject
     //   5 = the registration failed, -1 = no answer.
     // Returns False if the command file never ran (sMessage says why): the helper is missing, or the user
     // answered No to the UAC question.
-    Function RegisterCOMComponents String sCOMPath String[] sComponents Integer[] ByRef iExitCodes String ByRef sMessage Returns Boolean
+    Function RegisterCOMComponents String sCOMPath String[] asComponents Integer[] ByRef iExitCodes String ByRef sMessage Returns Boolean
         String sProgramsPath sHelper sTempPath sScript sLog sParams sWorkDir sValue sComponent
         Integer i iItems iCh iPos iIndex iVoid
         Boolean bOk bExists
 
         Move "" to sMessage
-        Move (SizeOfArray(sComponents)) to iItems
+        Move (SizeOfArray(asComponents)) to iItems
         Move (ResizeArray(iExitCodes, 0)) to iExitCodes
         For i from 0 to (iItems - 1)
             Move -1 to iExitCodes[i]
@@ -3816,7 +4042,7 @@ Class cManifestFunctionLibrary is a cObject
         // A % in a command file starts a variable name; %% is a plain %.
         Writeln channel iCh ('cd /d "' + Replaces("%", sCOMPath, "%%") + '"')
         For i from 0 to (iItems - 1)
-            Move (Replaces("%", (sCOMPath + sComponents[i]), "%%")) to sComponent
+            Move (Replaces("%", (sCOMPath + asComponents[i]), "%%")) to sComponent
             Writeln channel iCh ('"%RS64%" /s "' + sComponent + '"')
             Writeln channel iCh ('if errorlevel 3 "%RS32%" /s "' + sComponent + '"')
             // The redirection goes first: in "echo 3>>file" the 3 would be taken as a stream number.
@@ -4146,13 +4372,13 @@ Class cManifestFunctionLibrary is a cObject
         Send vShellExecute "open" sExeName "" sPath
     End_Procedure
 
-    Procedure Runprogram String[] sSelectedFileNames
+    Procedure Runprogram String[] asSelectedFileNames
         String sManifestFile sPath sExeName
         Boolean bExists
         Integer iItems
         tFileStruct[] COMComponentsArray
 
-        Get SelectedCOMComponents (&sSelectedFileNames) to COMComponentsArray
+        Get SelectedCOMComponents (&asSelectedFileNames) to COMComponentsArray
         Get IsCOMComponentsMissing COMComponentsArray to iItems
         If (iItems <> 0) Begin
             Send Info_Box "There are COM (OCX/DLL) components missing from the application folder and the application would fail if started. Please press 'Copy COM files' - step 3 on the main view, or in the Manifest menu - and try again."
@@ -4230,17 +4456,17 @@ Class cManifestFunctionLibrary is a cObject
     // Pass an array with selected fragment files.
     // Returns a struct array with the Fragment files, COM component names and a boolean if it is missing or not
     // from the application's Program folder.
-    Function SelectedCOMComponents String[] ByRef sSelectedFileNames Returns tFileStruct[]
+    Function SelectedCOMComponents String[] ByRef asSelectedFileNames Returns tFileStruct[]
         tFileStruct COMComponent
         tFileStruct[] sMissingCOMArray COMComponentsArray
         String sFileName
         Integer i iItems
         Boolean bExists
 
-        Move (SizeOfArray(sSelectedFileNames)) to iItems
+        Move (SizeOfArray(asSelectedFileNames)) to iItems
         Decrement iItems
         For i from 0 to iItems
-            Move sSelectedFileNames[i] to sFileName
+            Move asSelectedFileNames[i] to sFileName
             Get IsCOMComponentProgramsFolder sFileName to COMComponent
             Move sFileName                       to sMissingCOMArray[i].sFileNameFirstCol
             Move COMComponent.sFileNameSecondCol to sMissingCOMArray[i].sFileNameSecondCol
@@ -4259,14 +4485,14 @@ Class cManifestFunctionLibrary is a cObject
 
     // This is the opposiste of the FileStructArrayAsStringArray function.
     // See that function for explanation.
-    Function StringArrayToFileStructArray String[] sFilesArray Returns tFileStruct[]
+    Function StringArrayToFileStructArray String[] asFiles Returns tFileStruct[]
         Integer i iItems
         tFileStruct[] FileStructArray
 
-        Move (SizeOfArray(sFilesArray)) to iItems
+        Move (SizeOfArray(asFiles)) to iItems
         Decrement iItems
         For i from 0 to iItems
-            Move sFilesArray[i] to FileStructArray[i].sFileNameFirstCol
+            Move asFiles[i] to FileStructArray[i].sFileNameFirstCol
         Loop
         Function_Return FileStructArray
     End_Function
@@ -4391,7 +4617,7 @@ Class cManifestFunctionLibrary is a cObject
     // This is made automatically when an application manifest file is created.
     Function ValidateManifestFile Returns Boolean
         String sCurrProgPath sFileName sParams sEditor sEditorParams sAppManifestFile sTargetPath sValue sTmp
-        String[] sValueArray
+        String[] asValue
         Boolean bExist bOk
         Integer iRetval iItems i
 
@@ -4414,7 +4640,7 @@ Class cManifestFunctionLibrary is a cObject
         Move ("-nologo -manifest" * '"' + (sTargetPath + sFileName) + '"' * "-validate_manifest" ) to sParams
 
         // Execute command:
-        Get ExternalProgramResult of ghoExternalProgramResult ('"' + sCurrProgPath + CS_MtExeProgram + '"') sParams sCurrProgPath (&sValueArray) to iRetval
+        Get ExternalProgramResult of ghoExternalProgramResult ('"' + sCurrProgPath + CS_MtExeProgram + '"') sParams sCurrProgPath (&asValue) to iRetval
         Send Cursor_Ready of Cursor_Control
 
         If (iRetval = -1) Begin
@@ -4426,14 +4652,14 @@ Class cManifestFunctionLibrary is a cObject
         // error, a manifest it cannot parse; until 2026-11-19 it was answered with "could be caused by an Anti-virus
         // program", and mt.exe's lines were not shown (Nils: a class declared twice).
         Else If (iRetval > 0) Begin
-            If (SizeOfArray(sValueArray) = 0) Begin
+            If (SizeOfArray(asValue) = 0) Begin
                 Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code" * String(iRetval) + ", without a message, and the application manifest file could not be verified.")
                 Function_Return False
             End
         End
 
         // If this is true the validation was a success.
-        Move sValueArray[0] to sValue
+        Move asValue[0] to sValue
         Move ((iRetval = 0) and (sValue = CS_ParsingSuccessful)) to bOk
 
         // If the parsing of the application manifest file didn't go according to plan,
@@ -4443,10 +4669,10 @@ Class cManifestFunctionLibrary is a cObject
             Get psFileEditorParams of ghoManifestIniFile to sEditorParams
             // Load the application manifest file in the editor
             // Note that we need to surround the pathing in single quotes in case it contains spaces.
-            Move (SizeOfArray(sValueArray)) to iItems
+            Move (SizeOfArray(asValue)) to iItems
             Decrement iItems
             For i from 1 to iItems
-                Move sValueArray[i] to sTmp
+                Move asValue[i] to sTmp
                 Move (sValue + CR_LF + sTmp) to sValue
             Loop
             If (sEditorParams <> "") Begin
@@ -4999,8 +5225,11 @@ Class cManifestFunctionLibrary is a cObject
         If (CompareDataFlexVersions(Self, sVersion, "26.0") >= 0) Begin
             // df-cli writes to a console: started through the shell, so its window shows while it works, with each
             // file it compiles (--verbose; Nils 2026-11-19: show the compile as dfcomp's window does). It closes when
-            // the build succeeded and stays open after a failure (pause), so the errors can be read.
-            RunProgram Shell Wait "cmd.exe" ('/c ""' + sCompiler + '" build --verbose --target ' + sName + ' "' + sSws + '" || pause"')
+            // the build succeeded and stays open after a failure (pause), so the errors can be read. --rebuild: the
+            // program is compiled also when no source changed - what Compile is for after Embed or Compress changed the
+            // .exe; without it df-cli said "No changes detected, skipping build" and the compressed .exe stayed (Nils
+            // 2026-11-19).
+            RunProgram Shell Wait "cmd.exe" ('/c ""' + sCompiler + '" build --rebuild --verbose --target ' + sName + ' "' + sSws + '" || pause"')
         End
         Else Begin
             // dfcomp's own window: it closes when the compile succeeded and stays open with the errors.

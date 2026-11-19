@@ -247,6 +247,13 @@ Define ENABLE_PROCESSED_INPUT  for 1
     End_Struct
 #ENDIF
 
+// What a program file has embedded, beside its manifest file (EmbeddedManifestState).
+Define CI_EmbedUnknown   for 0   // no program file, or it cannot be read
+Define CI_EmbedNone      for 1   // no manifest embedded: Windows reads the manifest file
+Define CI_EmbedBasic     for 2   // a manifest without COM files - DataFlex's basic one
+Define CI_EmbedSame      for 3   // the manifest file's COM files, with the same classes
+Define CI_EmbedDiffers   for 4   // COM files, but not the manifest file's
+
 // One fragment file of the local library, with the COM file it describes (FragmentLibraryIndex).
 #IFNDEF _struct_tFragmentIndexEntry
     Struct tFragmentIndexEntry

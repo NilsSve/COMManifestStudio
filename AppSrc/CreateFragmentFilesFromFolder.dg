@@ -165,7 +165,7 @@ Object oCreateFragmentFilesFromFolder is a cRDCModalPanel
             tDataSourceRow[] TheData
             tsSearchResult[] SearchArray
             String sFolder sLibrary sFile sFragment sRegisteredTo sText
-            String[] sFiles
+            String[] asFiles
             Integer i iItems iCheckbox_Col iFile_Col iRegistered_Col iFragment_Col iResult_Col iState
             Boolean bExists
 
@@ -188,16 +188,16 @@ Object oCreateFragmentFilesFromFolder is a cRDCModalPanel
             For i from 0 to (iItems - 1)
                 Move SearchArray[i].sFilename to sFile
                 If (Lowercase(Right(sFile, 4)) = ".ocx") Begin
-                    Move sFile to sFiles[SizeOfArray(sFiles)]
+                    Move sFile to asFiles[SizeOfArray(asFiles)]
                 End
             Loop
-            Move (SortArray(sFiles)) to sFiles
+            Move (SortArray(asFiles)) to asFiles
 
             Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sLibrary
             Get vFolderFormat sLibrary to sLibrary
-            Move (SizeOfArray(sFiles)) to iItems
+            Move (SizeOfArray(asFiles)) to iItems
             For i from 0 to (iItems - 1)
-                Move sFiles[i] to sFile
+                Move asFiles[i] to sFile
                 Get COMComponentRegistration of ghoManifestFunctionLibrary sFolder sFile (&sRegisteredTo) to iState
                 // The check above resets the cursor; the list is not ready yet.
                 Send Cursor_Wait of Cursor_Control
@@ -273,7 +273,7 @@ Object oCreateFragmentFilesFromFolder is a cRDCModalPanel
             Handle hoDataSource
             tDataSourceRow[] TheData
             String sFolder sFile sMessage sFragment sText sRegisteredTo sRegistered
-            String[] sToRegister
+            String[] asToRegister
             Integer[] iTicked iToRegister iExitCodes
             Integer i iItems iRow iCount iRetval iState
             Integer iCheckbox_Col iFile_Col iRegistered_Col iFragment_Col iResult_Col
@@ -329,7 +329,7 @@ Object oCreateFragmentFilesFromFolder is a cRDCModalPanel
                         // A Shared one is not registered: that would only take the class IDs away from the file
                         // that has them now, which would then be the Shared one.
                         If (iState = CI_COMNotRegistered or iState = CI_COMRegisteredOtherFile) Begin
-                            Move sFile to sToRegister[SizeOfArray(sToRegister)]
+                            Move sFile to asToRegister[SizeOfArray(asToRegister)]
                             Move iRow  to iToRegister[SizeOfArray(iToRegister)]
                         End
                     End
@@ -338,8 +338,8 @@ Object oCreateFragmentFilesFromFolder is a cRDCModalPanel
             Send Stop_StatusPanel of ghoStatusPanel
 
             // 2. Register the ones that are not, in one go: one UAC question for all of them.
-            If (bCancel = False and SizeOfArray(sToRegister) > 0) Begin
-                Move (String(SizeOfArray(sToRegister)) * "of the ticked COM components are not registered with Windows. A fragment file can only be made for a registered component.") to sText
+            If (bCancel = False and SizeOfArray(asToRegister) > 0) Begin
+                Move (String(SizeOfArray(asToRegister)) * "of the ticked COM components are not registered with Windows. A fragment file can only be made for a registered component.") to sText
                 Move (sText + "\n\nDo you want to register them now?") to sText
                 Move (sText + "\n\nNote: If you click the 'Yes' button and UAC - User Access Control - is active on the machine, Windows asks once: 'Do you want to allow this app to make changes to your device?'. Select Yes to register all of them.") to sText
                 Get YesNo_Box sText to iRetval
@@ -347,10 +347,10 @@ Object oCreateFragmentFilesFromFolder is a cRDCModalPanel
                     // The status panel is up while RegSvr32 runs: it keeps this program's windows from taking
                     // clicks during the wait (see RunProgramAndWait). The registration cannot be stopped halfway.
                     Set Allow_Cancel_State of ghoStatusPanel to False
-                    Send Initialize_StatusPanel of ghoStatusPanel "COM Manifest Studio" "Create Manifest Fragment Files" ("Registering" * String(SizeOfArray(sToRegister)) * "COM components with Windows")
+                    Send Initialize_StatusPanel of ghoStatusPanel "COM Manifest Studio" "Create Manifest Fragment Files" ("Registering" * String(SizeOfArray(asToRegister)) * "COM components with Windows")
                     Send Start_StatusPanel of ghoStatusPanel
                     Send Update_StatusPanel of ghoStatusPanel "Windows may first ask for permission to make changes"
-                    Get RegisterCOMComponents of ghoManifestFunctionLibrary sFolder sToRegister (&iExitCodes) (&sMessage) to bOk
+                    Get RegisterCOMComponents of ghoManifestFunctionLibrary sFolder asToRegister (&iExitCodes) (&sMessage) to bOk
                     // Asked again for each of them. Two files with the same class IDs (CodeJock's ANSI and
                     // Unicode builds) can both have been registered just now: the last one owns the class
                     // IDs, and the first one is Shared - which is fine for its fragment file.
