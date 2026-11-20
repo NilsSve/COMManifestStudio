@@ -1165,11 +1165,12 @@ Class cManifestFunctionLibrary is a cObject
     //    "C:\Program Files (x86)\Codejock Software\ActiveX\Xtreme SuitePro ActiveX v13.4.2"
     // 3. Searches the registry for the path to the component and checks that the component listed in
     //    Windows registry exists. Then asks if it should be copied to the target.
+    // A copy that fails is reported, and makes the function return False.
     Function CopyCOMComponents String[] ByRef asFragmentFiles String[] ByRef asFiles Returns Boolean
         String sProgramsPath sFileName sVersion sExeFilePath sCommonComLibraryPath
-        String sCLSID sCOMComponentWithPath sFragmentFile
+        String sCLSID sCOMComponentWithPath sFragmentFile sSource
         Integer i iItems iRetval
-        Boolean bExists bCodeJock bRetval bOk
+        Boolean bExists bCodeJock bRetval bOk bNamed
 
         Move (SizeOfArray(asFiles)) to iItems
         If (iItems = 0) Begin
@@ -1193,9 +1194,10 @@ Class cManifestFunctionLibrary is a cObject
             Move asFiles[i] to sFileName
 
             // First check the 'Common COM Library' folder for existence
+            Move "" to sSource
             Get vFilePathExists (sCommonComLibraryPath + sFileName) to bExists
             If (bExists = True) Begin
-                Get vCopyFile (sCommonComLibraryPath + sFileName) sExeFilePath to iRetval
+                Move (sCommonComLibraryPath + sFileName) to sSource
             End
 
             // Then check CodeJock folders under "C:\Program Files..." for existence
@@ -1205,16 +1207,31 @@ Class cManifestFunctionLibrary is a cObject
                     Get ExtractCodeJockVersion sFileName to sVersion
                     Get vFilePathExists (sProgramsPath * sVersion + CS_CodeJockBinFolder + sFileName) to bExists
                     If (bExists = True) Begin
-                        Get vCopyFile (sProgramsPath * sVersion + CS_CodeJockBinFolder + sFileName) sExeFilePath to iRetval
+                        Move (sProgramsPath * sVersion + CS_CodeJockBinFolder + sFileName) to sSource
                     End
                 End
 
-                // No, no CodeJock component, nor does it exists in the "Common COM Library".
-                // Check Windows registry for the path.
+                /* No, no CodeJock component, nor does it exists in the "Common COM Library". Check Windows registry
+                   for the path - BY THE FRAGMENT'S OWN FILE NAME, in the 64-bit and the 32-bit view (2026-11-20).
+                   CodeJock's ANSI, Unicode and x64 builds register the SAME CLSIDs, and this program is 32-bit: the first
+                   path its own view gave was the 32-bit Unicode OCX for an x64 fragment, so the wrong file was offered
+                   and copied, and the x64 one stayed missing. */
                 If (bExists = False) Begin
-                    Get RegistryComponentPathByCLSID sCLSID to sCOMComponentWithPath
+                    Get IsCLSIDRegisteredFromCOMComponent sCLSID sFileName (&sCOMComponentWithPath) to bNamed
+                    // Only another build is registered: the file wanted can still be in that build's folder.
+                    If (bNamed = False and sCOMComponentWithPath <> "") Begin
+                        Get vFilePathExists (vFolderFormat(ParseFolderName(sCOMComponentWithPath)) + sFileName) to bOk
+                        If (bOk = True) Begin
+                            Move (vFolderFormat(ParseFolderName(sCOMComponentWithPath)) + sFileName) to sCOMComponentWithPath
+                            Move True to bNamed
+                        End
+                    End
                     If (sCOMComponentWithPath = "") Begin
                         Send Info_Box ("Could not find the COM (OCX/DLL) component to copy:\n" + (sCommonComLibraryPath + sFileName) * "to:\n" + sExeFilePath)
+                        Move False to bRetval
+                    End
+                    Else If (bNamed = False) Begin
+                        Send Info_Box ("Could not find the COM (OCX/DLL) component to copy:\n" + sFileName + "\n\nThe Windows registry names another build of it for the same class:\n" + sCOMComponentWithPath)
                         Move False to bRetval
                     End
                     Else Begin
@@ -1224,7 +1241,7 @@ Class cManifestFunctionLibrary is a cObject
                         If (bOk = True) Begin
                             Get YesNo_Box ("The component path was found in the Windows registry. Copy this component to the target folder?\n" + sCOMComponentWithPath) to iRetval
                             If (iRetval = MBR_Yes) Begin
-                                Get vCopyFile sCOMComponentWithPath sExeFilePath to iRetval
+                                Move sCOMComponentWithPath to sSource
                             End
                         End
                         Else Begin
@@ -1232,6 +1249,16 @@ Class cManifestFunctionLibrary is a cObject
                             Move False to bRetval
                         End
                     End
+                End
+            End
+
+            // The copy, wherever the file was found. vCopyFile returns nonzero when it failed - until 2026-11-20 nobody
+            // asked, and the dialog then said the files were "successfully copied".
+            If (sSource <> "") Begin
+                Get vCopyFile sSource sExeFilePath to iRetval
+                If (iRetval <> 0) Begin
+                    Send Info_Box ("The COM (OCX/DLL) component could not be copied:\n" + sSource + "\nto:\n" + sExeFilePath)
+                    Move False to bRetval
                 End
             End
         Loop
