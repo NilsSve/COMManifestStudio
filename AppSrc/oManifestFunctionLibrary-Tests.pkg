@@ -449,4 +449,90 @@ Object oManifestFunctionLibrary_Tests is a cTestFixture
         Send RemoveScratchWorkspace sFolder
     End_Procedure
 
+    // ---------------------------------------------------------------- x64 manifests (2026-11-20)
+
+    // A program not compiled yet is told by its DataFlex 64BitSuffix; an x64 program gets "amd64".
+    { Published=True }
+    Procedure Test_ProgramPlatform_And_ManifestArchitecture
+        String sPlatform sArchitecture
+
+        Get ProgramPlatform of ghoManifestFunctionLibrary "C:\No Such Folder 7Q\Order64.exe" to sPlatform
+        Send AssertSAreEqual "x64" sPlatform "A missing program named ...64.exe is x64."
+        Get ProgramPlatform of ghoManifestFunctionLibrary "C:\No Such Folder 7Q\Order.exe" to sPlatform
+        Send AssertSAreEqual "" sPlatform "A missing program without the suffix cannot be told."
+        Get ManifestArchitecture of ghoManifestFunctionLibrary "x64" to sArchitecture
+        Send AssertSAreEqual "amd64" sArchitecture "x64 is amd64 in a manifest."
+        Get ManifestArchitecture of ghoManifestFunctionLibrary "ARM64" to sArchitecture
+        Send AssertSAreEqual "arm64" sArchitecture "ARM64."
+        Get ManifestArchitecture of ghoManifestFunctionLibrary "x86" to sArchitecture
+        Send AssertSAreEqual "X86" sArchitecture "x86."
+        Get ManifestArchitecture of ghoManifestFunctionLibrary "" to sArchitecture
+        Send AssertSAreEqual "X86" sArchitecture "Not known: X86, as before."
+    End_Procedure
+
+    { Published=True }
+    Procedure Test_LineWithArchitecture
+        String sLine
+
+        Get LineWithArchitecture of ghoManifestFunctionLibrary '  version="6.0.0.0" processorArchitecture="X86" publicKeyToken="1"' "amd64" to sLine
+        Send AssertSAreEqual '  version="6.0.0.0" processorArchitecture="amd64" publicKeyToken="1"' sLine "The value is replaced, the rest kept."
+        Get LineWithArchitecture of ghoManifestFunctionLibrary '<assemblyIdentity PROCESSORARCHITECTURE="x86"/>' "X86" to sLine
+        Send AssertSAreEqual '<assemblyIdentity PROCESSORARCHITECTURE="x86"/>' sLine "The same value in another case is left."
+        Get LineWithArchitecture of ghoManifestFunctionLibrary '  name="Microsoft.Windows.Common-Controls"' "amd64" to sLine
+        Send AssertSAreEqual '  name="Microsoft.Windows.Common-Controls"' sLine "No attribute: unchanged."
+        Get LineWithArchitecture of ghoManifestFunctionLibrary 'processorArchitecture="X86"' "" to sLine
+        Send AssertSAreEqual 'processorArchitecture="X86"' sLine "No architecture to set: unchanged."
+    End_Procedure
+
+    // The hard-coded template: the architecture in both places, the description, and the DPI block inside <assembly>.
+    { Published=True }
+    Procedure Test_CreateManifestTemplateAsString_For_x64
+        String sText
+        Integer iDPI iEnd
+
+        Get CreateManifestTemplateAsString of ghoManifestFunctionLibrary True "Order64.exe" "amd64" to sText
+        Send AssertIAreEqual 0 (Pos('"X86"', sText)) "No X86 left."
+        Send Assert (Pos('<assemblyIdentity version="1.0.0.0"', sText) > 0 and Pos('processorArchitecture="amd64"', sText) > 0) "amd64 is written."
+        Send AssertSAreEqual "amd64" (Mid(sText, 5, (Pos('version="6.0.0.0" processorArchitecture="', sText) + 41))) "The Common-Controls dependency is amd64 too."
+        Send Assert (Pos("<description>Order64.exe</description>", sText) > 0) "The description is filled in."
+        Move (Pos("<dpiAware>", sText)) to iDPI
+        Move (Pos("</assembly>", sText)) to iEnd
+        Send Assert (iDPI > 0 and iDPI < iEnd) "The DPI block is inside <assembly>."
+        Send AssertSAreEqual "</assembly>" (Right(sText, 11)) "</assembly> ends the text."
+        Get CreateManifestTemplateAsString of ghoManifestFunctionLibrary False "Order.exe" "" to sText
+        Send Assert (Pos('processorArchitecture="X86"', sText) > 0) "No architecture given: X86."
+        Send AssertIAreEqual 0 (Pos("dpiAware", sText)) "No DPI block when not asked for."
+    End_Procedure
+
+    // An x86 CodeJock fragment for an x64 program is reported; the x64 one and a component that cannot be told are not.
+    { Published=True }
+    Procedure Test_FragmentPlatformMismatches
+        String sFolder sLibrary sReport
+        String[] asFiles
+
+        Get ScratchWorkspaceFolder to sFolder
+        Get psManifestFragmentLibrary of ghoManifestFunctionLibrary to sLibrary
+        Set psManifestFragmentLibrary of ghoManifestFunctionLibrary to (sFolder + "AppSrc")
+        Send WriteScratchFile (sFolder + "AppSrc\Grid86.txt") '<file name="Codejock.GridControl.Unicode.v24.3.0.ocx">'
+        Send WriteScratchFile (sFolder + "AppSrc\Grid64.txt") '<file name="Codejock.GridControl.Unicode.x64.v24.3.0.ocx">'
+        Send WriteScratchFile (sFolder + "AppSrc\Other.txt")  '<file name="Other.ocx">'
+        // Not a program file: its platform cannot be read, nor told from its name.
+        Send WriteScratchFile (sFolder + "AppSrc\Other.ocx")  "not a program"
+        Move "Grid86.txt" to asFiles[0]
+        Move "Grid64.txt" to asFiles[1]
+        Move "Other.txt"  to asFiles[2]
+
+        Get FragmentPlatformMismatches of ghoManifestFunctionLibrary (sFolder + "AppSrc") "x64" (&asFiles) to sReport
+        Send Assert (Pos("Grid86.txt - for x86", sReport) > 0) "The x86 fragment is reported."
+        Send AssertIAreEqual 0 (Pos("Grid64.txt", sReport)) "The x64 fragment matches."
+        Send AssertIAreEqual 0 (Pos("Other.txt", sReport)) "A component that cannot be told is left out."
+        Get FragmentPlatformMismatches of ghoManifestFunctionLibrary (sFolder + "AppSrc") "x86" (&asFiles) to sReport
+        Send Assert (Pos("Grid64.txt - for x64", sReport) > 0) "For an x86 program the x64 one is reported."
+        Get FragmentPlatformMismatches of ghoManifestFunctionLibrary (sFolder + "AppSrc") "" (&asFiles) to sReport
+        Send AssertSAreEqual "" sReport "The program's platform not known: nothing checked."
+
+        Set psManifestFragmentLibrary of ghoManifestFunctionLibrary to sLibrary
+        Send RemoveScratchWorkspace sFolder
+    End_Procedure
+
 End_Object

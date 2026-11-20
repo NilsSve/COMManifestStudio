@@ -1268,9 +1268,10 @@ Class cManifestFunctionLibrary is a cObject
 
     // Creates an application manifest file with the the passed description.
     // Params: Pass a boolean True as the third param to include DPI information in the manifest file.
+    // The processorArchitecture written is the program's own (ProgramPlatform): "amd64" for a 64-bit program.
     Function CreateApplicationManifestFromTemplate String sPath String sManifestFileName String sDescription Boolean bIncludeDPI Returns Boolean
         Integer iCh
-        String sManifestTemplateText
+        String sManifestTemplateText sPlatform sArchitecture
         Boolean bOk
 
         Move True to bOk
@@ -1280,7 +1281,9 @@ Class cManifestFunctionLibrary is a cObject
             Function_Return False
         End
 
-        Get FormattedManifestTemplateText sDescription bIncludeDPI to sManifestTemplateText
+        Get ProgramPlatform (sPath + Replace(CS_ManifestExtension, sManifestFileName, "")) to sPlatform
+        Get ManifestArchitecture sPlatform to sArchitecture
+        Get FormattedManifestTemplateText sDescription bIncludeDPI sArchitecture to sManifestTemplateText
         If (sManifestTemplateText <> "") Begin
             Writeln channel iCh sManifestTemplateText
         End
@@ -1744,15 +1747,120 @@ Class cManifestFunctionLibrary is a cObject
         Function_Return ""
     End_Function
 
+    // What the program sExeFile is built for: "x86", "x64" or "ARM64", read from the file (ComponentPlatform).
+    // A program not compiled yet whose name ends in "64.exe" (the DataFlex 64BitSuffix) is taken as "x64".
+    // Returns "" when it cannot be told.
+    Function ProgramPlatform String sExeFile Returns String
+        String sPlatform
+
+        Get ComponentPlatform sExeFile to sPlatform
+        If (sPlatform = "" and Right(Lowercase(sExeFile), 6) = "64.exe") Begin
+            Move "x64" to sPlatform
+        End
+        Function_Return sPlatform
+    End_Function
+
+    // The processorArchitecture value of a manifest for a program built for sPlatform (as ProgramPlatform
+    // returns it): "amd64", "arm64", else "X86" - also when the platform is not known, as before 2026-11-20.
+    Function ManifestArchitecture String sPlatform Returns String
+        If (sPlatform = "x64") Begin
+            Function_Return "amd64"
+        End
+        If (sPlatform = "ARM64") Begin
+            Function_Return "arm64"
+        End
+        Function_Return "X86"
+    End_Function
+
+    // sLine with the value of its processorArchitecture="..." set to sArchitecture. The line is returned as it is
+    // when it has no such attribute, when sArchitecture is "", or when the value already says it (in any case).
+    Function LineWithArchitecture String sLine String sArchitecture Returns String
+        Integer iPos iStart iEnd
+        String sRest sOld
+
+        If (sArchitecture = "") Begin
+            Function_Return sLine
+        End
+        Move (Pos('PROCESSORARCHITECTURE="', Uppercase(sLine))) to iPos
+        If (iPos = 0) Begin
+            Function_Return sLine
+        End
+        // The value starts after the 23 characters of processorArchitecture=" .
+        Move (iPos + 23) to iStart
+        Move (Mid(sLine, Length(sLine), iStart)) to sRest
+        Move (Pos('"', sRest)) to iEnd
+        If (iEnd = 0) Begin
+            Function_Return sLine
+        End
+        Move (Left(sRest, (iEnd - 1))) to sOld
+        If (Lowercase(sOld) = Lowercase(sArchitecture)) Begin
+            Function_Return sLine
+        End
+        Function_Return (Left(sLine, (iStart - 1)) + sArchitecture + Mid(sRest, Length(sRest), iEnd))
+    End_Function
+
+    // The fragment files of asFiles whose COM component is built for another platform than the program
+    // (sPlatform, as ProgramPlatform returns it) - a 64-bit program cannot load a 32-bit component, nor the other
+    // way round. The component's platform is read from its file in the program's folder (sExePath) when it is
+    // there; else from its name: CodeJock names its 64-bit builds "...x64...", and its other builds are 32-bit.
+    // A component whose platform cannot be told is left out. One line per file; "" when all match.
+    Function FragmentPlatformMismatches String sExePath String sPlatform String[] ByRef asFiles Returns String
+        String sFile sCOMFile sName sFound sReport
+        Integer i iFiles
+        Boolean bExists
+
+        Move "" to sReport
+        If (sPlatform = "") Begin
+            Function_Return ""
+        End
+        Get vFolderFormat sExePath to sExePath
+        Move (SizeOfArray(asFiles)) to iFiles
+        For i from 0 to (iFiles - 1)
+            Move asFiles[i] to sFile
+            Get ExtractCOMFileName sFile to sCOMFile
+            If (sCOMFile <> "") Begin
+                Move "" to sFound
+                Get vFilePathExists (sExePath + sCOMFile) to bExists
+                If (bExists = True) Begin
+                    Get ComponentPlatform (sExePath + sCOMFile) to sFound
+                End
+                If (sFound = "") Begin
+                    Move False to bExists
+                    Move (Lowercase(sCOMFile)) to sName
+                    If (sName contains ".x64.") Begin
+                        Move "x64" to sFound
+                    End
+                    Else If (Left(sName, 9) = "codejock.") Begin
+                        Move "x86" to sFound
+                    End
+                End
+                If (sFound <> "" and sFound <> sPlatform) Begin
+                    If (bExists = True) Begin
+                        Move (sReport + "  " + sFile + " - the component file in the program folder is " + sFound + "\n") to sReport
+                    End
+                    Else Begin
+                        Move (sReport + "  " + sFile + " - for " + sFound + "\n") to sReport
+                    End
+                End
+            End
+        Loop
+        Function_Return sReport
+    End_Function
+
     // Returns a line formatted string with a full application manifest file template.
-    // Pass a boolean True/False if DPI information should be included or not.
-    Function CreateManifestTemplateAsString Boolean bIncludeDPI String sDescription Returns String
+    // Pass a boolean True/False if DPI information should be included or not, and the processorArchitecture
+    // (ManifestArchitecture) of the program - "" writes "X86".
+    Function CreateManifestTemplateAsString Boolean bIncludeDPI String sDescription String sArchitecture Returns String
         String sValue sText
+
+        If (sArchitecture = "") Begin
+            Move "X86" to sArchitecture
+        End
 
         Move ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' + CR_LF) to sValue
         Move (sValue + '<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">' + CR_LF) to sValue
         Move (sValue + '  <assemblyIdentity version="1.0.0.0"' + CR_LF) to sValue
-        Move (sValue + '                    processorArchitecture="X86"' + CR_LF) to sValue
+        Move (sValue + '                    processorArchitecture="' + sArchitecture + '"' + CR_LF) to sValue
         Move ('                    name="XXXXXXXXXX"') to sText
         Move (Replace("XXXXXXXXXX", sText, sDescription)) to sText
         Move (sValue + sText + CR_LF) to sValue
@@ -1764,7 +1872,7 @@ Class cManifestFunctionLibrary is a cObject
         Move (sValue + '      <dependentAssembly>' + CR_LF) to sValue
         Move (sValue + '        <assemblyIdentity type="win32"' + CR_LF) to sValue
         Move (sValue + '                        name="Microsoft.Windows.Common-Controls"' + CR_LF) to sValue
-        Move (sValue + '                        version="6.0.0.0" processorArchitecture="X86"' + CR_LF) to sValue
+        Move (sValue + '                        version="6.0.0.0" processorArchitecture="' + sArchitecture + '"' + CR_LF) to sValue
         Move (sValue + '                        publicKeyToken="6595b64144ccf1df"' + CR_LF) to sValue
         Move (sValue + '                        language="*"/>' + CR_LF) to sValue
         Move (sValue + '      </dependentAssembly>' + CR_LF) to sValue
@@ -1776,14 +1884,14 @@ Class cManifestFunctionLibrary is a cObject
         Move (sValue + '      </v3:requestedPrivileges>' + CR_LF) to sValue
         Move (sValue + '    </v3:security>' + CR_LF) to sValue
         Move (sValue + '  </v3:trustInfo>' + CR_LF) to sValue
-        Move (sValue + '</assembly>' + CR_LF) to sValue
         If (bIncludeDPI = True) Begin
-            Move (sValue + '<v3:application xmlns:v3="urn:schemas-microsoft-com:asm.v3">' + CR_LF) to sValue
-            Move (sValue + '  <v3:windowsSettings xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">' + CR_LF) to sValue
-            Move (sValue + '    <dpiAware>True</dpiAware>' + CR_LF) to sValue
-            Move (sValue + '  </v3:windowsSettings>' + CR_LF) to sValue
-            Move (sValue + '</v3:application>') to sValue
+            Move (sValue + '  <v3:application xmlns:v3="urn:schemas-microsoft-com:asm.v3">' + CR_LF) to sValue
+            Move (sValue + '    <v3:windowsSettings xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">' + CR_LF) to sValue
+            Move (sValue + '      <dpiAware>True</dpiAware>' + CR_LF) to sValue
+            Move (sValue + '    </v3:windowsSettings>' + CR_LF) to sValue
+            Move (sValue + '  </v3:application>' + CR_LF) to sValue
         End
+        Move (sValue + '</assembly>') to sValue
         Function_Return sValue
     End_Function
 
@@ -1847,7 +1955,7 @@ Class cManifestFunctionLibrary is a cObject
         String sManifestFileName sExeFileName sTargetPath sExePath sFileName sManifestFragmentLibrary
         Boolean bApplicationStringsOk bSkipLine bOk
         Integer i iFiles iDuplicates iRetval iChIn iChOut
-        String sValue sTabChar sComment sCompare
+        String sValue sTabChar sComment sCompare sPlatform sArchitecture
         Boolean bCommentRow bOfInterest
         tWinFileTimeCS stFileTime
         String[] asSelectedFileNames
@@ -1874,6 +1982,21 @@ Class cManifestFunctionLibrary is a cObject
         Get vFolderFormat sExePath    to sExePath
         Get psTargetPath              to sTargetPath
         Get vFolderFormat sTargetPath to sTargetPath
+
+        // A fragment for another platform than the program's makes a manifest the program cannot use (2026-11-20).
+        // "" when the program's platform cannot be told: then nothing is checked, and the old lines stay as they are.
+        Get ProgramPlatform (sExePath + sExeFileName) to sPlatform
+        Move "" to sArchitecture
+        If (sPlatform <> "") Begin
+            Get ManifestArchitecture sPlatform to sArchitecture
+            Get FragmentPlatformMismatches sExePath sPlatform (&asFiles) to sValue
+            If (sValue <> "") Begin
+                Get YesNo_Box ("The program " + sExeFileName + " is " + sPlatform + ", but these selected fragment files are for another platform. A 64-bit program cannot use a 32-bit COM component, nor the other way round:\n\n" + sValue + "\nFor a 64-bit program, select the files with x64 in their name instead.\n\nWrite the manifest anyway?") "Platform" to iRetval
+                If (iRetval <> MBR_Yes) Begin
+                    Procedure_Return
+                End
+            End
+        End
 
         // This file backup copy will be used to read from when we create the new manifest file.
         Get vCopyFile (sTargetPath + sManifestFileName) (sTargetPath + sManifestFileName + CS_XMLBackupName) to iRetval
@@ -1902,7 +2025,8 @@ Class cManifestFunctionLibrary is a cObject
                     Move True to SeqEof // Ok, we are done with the top part.
                 End
                 Else Begin
-                    Writeln channel iChOut sValue
+                    // An x86 manifest of a program since built as x64 gets the program's architecture.
+                    Writeln channel iChOut (LineWithArchitecture(Self, sValue, sArchitecture))
                 End
             Loop
             Send Seq_Close_Channel iChIn
@@ -2782,7 +2906,8 @@ Class cManifestFunctionLibrary is a cObject
     // in the Programs folder. If the file exists it reads and returns the entire template. If
     // the template cannot be found the function falls back and returns a template from hard-coded
     // data from the CreateManifestTemplateAsString sub-function.
-    Function FormattedManifestTemplateText String sDescription Boolean bIncludeDPI Returns String
+    // sArchitecture is the processorArchitecture of the program (ManifestArchitecture).
+    Function FormattedManifestTemplateText String sDescription Boolean bIncludeDPI String sArchitecture Returns String
         String sValue sPath
         Boolean bExists
 
@@ -2791,11 +2916,11 @@ Class cManifestFunctionLibrary is a cObject
         Get vFilePathExists (sPath + CS_TemplateManifest) to bExists
         If (bExists = True) Begin
             // Read the manifest template from the Program folder.
-            Get ReadManifestTemplateAsString bIncludeDPI sDescription (sPath + CS_TemplateManifest)  to sValue
+            Get ReadManifestTemplateAsString bIncludeDPI sDescription (sPath + CS_TemplateManifest) sArchitecture to sValue
         End
         Else Begin
             // Then we create it from hardcoded structure.
-            Get CreateManifestTemplateAsString bIncludeDPI to sValue
+            Get CreateManifestTemplateAsString bIncludeDPI sDescription sArchitecture to sValue
         End
 
         Function_Return sValue
@@ -3895,8 +4020,9 @@ Class cManifestFunctionLibrary is a cObject
 
     // This function reads the template application manifest file that should reside in this
     // workspace Programs folder, and returns it as a line formatted string.
-    // Pass a boolean True/False if DPI information should be included into the manifest or not.
-    Function ReadManifestTemplateAsString Boolean bIncludeDPI String sDescription String sFullTemplateName Returns String
+    // Pass a boolean True/False if DPI information should be included into the manifest or not, and the
+    // processorArchitecture of the program (ManifestArchitecture); "" keeps the template's.
+    Function ReadManifestTemplateAsString Boolean bIncludeDPI String sDescription String sFullTemplateName String sArchitecture Returns String
         Integer iCh
         String sValue sRetval sTmp
 
@@ -3906,8 +4032,12 @@ Class cManifestFunctionLibrary is a cObject
                 Readln channel iCh sValue
                 Move (Uppercase(Trim(sValue))) to sTmp
                 If (sTmp = 'NAME="WORKSPACE NAME"') Begin
-                    Move ('                    name=' + sDescription) to sValue
+                    Move ('                    name="' + sDescription + '"') to sValue
                 End
+                If (sTmp = '<DESCRIPTION>PROGRAM DESCRIPTION</DESCRIPTION>') Begin
+                    Move ('  <description>' + sDescription + '</description>') to sValue
+                End
+                Get LineWithArchitecture sValue sArchitecture to sValue
                 If (bIncludeDPI = False and sTmp = '<V3:APPLICATION XMLNS:V3="URN:SCHEMAS-MICROSOFT-COM:ASM.V3">') Begin
                     // Then ignore the DPI template rows.
                     Readln channel iCh sTmp
