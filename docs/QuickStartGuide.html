@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="generator" content="HelpNDoc Ultimate Edition 10.9.0.492">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="favicon.ico"/>
+
+  <title>Quick start</title>
+  <meta name="description" content="" /> 
+  <meta name="keywords" content="">
+
+
+
+  
+  
+
+  <!-- Twitter Card data -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Quick start">
+  <meta name="twitter:description" content="">
+
+  <!-- Open Graph data -->
+  <meta property="og:title" content="Quick start" />
+  <meta property="og:type" content="article" />
+  <meta property="og:description" content="" />
+  <meta property="og:site_name" content="COM Manifest Studio" /> 
+
+  <!-- Bootstrap CSS -->
+  <link href="vendors/bootstrap-5.3.7/bootstrap.min.css" rel="stylesheet"/>
+  <link href="vendors/bootstrap-icons-1.13.1/bootstrap-icons.min.css" rel="stylesheet"/>
+
+  <!-- JsTree styles -->
+  <link href="vendors/jstree-3.3.17/themes/default/style.min.css" rel="stylesheet"/>
+
+  <!-- Hnd styles -->
+  <link href="css/layout.min.css" rel="stylesheet" />
+  <link href="css/effects.min.css" rel="stylesheet" />
+  <link href="css/theme-dark-blue.min.css" rel="stylesheet" />
+  <link href="css/print.min.css" rel="stylesheet" media="print" />
+  <style type="text/css">nav { width: 350px} @media screen and (min-width:769px) { body.md-nav-expanded div#main { margin-left: 350px} body.md-nav-expanded header { padding-left: 364px} }</style>
+  <style type="text/css">.navigation #inline-toc { width: auto !important}</style>
+
+  <!-- Content style -->
+  <link href="css/hnd.content.css" rel="stylesheet" />
+
+  <!-- COM Manifest Studio dark theme. MUST come after hnd.content.css, which hardcodes
+       colours on the span.rvtsN rich-text classes. Custom CSS still loads after
+       this, so per-build tweaks continue to win. -->
+  <link href="css/cms-dark.css" rel="stylesheet" />
+
+  
+
+
+
+</head>
+
+<body class="md-nav-expanded">
+
+
+
+  
+
+  <div id="skip-link">
+    <a href="#main-content" class="element-invisible">Skip to main content</a>
+  </div>
+
+  <header class="headroom">
+    <button class="hnd-toggle btn btn-default">
+      <span class="visually-hidden">Toggle navigation</span>
+      <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>        
+    </button>
+    <h1>COM Manifest Studio</h1>
+    
+  </header>
+
+  <nav id="panel-left" class="md-nav-expanded">
+    <!-- Nav tabs -->
+    <ul class="tab-tabs nav nav-tabs" role="tablist">
+      <li id="nav-close" role="presentation"> 
+        <button class="hnd-toggle btn btn-default" aria-label="close">
+          <span class="bi bi-x" aria-hidden="true"></span>
+        </button>
+      </li>
+      
+	  
+        <li role="presentation" class="nav-item tab">
+            <a href="#contents" id="tab-contents" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#contents" aria-controls="contents" aria-selected="true">
+                <i class="bi bi-list-ul"></i>
+                Contents
+            </a>
+        </li>
+      
+        <li role="presentation" class="nav-item tab">
+            <a href="#index" id="tab-index" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#index" aria-controls="index" aria-selected="false">
+                <i class="bi bi-asterisk"></i>
+                Index
+            </a>
+        </li>
+      
+        <li role="presentation" class="nav-item tab">
+            <a href="#search" id="tab-search" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#search" aria-controls="search" aria-selected="false">
+                <i class="bi bi-search"></i>
+                Search
+            </a>
+        </li>
+      
+    </ul>  <!-- /Nav tabs -->
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+	  
+      <div role="tabpanel" class="tab-pane active" id="contents">
+        <div id="toc" class="tree-container unselectable"
+            data-url="_toc.json"
+            data-openlvl="1"
+        >
+            
+        </div>
+      </div>  <!-- /contents-->
+      
+      <div role="tabpanel" class="tab-pane" id="index">
+        <div id="keywords" class="tree-container unselectable"
+            data-url="_keywords.json"
+            data-openlvl="1"
+        >
+            
+        </div>
+      </div>  <!-- /index-->
+      
+      <div role="tabpanel" class="tab-pane" id="search">
+        <div class="search-content">
+          <div class="search-input">
+            <form id="search-form">
+              <div class="form-group">
+                <div class="input-group">
+                  <input type="text" class="form-control" id="input-search" name="input-search" placeholder="Search..." aria-label="Search..." />
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit" aria-label="Search...">
+                      <span class="bi bi-search" aria-hidden="true"></span>
+                    </button>
+                  </span>
+                </div>
+              </div>
+            </form>
+          </div>  <!-- /search-input -->
+          <div class="search-result">
+            <div id="search-info"></div>
+            <div class="tree-container unselectable" id="search-tree"></div>
+          </div>  <!-- /search-result -->
+        </div>  <!-- /search-content -->
+      </div>  <!-- /search-->
+      
+    </div>  <!-- /Tab panes -->
+
+  </nav>
+
+  <div id="main">
+
+    <article>
+        <div id="topic-content" class="container-fluid" 
+		  data-hnd-id="QuickStartGuide"
+		  data-hnd-context="6"
+		  data-hnd-title="Quick start"
+		>
+            
+                <div class="navigation">
+                    <ol class="breadcrumb">
+                        <li>Using the program</li>
+                    </ol>
+                    <div class="nav-arrows">
+                        <div class="btn-group btn-group" role="group"><a class="btn btn-default" href="Whatsnew.html" title="What's new" role="button"><span class="bi bi-chevron-left" aria-hidden="true"></span></a><a class="btn btn-default" href="Howitworks1.html" title="The five steps" role="button"><span class="bi bi-chevron-right" aria-hidden="true"></span></a></div>
+                    </div>
+                </div> 
+            
+
+            <a id="main-content"></a>
+
+            <h2>Quick start</h2>
+
+            <div class="main-content">
+                
+<p class="rvps3"><span class="rvts8">This page takes you through your first manifest. For what each step does, see </span><a class="rvts13" href="Howitworks1.html">The five steps</a><span class="rvts8">.</span></p>
+<p class="rvps3"><span class="rvts14">1. Open the program's manifest</span></p>
+<p class="rvps3"><span class="rvts8">Choose one of these:</span></p>
+<ul style="text-indent: 0px; padding: 0; margin: 0 0 0 48px; list-style-position: outside; list-style-type: disc;">
+ <li class="rvps5 noindent"><span class="rvts14">File &gt; New Project...</span><span class="rvts8"> starts a wizard. It asks for the program (the .exe file) and whether it already has a manifest file. If it has none, the wizard creates one - with "DPI aware" in it if you tick that option. Then it lets you choose the fragment files.</span></li>
+ <li class="rvps5 noindent"><span class="rvts14">File &gt; Browse for Manifest File...</span><span class="rvts8"> opens a manifest file on disk: the file with the program's name and ".manifest" added, for example Order.exe.manifest. The DataFlex Studio keeps it in the workspace's AppSrc folder.</span></li>
+ <li class="rvps5 noindent"><span class="rvts14">File &gt; Select Manifest...</span><span class="rvts8"> lists the manifests COM Manifest Studio already keeps, so you can go back to one you worked on before.</span></li>
+</ul>
+<p class="rvps3"><img alt="The New Project wizard, choosing the manifest or the program" style="padding : 1px;" src="lib/CMS%20New%20Project%20wizard.png"></p>
+<p class="rvps3"><span class="rvts14">2. Choose the components</span></p>
+<p class="rvps3"><span class="rvts8">Click </span><span class="rvts14">Add files...</span><span class="rvts8"> in step 1 of the main window (or press F4 in the list), and choose one fragment file for each COM component the program uses. A fragment file has the name of the component's file with ".txt" instead of ".ocx" or ".dll". You can also drag the files from Windows Explorer onto the list. If you cannot find a component's fragment file, see </span><a class="rvts13" href="Thefragmentlibrary.html">The fragment library</a><span class="rvts8">.</span></p>
+<p class="rvps3"><span class="rvts14">3. Build the manifest</span></p>
+<p class="rvps3"><span class="rvts8">Click </span><span class="rvts14">Build</span><span class="rvts8"> in step 2. COM Manifest Studio writes the components into the manifest file and has Microsoft's mt.exe check the result. The previous manifest file is kept as a backup, with the date and time in its name.</span></p>
+<p class="rvps3"><span class="rvts14">4. Copy the COM files</span></p>
+<p class="rvps3"><span class="rvts8">Click </span><span class="rvts14">Copy COM files</span><span class="rvts8"> in step 3. It checks that each component's file is in the program's folder, and copies the ones that are missing.</span></p>
+<p class="rvps3"><span class="rvts14">5. Get the manifest into the program, and test it</span></p>
+<ul style="text-indent: 0px; padding: 0; margin: 0 0 0 48px; list-style-position: outside; list-style-type: disc;">
+ <li class="rvps5 noindent"><span class="rvts8">If the program is compiled with "Embed manifest file" on in its project settings (EmbedManifestFile=1 in its .cfg file), </span><span class="rvts14">compile</span><span class="rvts8"> it: the compiler puts the manifest into the program. Use </span><span class="rvts14">Compile</span><span class="rvts8"> in step 5.</span></li>
+ <li class="rvps5 noindent"><span class="rvts8">Otherwise, use </span><span class="rvts14">Embed</span><span class="rvts8"> in step 4.</span></li>
+</ul>
+<p class="rvps3"><span class="rvts8">Then click </span><span class="rvts14">Run</span><span class="rvts8"> in step 5 and check that the program starts and that its controls appear.</span></p>
+<p class="rvps3"><span class="rvts8">That is all a program needs: the manifest in the program, and the component files in its folder. The program can now be installed by copying its folder, without registering the components.</span></p>
+
+            </div>
+            
+            <div id="topic_footer"><div id="topic_footer_content">Copyright &copy; 2002-2026 by RDC Tools International. All Rights Reserved. Portions Copyright by DataAccess Worldwide.</div></div>
+        </div>  <!-- /#topic-content -->
+    </article>
+
+    <footer></footer>
+
+  </div>  <!-- /#main -->
+
+  <div class="mask" data-bs-toggle="sm-nav-expanded"></div>
+  
+  <!-- Modal -->
+  <div class="modal fade" id="hndModal" tabindex="-1" role="dialog" aria-labelledby="hndModalLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="hndModalLabel"></h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary modal-btn-close" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Splitter -->
+  <div id="hnd-splitter" style="left: 350px"></div>  
+
+  <!-- Scripts -->
+  <script src="vendors/jquery-3.7.1/jquery.min.js"></script>
+  <script src="vendors/bootstrap-5.3.7/bootstrap.bundle.min.js"></script>
+  <script src="vendors/markjs-8.11.1/jquery.mark.min.js"></script>
+  <script src="vendors/uri-1.19.11/uri.min.js"></script>
+  <script src="vendors/imageMapResizer-1.0.10/imageMapResizer.min.js"></script>
+  <script src="vendors/headroom-0.11.0/headroom.min.js"></script>
+  <script src="vendors/jstree-3.3.17/jstree.min.js"></script>  
+  <script src="vendors/interactjs-1.9.22/interact.min.js"></script>  
+
+  <!-- HelpNDoc scripts -->
+  <script src="_translations.js"></script>
+  <script src="js/hndsd.min.js"></script>
+  <script src="js/hndse.min.js"></script>
+  <script src="js/app.min.js"></script>
+
+  <!-- Init script -->
+  <script src="_topic_init.js"></script>
+
+
+
+</body>
+
+</html>
+

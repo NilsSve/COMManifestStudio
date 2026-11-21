@@ -8,9 +8,7 @@
 //
 // The code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
 // without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-// This is free software; you can redistribute it and/or modify it under the terms of the
-// GNU Lesser General Public License.
-// License: LGPLv3 - GNU LESSER GENERAL PUBLIC LICENSE Version 3 - http://www.gnu.org/licenses/lgpl.txt
+// This is free software under the MIT License - see the LICENSE file in the repository's root folder.
 //
 //****************************************************************************
 Use cApplication.pkg
