@@ -535,4 +535,72 @@ Object oManifestFunctionLibrary_Tests is a cTestFixture
         Send RemoveScratchWorkspace sFolder
     End_Procedure
 
+    // ---------------------------------------------------------------- the unattended build (/build, 2026-11-21)
+
+    // Puts the library back as the program has it: nothing unattended, an empty log.
+    Procedure Build_Reset
+        String[] asNone
+        Set pbUnattended     of ghoManifestFunctionLibrary to False
+        Set pasUnattendedLog of ghoManifestFunctionLibrary to asNone
+    End_Procedure
+
+    // In a build nobody can answer, so the caller's answer is given - and the question and the answer are both in
+    // the log, so every choice a build made can be read afterwards.
+    { Published=True }
+    Procedure Test_Build_AskYesNo_Gives_The_Unattended_Answer_And_Logs_It
+        String[] asLog
+        Integer iAnswer
+
+        Send Build_Reset
+        Set pbUnattended of ghoManifestFunctionLibrary to True
+        Get AskYesNo of ghoManifestFunctionLibrary "Embed it?" "" MBR_Yes to iAnswer
+        Send AssertIAreEqual MBR_Yes iAnswer "The answer given for a build."
+        Get AskYesNo of ghoManifestFunctionLibrary "Write it anyway?" "Platform" MBR_No to iAnswer
+        Send AssertIAreEqual MBR_No iAnswer "No is given as No."
+        Get pasUnattendedLog of ghoManifestFunctionLibrary to asLog
+        Send Build_Reset
+        Send AssertIAreEqual 4 (SizeOfArray(asLog)) "Two lines per question: the question, then the answer."
+        Send AssertSAreEqual "Question: Embed it?" asLog[0] "The question as it was asked."
+        Send Assert (Pos("Answered Yes", asLog[1]) > 0) "The answer, in words."
+        Send Assert (Pos("Answered No", asLog[3]) > 0) "No, in words."
+    End_Procedure
+
+    // A message in a build is a log line, not a box; Info_Box's "\n" line breaks become real ones, indented.
+    { Published=True }
+    Procedure Test_Build_Inform_Writes_The_Log_Instead_Of_A_Box
+        String[] asLog
+
+        Send Build_Reset
+        Set pbUnattended of ghoManifestFunctionLibrary to True
+        Send Inform of ghoManifestFunctionLibrary "First line\nSecond line"
+        Get pasUnattendedLog of ghoManifestFunctionLibrary to asLog
+        Send Build_Reset
+        Send AssertIAreEqual 1 (SizeOfArray(asLog)) "One message, one entry."
+        Send AssertSAreEqual ("Message: First line" + Character(13) + Character(10) + "    Second line") asLog[0] "The line break kept, indented."
+    End_Procedure
+
+    // A program that is not there: exit code 2, the build could not start - and it says why, before any table is read.
+    { Published=True }
+    Procedure Test_Build_Of_A_Missing_Program_Is_Exit_Code_2
+        String[] asLog
+        Integer iBuildExit
+
+        Send Build_Reset
+        Get UnattendedBuild of ghoManifestFunctionLibrary "C:\NoSuchFolder\NoSuchProgram.exe" False False False to iBuildExit
+        Get pasUnattendedLog of ghoManifestFunctionLibrary to asLog
+        Send Build_Reset
+        Send AssertIAreEqual 2 iBuildExit "Could not start."
+        Send Assert (Pos("the program file is not there", asLog[SizeOfArray(asLog) - 1]) > 0) "The reason is the last line."
+    End_Procedure
+
+    // An antivirus refusal in mt.exe's words gets the advice to compile instead; any other error gets nothing extra.
+    { Published=True }
+    Procedure Test_Build_Antivirus_Block_Gets_Advice
+        String sAdvice
+        Get AntivirusBlockAdvice of ghoManifestFunctionLibrary 'mt.exe : general error c101008d: Failed to write the updated manifest to the resource of file "x.exe". Operation did not complete successfully because the file contains a virus or potentially unwanted software.' to sAdvice
+        Send Assert (Pos("Compile the program instead", sAdvice) > 0) "Defender's refusal: compile instead."
+        Get AntivirusBlockAdvice of ghoManifestFunctionLibrary 'mt.exe : general error c1010070: Failed to load and parse the manifest.' to sAdvice
+        Send AssertSAreEqual "" sAdvice "Another error: no antivirus advice."
+    End_Procedure
+
 End_Object

@@ -305,7 +305,55 @@ Class cManifestFunctionLibrary is a cObject
         // The files of the global Manifest Fragment Library on GitHub, as last listed by
         // CheckForNewManifestFragmentFiles. DownloadNewFiles finds each file's address here.
         Property tRemoteFragmentFile[] pRemoteFragmentFiles
+        // THE UNATTENDED BUILD (/build, 2026-11-21): no box and no question while it runs - Inform and AskYesNo write
+        // to pasUnattendedLog instead - and each step says it succeeded through pbStepOk.
+        Property Boolean  pbUnattended False
+        Property String[] pasUnattendedLog
+        Property Boolean  pbStepOk False
     End_Procedure
+
+    // One line in the unattended build's log. Info_Box's line break, "\n", becomes a real one, indented.
+    Procedure UnattendedLog String sLine
+        String[] asLog
+        Get pasUnattendedLog to asLog
+        Move (Replaces("\n", sLine, (Character(13) + Character(10) + "    "))) to sLine
+        Move sLine to asLog[SizeOfArray(asLog)]
+        Set pasUnattendedLog to asLog
+    End_Procedure
+
+    /* A message to the user: the Info_Box it always was - with or without a caption - or, in an unattended build
+       (/build), a line in its log. Used on the path the build takes (the manifest, the COM files, embedding). */
+    Procedure Inform String sMessage String sCaption
+        If (pbUnattended(Self) = True) Begin
+            Send UnattendedLog ("Message: " + sMessage)
+            Procedure_Return
+        End
+        If (Num_Arguments > 1) Begin
+            Send Info_Box sMessage sCaption
+        End
+        Else Begin
+            Send Info_Box sMessage
+        End
+    End_Procedure
+
+    /* A yes/no question: YesNo_Box in the program. In an unattended build nobody can answer, so the caller gives the
+       answer for that case (MBR_Yes or MBR_No), and the question and the answer go to the log - every choice a build
+       made can be read there. */
+    Function AskYesNo String sQuestion String sCaption Integer iUnattendedAnswer Returns Integer
+        Integer iAnswer
+        If (pbUnattended(Self) = True) Begin
+            Send UnattendedLog ("Question: " + sQuestion)
+            Send UnattendedLog ("    Answered " + (If(iUnattendedAnswer = MBR_Yes, "Yes", "No")) + " (unattended build).")
+            Function_Return iUnattendedAnswer
+        End
+        If (sCaption = "") Begin
+            Get YesNo_Box sQuestion to iAnswer
+        End
+        Else Begin
+            Get YesNo_Box sQuestion sCaption to iAnswer
+        End
+        Function_Return iAnswer
+    End_Function
 
     // Adds the ManifestSideBySide program to the VDF Studio's Tools menu.
     // Pass the Studio version as a dot separated string. E.g. "17.0"
@@ -504,7 +552,7 @@ Class cManifestFunctionLibrary is a cObject
         Boolean bApplicationStringsOk bExists
 
         If (Trim(sFileName) = "") Begin
-            Send Info_Box "Please select a manifest file first, then try again."
+            Send Inform "Please select a manifest file first, then try again."
             Procedure_Return
         End
 
@@ -515,12 +563,12 @@ Class cManifestFunctionLibrary is a cObject
 
         Move (SizeOfArray(asFiles)) to iSize
         If (iSize = 0) Begin
-            Send Info_Box "No files selected. Please try again."
+            Send Inform "No files selected. Please try again."
             Procedure_Return
         End
         Get CheckLocalManifestFragmentFiles (&asFiles) to bExists
         If (bExists = False) Begin
-            Send Info_Box "Not all selected Manifest Fragment files exists in your local Manifest Fragment Library. Those files missing are marked with red in the grid.\n\nYou could try to press the 'Download New Fragment Files' button to download the missing file(s) from the global library on GitHub."
+            Send Inform "Not all selected Manifest Fragment files exists in your local Manifest Fragment Library. Those files missing are marked with red in the grid.\n\nYou could try to press the 'Download New Fragment Files' button to download the missing file(s) from the global library on GitHub."
             Procedure_Return
         End
 
@@ -1227,11 +1275,11 @@ Class cManifestFunctionLibrary is a cObject
                         End
                     End
                     If (sCOMComponentWithPath = "") Begin
-                        Send Info_Box ("Could not find the COM (OCX/DLL) component to copy:\n" + (sCommonComLibraryPath + sFileName) * "to:\n" + sExeFilePath)
+                        Send Inform ("Could not find the COM (OCX/DLL) component to copy:\n" + (sCommonComLibraryPath + sFileName) * "to:\n" + sExeFilePath)
                         Move False to bRetval
                     End
                     Else If (bNamed = False) Begin
-                        Send Info_Box ("Could not find the COM (OCX/DLL) component to copy:\n" + sFileName + "\n\nThe Windows registry names another build of it for the same class:\n" + sCOMComponentWithPath)
+                        Send Inform ("Could not find the COM (OCX/DLL) component to copy:\n" + sFileName + "\n\nThe Windows registry names another build of it for the same class:\n" + sCOMComponentWithPath)
                         Move False to bRetval
                     End
                     Else Begin
@@ -1239,13 +1287,13 @@ Class cManifestFunctionLibrary is a cObject
                         // Also check that the file named in the registry actually exists.
                         Get vFilePathExists sCOMComponentWithPath to bOk
                         If (bOk = True) Begin
-                            Get YesNo_Box ("The component path was found in the Windows registry. Copy this component to the target folder?\n" + sCOMComponentWithPath) to iRetval
+                            Get AskYesNo ("The component path was found in the Windows registry. Copy this component to the target folder?\n" + sCOMComponentWithPath) "" MBR_Yes to iRetval
                             If (iRetval = MBR_Yes) Begin
                                 Move sCOMComponentWithPath to sSource
                             End
                         End
                         Else Begin
-                            Send Info_Box ("Could not find the COM (OCX/DLL) component to copy:\n" + sCOMComponentWithPath)
+                            Send Inform ("Could not find the COM (OCX/DLL) component to copy:\n" + sCOMComponentWithPath)
                             Move False to bRetval
                         End
                     End
@@ -1257,7 +1305,7 @@ Class cManifestFunctionLibrary is a cObject
             If (sSource <> "") Begin
                 Get vCopyFile sSource sExeFilePath to iRetval
                 If (iRetval <> 0) Begin
-                    Send Info_Box ("The COM (OCX/DLL) component could not be copied:\n" + sSource + "\nto:\n" + sExeFilePath)
+                    Send Inform ("The COM (OCX/DLL) component could not be copied:\n" + sSource + "\nto:\n" + sExeFilePath)
                     Move False to bRetval
                 End
             End
@@ -1962,7 +2010,7 @@ Class cManifestFunctionLibrary is a cObject
 
         Get pbApplicationStringsOk to bApplicationStringsOk
         If (bApplicationStringsOk = False) Begin
-            Send Info_Box "Oops, something went wrong because all properties have not been set correctly by the program."
+            Send Inform "Oops, something went wrong because all properties have not been set correctly by the program."
             Procedure_Return
         End
 
@@ -1972,7 +2020,7 @@ Class cManifestFunctionLibrary is a cObject
         // Two fragment files declaring the same class make a manifest mt.exe rejects: said first, and nothing written.
         Get FragmentFilesSharingClasses sManifestFragmentLibrary (&asFiles) to sValue
         If (sValue <> "") Begin
-            Send Info_Box ("The manifest file was not changed. These fragment files declare the same COM classes, and a manifest may declare a class only once:\n\n" + sValue + "\nThis is usually the 32-bit and the 64-bit file of one component. Remove the one that does not match the program - a 64-bit program needs the x64 file.")
+            Send Inform ("The manifest file was not changed. These fragment files declare the same COM classes, and a manifest may declare a class only once:\n\n" + sValue + "\nThis is usually the 32-bit and the 64-bit file of one component. Remove the one that does not match the program - a 64-bit program needs the x64 file.")
             Procedure_Return
         End
 
@@ -1991,7 +2039,7 @@ Class cManifestFunctionLibrary is a cObject
             Get ManifestArchitecture sPlatform to sArchitecture
             Get FragmentPlatformMismatches sExePath sPlatform (&asFiles) to sValue
             If (sValue <> "") Begin
-                Get YesNo_Box ("The program " + sExeFileName + " is " + sPlatform + ", but these selected fragment files are for another platform. A 64-bit program cannot use a 32-bit COM component, nor the other way round:\n\n" + sValue + "\nFor a 64-bit program, select the files with x64 in their name instead.\n\nWrite the manifest anyway?") "Platform" to iRetval
+                Get AskYesNo ("The program " + sExeFileName + " is " + sPlatform + ", but these selected fragment files are for another platform. A 64-bit program cannot use a 32-bit COM component, nor the other way round:\n\n" + sValue + "\nFor a 64-bit program, select the files with x64 in their name instead.\n\nWrite the manifest anyway?") "Platform" MBR_No to iRetval
                 If (iRetval <> MBR_Yes) Begin
                     Procedure_Return
                 End
@@ -2001,7 +2049,7 @@ Class cManifestFunctionLibrary is a cObject
         // This file backup copy will be used to read from when we create the new manifest file.
         Get vCopyFile (sTargetPath + sManifestFileName) (sTargetPath + sManifestFileName + CS_XMLBackupName) to iRetval
         If (iRetval = True) Begin
-            Send Info_Box "A backup copy of the application manifest file could not be created. No changes were made to the manifest file."
+            Send Inform "A backup copy of the application manifest file could not be created. No changes were made to the manifest file."
             Procedure_Return
         End
 
@@ -2083,7 +2131,7 @@ Class cManifestFunctionLibrary is a cObject
             // to be changed. If so, we cannot try to change the time as it is open.
             Get IsThisProgramFile (sExePath + sExeFileName) to iRetval
             If (iRetval = 0) Begin
-                Get YesNo_Box "Windows caches manifest data. If you need to have a manifest rescanned, the 'Date modified' of the manifested .exe program needs to be changed. This has the drawback that the DataFlex Studio wants to re-compile your program.\n\nWould you like to change the modified time of the .exe file to instruct Windows to rescan manifest data?" "IMPORTANT" to iRetval
+                Get AskYesNo "Windows caches manifest data. If you need to have a manifest rescanned, the 'Date modified' of the manifested .exe program needs to be changed. This has the drawback that the DataFlex Studio wants to re-compile your program.\n\nWould you like to change the modified time of the .exe file to instruct Windows to rescan manifest data?" "IMPORTANT" MBR_No to iRetval
                 If (iRetval = MBR_Yes) Begin
                     Get FileTimeWinApi (sExePath + sExeFileName) to stFileTime
                     // Change the modified time of the exe file:
@@ -2093,7 +2141,8 @@ Class cManifestFunctionLibrary is a cObject
             End
 
             If (bOk = True) Begin
-                Send Info_Box "Ready. The application manifest file was successfully created and checked for syntactical errors."
+                Set pbStepOk to True
+                Send Inform "Ready. The application manifest file was successfully created and checked for syntactical errors."
 //                Get YesNo_Box "You also need to check/copy COM components to the Programs folder. Do that now?" to iRetval
 //                If (iRetval = MBR_Yes) Begin
 //                    Get SelectedItems of (phoManifest_grid(ghoApplication)) to asSelectedFileNames
@@ -2102,7 +2151,7 @@ Class cManifestFunctionLibrary is a cObject
             End
         End
         Else Begin
-            Send Info_Box "Couldn't find free channels to read and write to. No changes were made to the manifest file."
+            Send Inform "Couldn't find free channels to read and write to. No changes were made to the manifest file."
         End
     End_Procedure
 
@@ -2457,7 +2506,7 @@ Class cManifestFunctionLibrary is a cObject
         Get psExeFileName      to sExeName
         Get vFilePathExists (sPath + sManifestFileName) to bExist
         If (bExist = False) Begin
-            Send Info_Box "Please select a manifest file first, then try again."
+            Send Inform "Please select a manifest file first, then try again."
             Procedure_Return
         End
 
@@ -2467,23 +2516,23 @@ Class cManifestFunctionLibrary is a cObject
 
         Get vFilePathExists (sCurrProgPath + CS_MtExeProgram) to bExist
         If (bExist = False) Begin
-            Send Info_Box ("The" * CS_MtExeProgram * "program is missing from this workspace Programs folder and the manifest file cannot be embedded into the" * sExeName * "program.")
+            Send Inform ("The" * CS_MtExeProgram * "program is missing from this workspace Programs folder and the manifest file cannot be embedded into the" * sExeName * "program.")
             Procedure_Return
         End
 
         Get vFilePathExists (sExePath + sExeName) to bExist
         If (bExist = False) Begin
-            Send Info_Box ("The" * sExeName * "program is missing and the manifest file cannot be embedded. Maybe the program hasn't been compiled?")
+            Send Inform ("The" * sExeName * "program is missing and the manifest file cannot be embedded. Maybe the program hasn't been compiled?")
             Procedure_Return
         End
 
         Get IsAppRunning (sPath + sExeName) to bBusy
         If (bBusy = True) Begin
-            Send Info_Box ("The program:\n" + (sPath + sExeName) * "\nis running and cannot be updated with manifest data.\nPlease close it and try again.")
+            Send Inform ("The program:\n" + (sPath + sExeName) * "\nis running and cannot be updated with manifest data.\nPlease close it and try again.")
             Procedure_Return
         End
         
-        Get YesNo_Box "This will embedd the .manifest file into the executable file (*.exe). Continue?" to iRetval
+        Get AskYesNo "This will embedd the .manifest file into the executable file (*.exe). Continue?" "" MBR_Yes to iRetval
         If (iRetval <> MBR_Yes) Begin
             Procedure_Return
         End
@@ -2513,12 +2562,14 @@ Class cManifestFunctionLibrary is a cObject
 
         If (iRetval = 0) Begin
             Set FileTimeWinApi (sExePath + sExeName) to stFileTime
-            Send Info_Box ("Done! The manifest data from:\n" + (sPath + sManifestFileName) * "was embedded in" * sExeName + "\n\n" + sText)
+            Set pbStepOk to True
+            Send Inform ("Done! The manifest data from:\n" + (sPath + sManifestFileName) * "was embedded in" * sExeName + "\n\n" + sText)
         End
 
         // Parse the output error array & format text for the info_box:
         Else Begin
-            Send Info_Box ("Error. Could not embed the manifest data in the executable.\n\n" + sText)
+            Get AntivirusBlockAdvice sText to sValue
+            Send Inform ("Error. Could not embed the manifest data in the executable.\n\n" + sText + sValue)
         End
     End_Procedure
 
@@ -2534,7 +2585,7 @@ Class cManifestFunctionLibrary is a cObject
         Get vFolderFormat sManifestFragmentLibrary to sManifestFragmentLibrary
         Get vFilePathExists (sManifestFragmentLibrary + sManifestFragmentFile) to bExists
         If (bExists = False) Begin
-            Send Info_Box ("Could not find the manifest fragment file:\n" + (sManifestFragmentLibrary + sManifestFragmentFile))
+            Send Inform ("Could not find the manifest fragment file:\n" + (sManifestFragmentLibrary + sManifestFragmentFile))
             Function_Return ""
         End
 
@@ -4610,6 +4661,202 @@ Class cManifestFunctionLibrary is a cObject
         Set pbApplicationStringsOk to True
     End_Procedure
 
+    /* The manifest record for a program file: the one whose file is <program>.manifest, kept in the program's own
+       folder or in the AppSrc folder beside it (where the Studio keeps it). Returns its ID, 0 when there is none, with
+       the record's folder and file name in sPath and sManifest. Names and folders compare case-insensitively. */
+    Function ManifestRecordForProgram String sExe String ByRef sPath String ByRef sManifest Returns Integer
+        String sWant sFolder sAppSrc sRecFolder sName
+        Integer iID
+        Boolean bOpen
+
+        Move "" to sPath
+        Move "" to sManifest
+        Get ParseFileName sExe to sName
+        Move (Lowercase(sName + CS_ManifestExtension)) to sWant
+        Get ParseFolderName sExe to sFolder
+        Move (Lowercase(vFolderFormat(sFolder))) to sFolder
+        Move (Replace("\programs\", sFolder, "\appsrc\")) to sAppSrc
+
+        Get_Attribute DF_FILE_OPENED of ManHdr.File_Number to bOpen
+        If (bOpen = False) Begin
+            Open ManHdr
+        End
+        Move 0 to iID
+        Clear ManHdr
+        Find Gt ManHdr by Recnum
+        While (Found and iID = 0)
+            Move (Lowercase(vFolderFormat(Trim(ManHdr.Path)))) to sRecFolder
+            If (Lowercase(Trim(ManHdr.ManifestFileName)) = sWant and (sRecFolder = sFolder or sRecFolder = sAppSrc)) Begin
+                Move ManHdr.ID to iID
+                Move (Trim(ManHdr.Path)) to sPath
+                Move (Trim(ManHdr.ManifestFileName)) to sManifest
+            End
+            Else Begin
+                Find Gt ManHdr by Recnum
+            End
+        Loop
+        Function_Return iID
+    End_Function
+
+    // The fragment files a manifest record lists, read from ManDet by the index that starts with ManHdrID.
+    Function FragmentFilesOfRecord Integer iID Returns String[]
+        String[] asFiles
+        String sName
+        Integer iIndex iLast iField i
+        Boolean bOpen
+
+        Get_Attribute DF_FILE_OPENED of ManDet.File_Number to bOpen
+        If (bOpen = False) Begin
+            Open ManDet
+        End
+        Move 0 to iIndex
+        Get_Attribute DF_FILE_LAST_INDEX_NUMBER of ManDet.File_Number to iLast
+        For i from 1 to iLast
+            If (iIndex = 0) Begin
+                Get_Attribute DF_INDEX_SEGMENT_FIELD of ManDet.File_Number i 1 to iField
+                Get_Attribute DF_FIELD_NAME of ManDet.File_Number iField to sName
+                If (Uppercase(Trim(sName)) = "MANHDRID") Begin
+                    Move i to iIndex
+                End
+            End
+        Loop
+        If (iIndex = 0 or iID = 0) Begin
+            Function_Return asFiles
+        End
+        Clear ManDet
+        Move iID to ManDet.ManHdrID
+        Vfind ManDet.File_Number iIndex GE
+        While (Found and ManDet.ManHdrID = iID)
+            If (Trim(ManDet.ManifestFragmentFile) <> "") Begin
+                Move (Trim(ManDet.ManifestFragmentFile)) to asFiles[SizeOfArray(asFiles)]
+            End
+            Vfind ManDet.File_Number iIndex GT
+        Loop
+        Function_Return asFiles
+    End_Function
+
+    /* THE UNATTENDED BUILD (COMManifestStudio.exe /build <program.exe> [/copy] [/embed], 2026-11-21): the dashboard's
+       steps without a window. Build the manifest file, copy the COM files missing from the program's folder (/copy),
+       embed the manifest in the program (/embed) - in that order, stopping at the first step that fails. Each step is
+       judged by what is on disk afterwards, not by its message: the manifest built and checked by mt.exe, no COM file
+       missing, the program's embedded manifest the same as the file. No box and no question: they go to the log
+       (pasUnattendedLog), with the answer each question was given.
+       /compile builds the program again instead of rewriting it: the compiler embeds the manifest (EmbedManifestFile=1),
+       and nothing changes a finished .exe - which an antivirus program can take for a worm (Windows Defender did).
+       Returns the exit code: 0 everything asked for was done, 1 a step failed, 2 the build could not start. */
+    Function UnattendedBuild String sExe Boolean bCopy Boolean bCompile Boolean bEmbed Returns Integer
+        String[] asFragments asMissingFragments asMissingFiles
+        String sPath sManifest sExeFolder sList
+        Integer iID iState i iLast iMissing iCfgEmbeds
+        Boolean bExists bOk bCompressed
+        tFileStruct[] Components
+
+        Set pbUnattended to True
+        Send UnattendedLog ("Program  : " + sExe)
+        Get vFilePathExists sExe to bExists
+        If (Trim(sExe) = "" or bExists = False) Begin
+            Send UnattendedLog ("FAILED: the program file is not there: " + sExe)
+            Function_Return 2
+        End
+        Get ManifestRecordForProgram sExe (&sPath) (&sManifest) to iID
+        If (iID = 0) Begin
+            Send UnattendedLog "FAILED: COM Manifest Studio has no manifest for this program. Open the program's manifest in COM Manifest Studio once, and add its COM files, before a build can make it."
+            Function_Return 2
+        End
+        Send SetApplicationStrings (vFolderFormat(sPath) + sManifest)
+        If (pbApplicationStringsOk(Self) = False) Begin
+            Send UnattendedLog ("FAILED: the manifest file is not there: " + vFolderFormat(sPath) + sManifest)
+            Function_Return 2
+        End
+        // The program is where the command line says, whatever SetApplicationStrings guessed from the manifest's folder.
+        Get ParseFolderName sExe to sExeFolder
+        Set psExeFilePath to (vFolderFormat(sExeFolder))
+        Send UnattendedLog ("Manifest : " + vFolderFormat(sPath) + sManifest)
+
+        Get FragmentFilesOfRecord iID to asFragments
+        Move (SizeOfArray(asFragments) - 1) to iLast
+        If (iLast < 0) Begin
+            Send UnattendedLog "FAILED: the manifest lists no COM files. Add them in COM Manifest Studio first."
+            Function_Return 2
+        End
+        Move "" to sList
+        For i from 0 to iLast
+            Move (sList + (If(i = 0, "", ", ")) + asFragments[i]) to sList
+        Loop
+        Send UnattendedLog ("COM files: " + String(iLast + 1) + " - " + sList)
+
+        // 1 The manifest file
+        Send UnattendedLog "Step 1: build the manifest file"
+        Set pbStepOk to False
+        Send BuildManifestFile sManifest asFragments
+        If (pbStepOk(Self) = False) Begin
+            Send UnattendedLog "FAILED: the manifest file was not built."
+            Function_Return 1
+        End
+        Send UnattendedLog "    Done: built, and checked by mt.exe."
+
+        // 2 The COM files in the program's folder
+        If (bCopy = True) Begin
+            Send UnattendedLog "Step 2: copy the COM files that are missing from the program's folder"
+            Get CheckForDependecies asFragments to Components
+            Move (SizeOfArray(Components) - 1) to iLast
+            For i from 0 to iLast
+                If (Components[i].bExists = False) Begin
+                    Move Components[i].sFileNameFirstCol  to asMissingFragments[SizeOfArray(asMissingFragments)]
+                    Move Components[i].sFileNameSecondCol to asMissingFiles[SizeOfArray(asMissingFiles)]
+                    Send UnattendedLog ("    Missing: " + Components[i].sFileNameSecondCol)
+                End
+            Loop
+            If (SizeOfArray(asMissingFiles) > 0) Begin
+                Get CopyCOMComponents (&asMissingFragments) (&asMissingFiles) to bOk
+                Get CheckForDependecies asFragments to Components
+            End
+            Get IsCOMComponentsMissing Components to iMissing
+            If (iMissing > 0) Begin
+                Send UnattendedLog ("FAILED: " + String(iMissing) + " COM file(s) are still missing from " + psExeFilePath(Self))
+                Function_Return 1
+            End
+            Send UnattendedLog ("    Done: all " + String(SizeOfArray(Components)) + " COM file(s) are in the program's folder.")
+        End
+
+        /* 3 The program compiled: the compiler embeds the manifest (/compile, 2026-11-21). The way to get it into the
+           program that never rewrites a finished .exe - an antivirus program can take that for a worm. */
+        If (bCompile = True) Begin
+            Send UnattendedLog "Step 3: compile the program - the compiler embeds the manifest"
+            Get ProgramSourceFile to sList
+            Get ProgramCfgEmbedsManifest sList to iCfgEmbeds
+            If (iCfgEmbeds = 0) Begin
+                Send UnattendedLog "FAILED: the program's project settings do not embed the manifest (EmbedManifestFile=0 in its .cfg). Turn 'Embed manifest file' on, or use /embed instead."
+                Function_Return 1
+            End
+            Get UnattendedCompile to bOk
+            If (bOk = False) Begin
+                Send UnattendedLog "FAILED: the program did not compile."
+                Function_Return 1
+            End
+            Get EmbeddedManifestState (psExeFilePath(Self) + psExeFileName(Self)) (vFolderFormat(psTargetPath(Self)) + psManifestFileName(Self)) (&bCompressed) to iState
+            If (iState <> CI_EmbedSame) Begin
+                Send UnattendedLog ("FAILED: the program was compiled, but it does not carry the manifest file's COM classes. Is " + psExeFilePath(Self) + psExeFileName(Self) + " the file the compiler writes?")
+                Function_Return 1
+            End
+            Send UnattendedLog "    Done: compiled, and the program carries the manifest, with the same COM classes."
+        End
+
+        // 4 The manifest put into the finished program by mt.exe (/embed)
+        If (bEmbed = True) Begin
+            Send UnattendedLog "Step 4: embed the manifest in the program"
+            Set pbStepOk to False
+            Send EmbedManifestInProgram
+            Get EmbeddedManifestState (psExeFilePath(Self) + psExeFileName(Self)) (vFolderFormat(psTargetPath(Self)) + psManifestFileName(Self)) (&bCompressed) to iState
+            If (pbStepOk(Self) = False or iState <> CI_EmbedSame) Begin
+                Send UnattendedLog "FAILED: the manifest is not embedded in the program."
+                Function_Return 1
+            End
+            Send UnattendedLog "    Done: the program carries the manifest, with the same COM classes."
+        End
+        Function_Return 0
+    End_Function
+
     // Pass an array with selected fragment files.
     // Returns a struct array with the Fragment files, COM component names and a boolean if it is missing or not
     // from the application's Program folder.
@@ -4787,7 +5034,7 @@ Class cManifestFunctionLibrary is a cObject
         Get vFolderFormat sCurrProgPath to sCurrProgPath
         Get vFilePathExists (sCurrProgPath + CS_MtExeProgram) to bExist
         If (bExist = False) Begin
-            Send Info_Box ("The" * CS_MtExeProgram * "program is missing from this workspace Programs folder and the manifest file cannot be validated.")
+            Send Inform ("The" * CS_MtExeProgram * "program is missing from this workspace Programs folder and the manifest file cannot be validated.")
             Function_Return False
         End
 
@@ -4801,7 +5048,7 @@ Class cManifestFunctionLibrary is a cObject
         Send Cursor_Ready of Cursor_Control
 
         If (iRetval = -1) Begin
-            Send Info_Box "The validation check could not be performed, because the validation program could not be run."
+            Send Inform "The validation check could not be performed, because the validation program could not be run."
             Function_Return False
         End
 
@@ -4810,7 +5057,7 @@ Class cManifestFunctionLibrary is a cObject
         // program", and mt.exe's lines were not shown (Nils: a class declared twice).
         Else If (iRetval > 0) Begin
             If (SizeOfArray(asValue) = 0) Begin
-                Send Info_Box ("The" * CS_MtExeProgram * "program failed with exit code" * String(iRetval) + ", without a message, and the application manifest file could not be verified.")
+                Send Inform ("The" * CS_MtExeProgram * "program failed with exit code" * String(iRetval) + ", without a message, and the application manifest file could not be verified.")
                 Function_Return False
             End
         End
@@ -4835,12 +5082,12 @@ Class cManifestFunctionLibrary is a cObject
             If (sEditorParams <> "") Begin
                 Runprogram Background sEditor ('"' + sEditorParams + '"' * '"' + (sTargetPath + sAppManifestFile) + '"')
                 // ...show error message:
-                Send Info_Box ("The application manifest file could not be verified. " + CS_MtExeProgram + " says:\n" + sValue)
+                Send Inform ("The application manifest file could not be verified. " + CS_MtExeProgram + " says:\n" + sValue)
             End
             Else Begin
                 Runprogram Background sEditor ('"' + (sTargetPath + sAppManifestFile) + '"')
                 // ...show error message:
-                Send Info_Box ("The application manifest file could not be verified. " + CS_MtExeProgram + " says:\n" + sValue)
+                Send Inform ("The application manifest file could not be verified. " + CS_MtExeProgram + " says:\n" + sValue)
             End
         End
 
@@ -4916,7 +5163,7 @@ Class cManifestFunctionLibrary is a cObject
         
         Get vFilePathExists sFilename to bExists
         If (bExists = False) Begin
-            Send Info_Box ("The program file doesn't exist:" + "\n" + sFilename)
+            Send Inform ("The program file doesn't exist:" + "\n" + sFilename)
             Function_Return 0
         End
         // CreateFileW: every character of the path reaches Windows. CreateFileA took it after Utf8ToAnsi, so a letter
@@ -4926,10 +5173,10 @@ Class cManifestFunctionLibrary is a cObject
         If (iRetVal = INVALID_HANDLE_VALUE) Begin
             Move (GetLastError()) to iErrornumber
             If (iErrornumber = 32) Begin
-                Send Info_Box ("Oops!\nCould not open the file:\n" + sFilename + "\n\nIs the program perhaps running? Then it cannot be updated.")
+                Send Inform ("Oops!\nCould not open the file:\n" + sFilename + "\n\nIs the program perhaps running? Then it cannot be updated.")
             End
             Else Begin
-                Send Info_Box ("Error:" * String(iErrornumber) + "Something went wrong and it was not possible to open the file:\n" + sFilename) "Error"
+                Send Inform ("Error:" * String(iErrornumber) + "Something went wrong and it was not possible to open the file:\n" + sFilename) "Error"
             End
 
             Function_Return 0
@@ -5349,6 +5596,106 @@ Class cManifestFunctionLibrary is a cObject
         Move sBestV to sVersion
         Move sBestR to sRoot
         Function_Return sBest
+    End_Function
+
+    /* When mt.exe's message says an antivirus program refused the change, what to do instead - "" for any other error.
+       Embedding rewrites a finished program file, and that is what a worm does: Windows Defender took mt.exe's rewrite
+       of a DataFlex program for Worm:Win32/Mofksys!pz (2026-11-21), and other antivirus programs can do the same. The
+       compiler does not have the problem - it writes the program with the manifest in it in the first place. */
+    Function AntivirusBlockAdvice String sMtOutput Returns String
+        String sLower
+        Move (Lowercase(sMtOutput)) to sLower
+        If ((sLower contains "virus") or (sLower contains "unwanted software") or (sLower contains "c101008d" and sLower contains "denied")) Begin
+            Function_Return ("\n\nAn antivirus program refused the change to the program file. Rewriting a finished program is what some malware does, so this can happen on any machine. Compile the program instead: with 'Embed manifest file' on in its project settings (EmbedManifestFile=1 in its .cfg), the compiler puts this manifest in the program as it builds it.")
+        End
+        Function_Return ""
+    End_Function
+
+    // What the program's project settings - the .cfg beside its .src - say about the manifest: 1 the compiler embeds
+    // AppSrc\<program>.exe.manifest (EmbedManifestFile=1), 0 it does not, -1 there is no .cfg or no such line.
+    Function ProgramCfgEmbedsManifest String sSrc Returns Integer
+        String sCfg sLine
+        Integer iCh iResult
+        Boolean bExists
+
+        If (Length(sSrc) < 5) Begin
+            Function_Return -1
+        End
+        Move (Left(sSrc, (Length(sSrc) - 4)) + ".cfg") to sCfg
+        Get vFilePathExists sCfg to bExists
+        If (bExists = False) Begin
+            Function_Return -1
+        End
+        Get Seq_New_Channel to iCh
+        If (iCh < 0) Begin
+            Function_Return -1
+        End
+        Move -1 to iResult
+        Direct_Input channel iCh sCfg
+        Repeat
+            Readln channel iCh sLine
+            Move (Lowercase(Replaces(" ", sLine, ""))) to sLine
+            If (Left(sLine, 18) = "embedmanifestfile=") Begin
+                Move (If(Mid(sLine, 1, 19) = "1", 1, 0)) to iResult
+            End
+        Until (SeqEof)
+        Close_Input channel iCh
+        Send Seq_Release_Channel iCh
+        Function_Return iResult
+    End_Function
+
+    /* The unattended build's compile (/compile): the program built again by the DataFlex version its workspace is for,
+       hidden, its output in the build's log. The compiler embeds the manifest file when the project says so
+       (EmbedManifestFile=1), which is the way to get the manifest into the program without rewriting a finished .exe.
+       Returns True when the compiler ended without an error. */
+    Function UnattendedCompile Returns Boolean
+        String[] asOutput
+        String sName sSrc sSws sVersion sRoot sWhy sCompiler sParams sFolder
+        Integer iRetval i iFirst iLast
+
+        Get ManifestProgramName to sName
+        Get ProgramSourceFile to sSrc
+        If (sSrc = "") Begin
+            Send Inform ("The program's source," * sName + ".src, was not found beside the manifest file, nor in an AppSrc folder beside it.")
+            Function_Return False
+        End
+        Move (ParseFileName(sSrc)) to sName
+        Move (Left(sName, Length(sName) - 4)) to sName
+        Get ProgramWorkspace sSrc (&sVersion) (&sRoot) (&sWhy) to sSws
+        If (sSws = "") Begin
+            Send Inform ("The program cannot be compiled from here." * sWhy)
+            Function_Return False
+        End
+        Get DataFlexCompiler sRoot sVersion sSrc to sCompiler
+        If (sCompiler = "") Begin
+            Send Inform ("DataFlex" * sVersion * "is installed, but its compiler was not found in" * sRoot + ".")
+            Function_Return False
+        End
+        If (CompareDataFlexVersions(Self, sVersion, "26.0") >= 0) Begin
+            Move ('build --rebuild --target ' + sName + ' "' + sSws + '"') to sParams
+        End
+        Else Begin
+            Move ('"' + sSrc + '" "-x' + sSws + '"') to sParams
+        End
+        Get ParseFolderName sSrc to sFolder
+        Send UnattendedLog ("    " + sCompiler * sParams)
+        Get ExternalProgramResult of ghoExternalProgramResult sCompiler sParams sFolder (&asOutput) to iRetval
+        // The end of the compiler's output - where its errors and its result are.
+        Move (SizeOfArray(asOutput) - 1) to iLast
+        Move (iLast - 14) to iFirst
+        If (iFirst < 0) Begin
+            Move 0 to iFirst
+        End
+        For i from iFirst to iLast
+            If (Trim(asOutput[i]) <> "") Begin
+                Send UnattendedLog ("    | " + asOutput[i])
+            End
+        Loop
+        If (iRetval <> 0) Begin
+            Send UnattendedLog ("    The compiler ended with exit code " + String(iRetval) + ".")
+            Function_Return False
+        End
+        Function_Return True
     End_Function
 
     // Compiles the manifest's program (see the comment above), and returns when the compiler has ended.

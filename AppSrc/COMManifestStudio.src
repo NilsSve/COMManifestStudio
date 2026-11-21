@@ -78,6 +78,18 @@ Object oApplication is a cRDCApplication
     // It should be done if the program was started from the DataFlex Studio's Tools menu
     Property String psApplicationManifestName ""
 
+    /* THE UNATTENDED BUILD - COMManifestStudio.exe /build <program.exe> [/copy] [/compile] [/embed] [/log <file>] (2026-11-21).
+       Read from the command line by ReadBuildSwitches, run by OnStartup before any window is shown
+       (RunUnattendedBuild), and the program ends with the build's exit code: 0 done, 1 a step failed, 2 the build
+       could not start. psBuildArgError keeps a command line that cannot be run, for the log. */
+    Property Boolean pbBuildMode     False
+    Property String  psBuildExe      ""
+    Property Boolean pbBuildCopy     False
+    Property Boolean pbBuildEmbed    False
+    Property Boolean pbBuildCompile  False
+    Property String  psBuildLog      ""
+    Property String  psBuildArgError ""
+
     // Various object handles:
     Property Handle phoMainPromptObject
     Property Handle phoManifestPathObject
@@ -107,6 +119,51 @@ Object oApplication is a cRDCApplication
         End
     End_Procedure
 
+    // The /build command line: the program, /copy, /compile, /embed, /log <file>. /quiet is accepted and changes nothing - a
+    // build never shows a window. Anything else is an error the build reports, rather than a guess.
+    Procedure ReadBuildSwitches Handle hoCmdLine
+        Integer iArgs i
+        String sArg
+
+        Set pbBuildMode to True
+        Get CountOfArgs of hoCmdLine to iArgs
+        For i from 2 to iArgs
+            Get Argument of hoCmdLine i to sArg
+            Move (Trim(sArg)) to sArg
+            Case Begin
+                Case (Lowercase(sArg) = "/copy")
+                    Set pbBuildCopy to True
+                    Case Break
+                Case (Lowercase(sArg) = "/embed")
+                    Set pbBuildEmbed to True
+                    Case Break
+                Case (Lowercase(sArg) = "/compile")
+                    Set pbBuildCompile to True
+                    Case Break
+                Case (Lowercase(sArg) = "/quiet")
+                    Case Break
+                Case (Lowercase(sArg) = "/log")
+                    Increment i
+                    Get Argument of hoCmdLine i to sArg
+                    Set psBuildLog to (Trim(sArg))
+                    Case Break
+                Case (sArg = "")
+                    Case Break
+                Case (Left(sArg, 1) = "/")
+                    Set psBuildArgError to ("unknown switch on the command line: " + sArg)
+                    Case Break
+                Case (psBuildExe(Self) <> "")
+                    Set psBuildArgError to ("more than one program on the command line: " + sArg)
+                    Case Break
+                Case Else
+                    Set psBuildExe to sArg
+            Case End
+        Loop
+        If (psBuildExe(Self) = "" and psBuildArgError(Self) = "") Begin
+            Set psBuildArgError to "no program on the command line. Use: COMManifestStudio.exe /build <program.exe> [/copy] [/compile] [/embed] [/log <file>]"
+        End
+    End_Procedure
+
     // Accept passing a string with the name of an executable including full pathing on the command line.
     // This is used by the Studio "Tools" menu to automatically start this
     // program and to display the application record that is currently active
@@ -119,7 +176,10 @@ Object oApplication is a cRDCApplication
         Get phoCommandLine to hoCmdLine
         Get Argument of hoCmdLine 1 to sArgument
 
-        If (sArgument <> "") Begin
+        If (Lowercase(sArgument) = "/build") Begin
+            Send ReadBuildSwitches hoCmdLine
+        End
+        Else If (sArgument <> "") Begin
             Get vFilePathExists sArgument to iRetval
             If (iRetval = True) Begin
                 Move (sArgument + ".manifest") to sArgument
@@ -1224,8 +1284,86 @@ Object oMain is a Panel
 
 End_Object
 
+/* THE UNATTENDED BUILD (/build, 2026-11-21). OnStartup runs it before Start_UI, so no window is ever shown, and it
+   ends the program with the build's exit code. Runtime errors are written to the build's log by oBuildErrors instead
+   of a box nobody can click: a build server would wait for ever. The process ends with TerminateProcess, as
+   DFRefactor's batch mode does - an ordinary exit can hang while COM objects detach. */
+#IFNDEF get_TerminateProcessEf
+    External_Function TerminateProcessEf "TerminateProcess" Kernel32.dll ;
+        Handle  hProcess ;
+        Integer uExitCode ;
+        Returns Integer
+#ENDIF
+
+Object oBuildErrors is a cObject
+    Procedure Error_Report Integer iErrNum Integer iErrLine String sErrMsg
+        Send UnattendedLog of ghoManifestFunctionLibrary ("Error " + String(iErrNum) + " (line " + String(iErrLine) + "): " + sErrMsg)
+    End_Procedure
+    Procedure Ignore_Error Integer iErrNum
+    End_Procedure
+    Procedure Trap_Error Integer iErrNum
+    End_Procedure
+    Procedure Ignore_All
+    End_Procedure
+    Procedure Trap_All
+    End_Procedure
+End_Object
+
+Procedure RunUnattendedBuild
+    String[] asLog
+    String sExe sLog sError
+    Integer iBuildExit iCh i iLast iRet
+
+    Move (oBuildErrors(Desktop)) to Error_Object_Id
+    Set pbUnattended of ghoManifestFunctionLibrary to True
+    Send UnattendedLog of ghoManifestFunctionLibrary ("COM Manifest Studio - unattended build, " + String(CurrentDateTime()))
+    Get psBuildExe      of ghoApplication to sExe
+    Get psBuildArgError of ghoApplication to sError
+    If (sError <> "") Begin
+        Send UnattendedLog of ghoManifestFunctionLibrary ("FAILED: " + sError)
+        Move 2 to iBuildExit
+    End
+    Else Begin
+        Get UnattendedBuild of ghoManifestFunctionLibrary sExe (pbBuildCopy(ghoApplication)) (pbBuildCompile(ghoApplication)) (pbBuildEmbed(ghoApplication)) to iBuildExit
+    End
+    Send UnattendedLog of ghoManifestFunctionLibrary ("RESULT=" + (If(iBuildExit = 0, "SUCCESS", "FAILED")) + "  ExitCode=" + String(iBuildExit))
+
+    // The log: where /log says, else beside the program as <program>.manifest-build.log, else in this program's folder.
+    Get psBuildLog of ghoApplication to sLog
+    If (sLog = "") Begin
+        If (sExe <> "") Begin
+            Move (sExe + "") to sLog
+            If (Lowercase(Right(sLog, 4)) = ".exe") Begin
+                Move (Left(sLog, (Length(sLog) - 4))) to sLog
+            End
+            Move (sLog + ".manifest-build.log") to sLog
+        End
+        Else Begin
+            Move (vFolderFormat(psProgramPath(phoWorkspace(ghoApplication))) + "COMManifestStudio-build.log") to sLog
+        End
+    End
+    Get pasUnattendedLog of ghoManifestFunctionLibrary to asLog
+    Get Seq_New_Channel to iCh
+    If (iCh >= 0) Begin
+        Direct_Output channel iCh sLog
+        Move (SizeOfArray(asLog) - 1) to iLast
+        For i from 0 to iLast
+            Writeln channel iCh asLog[i]
+        Loop
+        Close_Output channel iCh
+        Send Seq_Release_Channel iCh
+    End
+
+    Move (TerminateProcessEf(-1, iBuildExit)) to iRet
+End_Procedure
+
 Procedure OnStartup
     String sValue
+
+    If (pbBuildMode(ghoApplication) = True) Begin
+        Send RunUnattendedBuild
+        Procedure_Return
+    End
     Get IniFileValue of ghoManifestIniFile (psSectionName(ghoManifestIniFile)) CS_FirstTimeUsageText CS_BooleanYes to sValue
     If (CS_BooleanYes = sValue) Begin
         Send Popup of (oFirstTimeUsage_Dialog(oClientArea(oMain(Self))))

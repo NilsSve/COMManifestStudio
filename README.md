@@ -32,6 +32,24 @@ that git ignores your own changes to the baseline database under `Data\` and you
 cannot push them by accident. If you are only running the program, you can skip
 it.
 
+## Building from the command line
+
+COM Manifest Studio can build a program's manifest without a window, for a build script or a build server:
+
+```
+COMManifestStudio.exe /build <program.exe> [/copy] [/compile] [/embed] [/log <file>]
+```
+
+- **The manifest** is always built and checked with `mt.exe`, from the COM components the program's manifest lists in COM Manifest Studio. Open the program's manifest in the program once and add its components; after that the build needs no window.
+- `/copy` copies the COM files that are missing from the program's folder.
+- `/compile` compiles the program again, with the DataFlex version its workspace is for. When the program's project settings embed the manifest (`EmbedManifestFile=1` in its `.cfg`), the compiler puts the manifest into the program as it builds it.
+- `/embed` puts the manifest into the finished program with `mt.exe`.
+- `/log <file>` writes the log there. Without it, the log is `<program>.manifest-build.log` beside the program. It holds every message the program would have shown, and every question with the answer the build gave it.
+
+The exit code is 0 when everything asked for was done and checked, 1 when a step failed, and 2 when the build could not start (no such program, or no manifest for it in COM Manifest Studio).
+
+**Use `/compile` rather than `/embed`.** `/embed` rewrites a finished program file, and that is what some malware does, so an antivirus program can refuse it: Windows Defender reported `mt.exe`'s rewrite of a DataFlex program as Worm:Win32/Mofksys!pz. The compiler writes the program with the manifest in it in the first place, which no antivirus program objects to. When `mt.exe` is refused, COM Manifest Studio says so and suggests compiling.
+
 ## Unit tests
 
 `AppSrc\UnitTests.src` is the unit-test program of the workspace, built on
