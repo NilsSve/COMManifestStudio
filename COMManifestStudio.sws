@@ -25,7 +25,7 @@
         {
             "source": "https://github.com/NilsSve/Library-RDCFlexTron.git",
             "sws": "RDC-FlexTron-Library.sws",
-            "version": "0.9.39"
+            "version": "0.9.40"
         }
     ],
     "description": "COM Manifest Studio",

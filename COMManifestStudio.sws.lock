@@ -19,7 +19,7 @@
             "ref": "1.0.12"
         },
         "github.com/NilsSve/Library-RDCFlexTron.git/RDC-FlexTron-Library": {
-            "ref": "0.9.39"
+            "ref": "0.9.40"
         },
         "github.com/NilsSve/Library-RDCToolsLib.git/RDC-Windows-Sub-Classes-Library": {
             "ref": "1.0.21"
