@@ -198,7 +198,7 @@ Object oApplication is a cRDCApplication
 
         Get ReadString of ghoApplication CS_Section CS_ThemeSetting CS_ThemeWindows to sTheme
         If (sTheme = CS_ThemeLight) ;
-            Set psBitmapPath of (phoWorkspace(Self)) to "Bitmaps"
+            Set psBitmapPath of (phoWorkspace(Self)) to "Bitmaps;Bitmaps\RDCFlexTron\LT"
         Else ;
             Set psBitmapPath of (phoWorkspace(Self)) to "Bitmaps\Dk;Bitmaps\RDCFlexTron\Dk;Bitmaps"
     End_Procedure
