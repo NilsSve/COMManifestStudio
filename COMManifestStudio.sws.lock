@@ -13,7 +13,7 @@
             "ref": "1.0.7"
         },
         "github.com/NilsSve/Library-DFUnit.git/RDC-DFUnit-Library": {
-            "ref": "0.1.0"
+            "ref": "0.1.2"
         },
         "github.com/NilsSve/Library-DUF.git/RDC-DUF-Library": {
             "ref": "1.0.12"
